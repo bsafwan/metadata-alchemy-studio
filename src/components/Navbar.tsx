@@ -1,0 +1,109 @@
+
+import React, { useState, useEffect } from 'react';
+import { Menu, X } from 'lucide-react';
+import { Button } from './ui/button';
+import { cn } from '@/lib/utils';
+
+const Navbar = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 20) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const toggleMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const navLinks = [
+    { label: "Home", href: "#home" },
+    { label: "Projects", href: "#projects" },
+    { label: "About", href: "#about" },
+    { label: "Contact", href: "#contact" },
+  ];
+
+  return (
+    <nav 
+      className={cn(
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-6 py-3",
+        isScrolled ? "bg-white/90 shadow-md backdrop-blur-md" : "bg-transparent"
+      )}
+    >
+      <div className="container mx-auto flex justify-between items-center">
+        {/* Logo */}
+        <a href="#home" className="flex items-center gap-2 animate-slide-down">
+          <img 
+            src="/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png" 
+            alt="Elismet LTD Logo" 
+            className="h-12" 
+          />
+        </a>
+
+        {/* Desktop Menu */}
+        <div className="hidden md:flex items-center gap-8">
+          {navLinks.map((link, index) => (
+            <a 
+              key={link.label}
+              href={link.href}
+              className="text-foreground hover:text-elismet-blue transition-colors animated-link font-medium animate-slide-down"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              {link.label}
+            </a>
+          ))}
+          <Button 
+            className="bg-elismet-blue hover:bg-elismet-lightBlue text-white animate-slide-down"
+            style={{ animationDelay: `${navLinks.length * 0.1}s` }}
+          >
+            Get Started
+          </Button>
+        </div>
+
+        {/* Mobile Menu Button */}
+        <button 
+          className="md:hidden text-foreground hover:text-elismet-blue transition-colors"
+          onClick={toggleMenu}
+          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+        >
+          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {/* Mobile Menu */}
+      <div 
+        className={cn(
+          "fixed inset-0 bg-white z-40 pt-20 px-6 transition-transform duration-300 md:hidden",
+          mobileMenuOpen ? "translate-x-0" : "translate-x-full"
+        )}
+      >
+        <div className="flex flex-col gap-6">
+          {navLinks.map((link) => (
+            <a 
+              key={link.label}
+              href={link.href}
+              className="text-xl font-medium text-foreground hover:text-elismet-blue transition-colors"
+              onClick={toggleMenu}
+            >
+              {link.label}
+            </a>
+          ))}
+          <Button className="bg-elismet-blue hover:bg-elismet-lightBlue text-white w-full mt-4">
+            Get Started
+          </Button>
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+export default Navbar;
