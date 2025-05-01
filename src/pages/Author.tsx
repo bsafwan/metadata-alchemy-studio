@@ -29,29 +29,7 @@ const Author = () => {
         email: "robiul@elismet.com",
         linkedin: "#",
       }
-    },
-    {
-      name: "Amir Khan",
-      role: "Lead Developer",
-      bio: "Expert software engineer with over 8 years of experience in building scalable and efficient solutions. Specialized in AI integration and cloud architecture.",
-      imageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e",
-      isFounder: false,
-      socials: {
-        email: "amir@elismet.com",
-        linkedin: "#",
-      }
-    },
-    {
-      name: "Sarah Johnson",
-      role: "Marketing Director",
-      bio: "Creative marketing professional who develops and implements strategies to increase brand awareness and drive customer acquisition for Elismet's innovative products.",
-      imageUrl: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
-      isFounder: false,
-      socials: {
-        email: "sarah@elismet.com",
-        linkedin: "#",
-      }
-    },
+    }
   ];
 
   return (
@@ -171,7 +149,7 @@ const Author = () => {
                 Join Our Journey
               </Button>
             </div>
-            <div className="order-1 lg:order-2 animate-float">
+            <div className="order-1 lg:order-2">
               <div className="relative">
                 <div className="absolute -inset-4 bg-gradient-to-r from-elismet-blue to-elismet-lightBlue rounded-xl opacity-30 blur-xl animate-pulse"></div>
                 <img 
@@ -210,8 +188,8 @@ const Author = () => {
                 &copy; {new Date().getFullYear()} Elismet LTD. All rights reserved.
               </p>
               <div className="flex gap-6 justify-center md:justify-end">
-                <a href="#" className="text-slate-400 hover:text-elismet-lightBlue transition-colors">Privacy Policy</a>
-                <a href="#" className="text-slate-400 hover:text-elismet-lightBlue transition-colors">Terms of Service</a>
+                <a href="/privacy-policy" className="text-slate-400 hover:text-elismet-lightBlue transition-colors">Privacy Policy</a>
+                <a href="/terms-of-service" className="text-slate-400 hover:text-elismet-lightBlue transition-colors">Terms of Service</a>
               </div>
             </div>
           </div>

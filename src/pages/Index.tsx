@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
@@ -111,7 +112,7 @@ const Index = () => {
                 </Button>
               </div>
             </div>
-            <div className="hidden lg:block relative animate-float">
+            <div className="hidden lg:block relative">
               <div className="absolute inset-0 bg-gradient-radial from-white/20 to-transparent rounded-full blur-2xl"></div>
               <img
                 src="/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png"
@@ -313,8 +314,8 @@ const Index = () => {
                 &copy; {new Date().getFullYear()} Elismet LTD. All rights reserved.
               </p>
               <div className="flex gap-6 justify-center md:justify-end">
-                <a href="#" className="text-slate-400 hover:text-elismet-lightBlue transition-colors">Privacy Policy</a>
-                <a href="#" className="text-slate-400 hover:text-elismet-lightBlue transition-colors">Terms of Service</a>
+                <Link to="/privacy-policy" className="text-slate-400 hover:text-elismet-lightBlue transition-colors">Privacy Policy</Link>
+                <Link to="/terms-of-service" className="text-slate-400 hover:text-elismet-lightBlue transition-colors">Terms of Service</Link>
               </div>
             </div>
           </div>
