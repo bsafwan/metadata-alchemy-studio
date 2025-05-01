@@ -32,14 +32,14 @@ const ScrollToTopButton = () => {
       variant="outline"
       size="icon"
       className={cn(
-        'fixed bottom-8 right-8 z-40 bg-elismet-blue text-white hover:bg-elismet-lightBlue border-transparent rounded-full animate-pulse-glow shadow-md',
-        'transition-all duration-300 transform',
-        isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
+        'fixed bottom-8 right-8 z-40 bg-elismet-blue text-white hover:bg-elismet-lightBlue border-transparent rounded-full shadow-md',
+        'transition-all duration-500 transform hover:scale-110',
+        isVisible ? 'translate-y-0 opacity-100 animate-bounce' : 'translate-y-12 opacity-0'
       )}
       onClick={scrollToTop}
       aria-label="Scroll to top"
     >
-      <ArrowUp size={20} />
+      <ArrowUp size={20} className="animate-pulse" />
     </Button>
   );
 };
