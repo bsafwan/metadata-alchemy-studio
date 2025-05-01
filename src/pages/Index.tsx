@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
@@ -117,7 +116,7 @@ const Index = () => {
               <img
                 src="/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png"
                 alt="Elismet LTD"
-                className="w-full max-w-lg mx-auto relative z-10 animate-rotate-in"
+                className="w-full max-w-lg mx-auto relative z-10"
               />
             </div>
           </div>
@@ -236,17 +235,17 @@ const Index = () => {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-20 bg-gradient-hero text-white overflow-hidden">
+      <section id="contact" className="py-20 bg-gradient-hero overflow-hidden">
         <div className="container mx-auto px-6">
           <div className="max-w-3xl mx-auto text-center mb-12">
             <AnimatedText
               text="Get In Touch"
-              className="text-3xl md:text-4xl font-bold mb-4"
+              className="text-3xl md:text-4xl font-bold mb-4 text-black"
               animation="zoom-in"
             />
             <AnimatedText
               text="Have questions about our projects or services? Reach out to us today."
-              className="text-white/80"
+              className="text-black/90"
               delay={0.1}
               animation="fade-in"
             />
@@ -257,9 +256,9 @@ const Index = () => {
               <div className="bg-white/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Send className="w-8 h-8" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Email</h3>
-              <p className="text-white/80 mb-2">Contact our support team</p>
-              <a href="mailto:contact@elismet.com" className="text-white hover:text-elismet-orange transition-colors font-medium underline">
+              <h3 className="text-xl font-semibold mb-3 text-black">Email</h3>
+              <p className="text-black/80 mb-2">Contact our support team</p>
+              <a href="mailto:contact@elismet.com" className="text-black hover:text-elismet-orange transition-colors font-medium underline">
                 contact@elismet.com
               </a>
             </div>
@@ -268,9 +267,9 @@ const Index = () => {
               <div className="bg-white/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <MessageCircle className="w-8 h-8" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Phone</h3>
-              <p className="text-white/80 mb-2">UK Office</p>
-              <a href="tel:+447380480139" className="text-white hover:text-elismet-orange transition-colors font-medium underline">
+              <h3 className="text-xl font-semibold mb-3 text-black">Phone</h3>
+              <p className="text-black/80 mb-2">UK Office</p>
+              <a href="tel:+447380480139" className="text-black hover:text-elismet-orange transition-colors font-medium underline">
                 +44 7380 480139
               </a>
             </div>
@@ -279,22 +278,12 @@ const Index = () => {
               <div className="bg-white/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <MessageCircle className="w-8 h-8" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Phone</h3>
-              <p className="text-white/80 mb-2">Bangladesh Office</p>
-              <a href="tel:+8801326764715" className="text-white hover:text-elismet-orange transition-colors font-medium underline">
+              <h3 className="text-xl font-semibold mb-3 text-black">Phone</h3>
+              <p className="text-black/80 mb-2">Bangladesh Office</p>
+              <a href="tel:+8801326764715" className="text-black hover:text-elismet-orange transition-colors font-medium underline">
                 +88 01326 764715
               </a>
             </div>
-          </div>
-          
-          <div className="mt-16 text-center max-w-lg mx-auto">
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="border-white text-white hover:bg-white/20 animate-pulse-glow w-full sm:w-auto animate-zoom-in"
-            >
-              Schedule a Consultation
-            </Button>
           </div>
         </div>
       </section>

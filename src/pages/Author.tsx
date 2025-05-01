@@ -12,7 +12,7 @@ const Author = () => {
       name: "MD Rabiullah",
       role: "CEO & Founder",
       bio: "Visionary leader who founded Elismet LTD with the goal of creating innovative subscription-based software solutions that solve real problems for businesses and individuals.",
-      imageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+      imageUrl: "/lovable-uploads/1a14858e-4552-4232-a4f6-a9a31042b5ec.png",
       isFounder: true,
       socials: {
         email: "rabiullah@elismet.com",
@@ -23,10 +23,32 @@ const Author = () => {
       name: "Robiul Islam",
       role: "Assistant & Co-founder",
       bio: "Integral part of Elismet LTD, holding internal shares and helping to drive the company's vision forward with expertise in technology and business development.",
-      imageUrl: "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7",
       isFounder: false,
       socials: {
         email: "robiul@elismet.com",
+        linkedin: "#",
+      }
+    },
+    {
+      name: "Amir Khan",
+      role: "Lead Developer",
+      bio: "Expert software engineer with over 8 years of experience in building scalable and efficient solutions. Specialized in AI integration and cloud architecture.",
+      imageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e",
+      isFounder: false,
+      socials: {
+        email: "amir@elismet.com",
+        linkedin: "#",
+      }
+    },
+    {
+      name: "Sarah Johnson",
+      role: "Marketing Director",
+      bio: "Creative marketing professional who develops and implements strategies to increase brand awareness and drive customer acquisition for Elismet's innovative products.",
+      imageUrl: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
+      isFounder: false,
+      socials: {
+        email: "sarah@elismet.com",
         linkedin: "#",
       }
     },
@@ -61,12 +83,12 @@ const Author = () => {
       {/* Team Section */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             {teamMembers.map((member, index) => (
               <div 
                 key={member.name}
                 className={`bg-white rounded-xl shadow-lg overflow-hidden transform transition-all duration-500 hover:-translate-y-2 hover:shadow-xl ${
-                  index === 0 ? 'animate-slide-in-right' : 'animate-slide-in-left'
+                  index % 2 === 0 ? 'animate-slide-in-right' : 'animate-slide-in-left'
                 }`}
                 style={{ animationDelay: `${index * 0.3}s` }}
               >
