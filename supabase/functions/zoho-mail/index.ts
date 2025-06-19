@@ -51,7 +51,7 @@ const sendEmail = async (emailData: EmailRequest): Promise<any> => {
   // Create SMTP connection using nodemailer-like API
   const nodemailer = await import('npm:nodemailer@6.9.7');
   
-  const transporter = nodemailer.createTransporter({
+  const transporter = nodemailer.createTransport({
     host: config.host,
     port: config.port,
     secure: config.secure,
