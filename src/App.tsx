@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -28,6 +29,8 @@ import AdminStatus from "./pages/AdminStatus";
 import AdminPayments from "./pages/AdminPayments";
 import AdminMessages from "./pages/AdminMessages";
 import AdminSettings from "./pages/AdminSettings";
+import ProjectAdminLayout from "./components/ProjectAdminLayout";
+import ProjectAdminOverview from "./pages/ProjectAdminOverview";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

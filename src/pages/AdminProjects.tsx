@@ -3,11 +3,14 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { FolderKanban, Calendar, DollarSign, User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { FolderKanban, Calendar, DollarSign, User, Settings } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function AdminProjects() {
   const projects = [
     { 
+      id: '1',
       name: 'E-commerce Platform', 
       client: 'Tech Solutions Inc',
       progress: 85, 
@@ -17,6 +20,7 @@ export default function AdminProjects() {
       team: 4
     },
     { 
+      id: '2',
       name: 'Brand Website', 
       client: 'Creative Design Co',
       progress: 60, 
@@ -26,6 +30,7 @@ export default function AdminProjects() {
       team: 2
     },
     { 
+      id: '3',
       name: 'Mobile App', 
       client: 'StartUp Hub',
       progress: 95, 
@@ -35,6 +40,7 @@ export default function AdminProjects() {
       team: 6
     },
     { 
+      id: '4',
       name: 'Marketing Campaign', 
       client: 'Marketing Pro',
       progress: 30, 
@@ -76,9 +82,17 @@ export default function AdminProjects() {
                     <CardDescription>Client: {project.client}</CardDescription>
                   </div>
                 </div>
-                <Badge variant={getStatusColor(project.status)}>
-                  {project.status}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant={getStatusColor(project.status)}>
+                    {project.status}
+                  </Badge>
+                  <Button size="sm" asChild>
+                    <Link to={`/admin/project/${project.id}`}>
+                      <Settings className="w-4 h-4 mr-2" />
+                      Manage
+                    </Link>
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
