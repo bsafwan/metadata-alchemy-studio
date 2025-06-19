@@ -282,7 +282,7 @@ const Index = () => {
               <h3 className="text-xl font-semibold mb-3 text-black">Phone</h3>
               <p className="text-black/80 mb-2">Bangladesh Office</p>
               <a href="tel:+8801326764715" className="text-black hover:text-elismet-orange transition-colors font-medium underline">
-                +88 01326 764715
+                +88 01326 764716
               </a>
             </div>
           </div>
