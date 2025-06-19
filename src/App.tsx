@@ -21,6 +21,12 @@ import PaymentsAndDues from "./pages/PaymentsAndDues";
 import Status from "./pages/Status";
 import DeliveryManagement from "./pages/DeliveryManagement";
 import SupportTickets from "./pages/SupportTickets";
+import AdminDashboardLayout from "./components/AdminDashboardLayout";
+import AdminDashboardHome from "./pages/AdminDashboardHome";
+import AdminClients from "./pages/AdminClients";
+import AdminProjects from "./pages/AdminProjects";
+import AdminAnalytics from "./pages/AdminAnalytics";
+import AdminSettings from "./pages/AdminSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,7 +47,7 @@ const App = () => (
           <Route path="/contact-direct" element={<ContactDirect />} />
           <Route path="/live-chat" element={<LiveChat />} />
           
-          {/* Dashboard Routes */}
+          {/* Client Dashboard Routes */}
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<DashboardHome />} />
             <Route path="conversations" element={<Conversations />} />
@@ -51,6 +57,15 @@ const App = () => (
             <Route path="status" element={<Status />} />
             <Route path="delivery" element={<DeliveryManagement />} />
             <Route path="support" element={<SupportTickets />} />
+          </Route>
+
+          {/* Admin Dashboard Routes */}
+          <Route path="/admin" element={<AdminDashboardLayout />}>
+            <Route index element={<AdminDashboardHome />} />
+            <Route path="clients" element={<AdminClients />} />
+            <Route path="projects" element={<AdminProjects />} />
+            <Route path="analytics" element={<AdminAnalytics />} />
+            <Route path="settings" element={<AdminSettings />} />
           </Route>
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
