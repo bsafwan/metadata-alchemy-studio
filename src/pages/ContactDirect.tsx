@@ -10,7 +10,7 @@ import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { supabase } from '@/integrations/supabase/client';
+import { saveCRMInquiry } from '@/utils/crmInquiryService';
 
 const ContactDirect = () => {
   const { toast } = useToast();
@@ -25,7 +25,7 @@ const ContactDirect = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log('Form submitted with data:', formData);
+    console.log('Form submission started with data:', formData);
     
     if (!formData.company_name || !formData.email || !formData.phone || !formData.crm_needs) {
       toast({
@@ -39,42 +39,30 @@ const ContactDirect = () => {
     setIsSubmitting(true);
     
     try {
-      console.log('Attempting to insert into database...');
+      console.log('Calling saveCRMInquiry service...');
+      const success = await saveCRMInquiry(formData);
       
-      // Direct database insertion
-      const { data, error } = await supabase
-        .from('crm_inquiries')
-        .insert([{
-          company_name: formData.company_name,
-          email: formData.email,
-          phone: formData.phone,
-          crm_needs: formData.crm_needs
-        }])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Database error:', error);
-        throw error;
+      if (success) {
+        console.log('CRM inquiry saved successfully');
+        toast({
+          title: "Inquiry Submitted!",
+          description: "We've received your CRM requirements and will contact you soon with a customized proposal.",
+        });
+        
+        // Reset form
+        setFormData({
+          company_name: '',
+          email: '',
+          phone: '',
+          crm_needs: ''
+        });
+      } else {
+        console.error('saveCRMInquiry returned false');
+        throw new Error('Failed to submit inquiry');
       }
-
-      console.log('Database insertion successful:', data);
-
-      toast({
-        title: "Inquiry Submitted!",
-        description: "We've received your CRM requirements and will contact you soon with a customized proposal.",
-      });
-      
-      // Reset form
-      setFormData({
-        company_name: '',
-        email: '',
-        phone: '',
-        crm_needs: ''
-      });
       
     } catch (error) {
-      console.error('Submission error:', error);
+      console.error('Form submission error:', error);
       toast({
         title: "Submission Failed",
         description: "There was an error submitting your inquiry. Please try again.",
