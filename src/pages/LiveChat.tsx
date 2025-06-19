@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,7 @@ import Footer from '@/components/Footer';
 import UserRegistrationModal from '@/components/UserRegistrationModal';
 import { chatDB, type ChatMessage, type ChatUser } from '@/utils/indexedDBUtils';
 import { supabase } from '@/integrations/supabase/client';
+import ChatEmailActions from '@/components/ChatEmailActions';
 
 const LiveChat = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -193,106 +193,120 @@ const LiveChat = () => {
           <p className="text-gray-600">Get instant answers to your questions about our services</p>
         </div>
 
-        <Card className="shadow-lg h-[calc(100vh-280px)] min-h-[500px] flex flex-col">
-          <CardHeader className="border-b flex-shrink-0 p-4">
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center">
-                <MessageCircle className="w-5 h-5 mr-2 text-blue-600" />
-                <span className="text-lg">Chat with Elismet</span>
-              </div>
-              {currentUser && (
-                <div className="flex items-center text-sm text-green-600">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                  <span className="hidden sm:inline">Online - {currentUser.name}</span>
-                  <span className="sm:hidden">Online</span>
-                </div>
-              )}
-            </CardTitle>
-          </CardHeader>
-          
-          <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
-            {/* Messages Area with Scroll */}
-            <ScrollArea className="flex-1 p-4">
-              <div className="space-y-4 pb-4">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div className={`flex max-w-[85%] sm:max-w-[75%] ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'} items-start gap-2`}>
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        message.sender === 'user' 
-                          ? 'bg-blue-600' 
-                          : 'bg-gray-200'
-                      }`}>
-                        {message.sender === 'user' ? (
-                          <User className="w-4 h-4 text-white" />
-                        ) : (
-                          <MessageCircle className="w-4 h-4 text-gray-600" />
-                        )}
-                      </div>
-                      <div className={`p-3 rounded-lg break-words ${
-                        message.sender === 'user'
-                          ? 'bg-blue-600 text-white rounded-tr-sm'
-                          : 'bg-gray-100 text-gray-900 rounded-tl-sm'
-                      }`}>
-                        <p className="text-sm leading-relaxed">{message.text}</p>
-                        <p className={`text-xs mt-2 ${
-                          message.sender === 'user' ? 'text-blue-100' : 'text-gray-500'
-                        }`}>
-                          {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </p>
-                      </div>
-                    </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Chat Card - Takes 2/3 width on large screens */}
+          <div className="lg:col-span-2">
+            <Card className="shadow-lg h-[calc(100vh-280px)] min-h-[500px] flex flex-col">
+              <CardHeader className="border-b flex-shrink-0 p-4">
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <MessageCircle className="w-5 h-5 mr-2 text-blue-600" />
+                    <span className="text-lg">Chat with Elismet</span>
                   </div>
-                ))}
-                
-                {isLoading && (
-                  <div className="flex justify-start">
-                    <div className="flex items-start gap-2 max-w-[75%]">
-                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                        <MessageCircle className="w-4 h-4 text-gray-600" />
-                      </div>
-                      <div className="bg-gray-100 p-3 rounded-lg rounded-tl-sm">
-                        <div className="flex items-center gap-2">
-                          <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
-                          <p className="text-sm text-gray-500">Processing...</p>
+                  {currentUser && (
+                    <div className="flex items-center text-sm text-green-600">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      <span className="hidden sm:inline">Online - {currentUser.name}</span>
+                      <span className="sm:hidden">Online</span>
+                    </div>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              
+              <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
+                {/* Messages Area with Scroll */}
+                <ScrollArea className="flex-1 p-4">
+                  <div className="space-y-4 pb-4">
+                    {messages.map((message) => (
+                      <div
+                        key={message.id}
+                        className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div className={`flex max-w-[85%] sm:max-w-[75%] ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'} items-start gap-2`}>
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                            message.sender === 'user' 
+                              ? 'bg-blue-600' 
+                              : 'bg-gray-200'
+                          }`}>
+                            {message.sender === 'user' ? (
+                              <User className="w-4 h-4 text-white" />
+                            ) : (
+                              <MessageCircle className="w-4 h-4 text-gray-600" />
+                            )}
+                          </div>
+                          <div className={`p-3 rounded-lg break-words ${
+                            message.sender === 'user'
+                              ? 'bg-blue-600 text-white rounded-tr-sm'
+                              : 'bg-gray-100 text-gray-900 rounded-tl-sm'
+                          }`}>
+                            <p className="text-sm leading-relaxed">{message.text}</p>
+                            <p className={`text-xs mt-2 ${
+                              message.sender === 'user' ? 'text-blue-100' : 'text-gray-500'
+                            }`}>
+                              {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ))}
+                    
+                    {isLoading && (
+                      <div className="flex justify-start">
+                        <div className="flex items-start gap-2 max-w-[75%]">
+                          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                            <MessageCircle className="w-4 h-4 text-gray-600" />
+                          </div>
+                          <div className="bg-gray-100 p-3 rounded-lg rounded-tl-sm">
+                            <div className="flex items-center gap-2">
+                              <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
+                              <p className="text-sm text-gray-500">Processing...</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
+                </ScrollArea>
+
+                {/* Input Area */}
+                {currentUser && (
+                  <div className="border-t p-4 flex-shrink-0 bg-white">
+                    <form onSubmit={handleSendMessage} className="flex gap-2">
+                      <Input
+                        value={inputMessage}
+                        onChange={(e) => setInputMessage(e.target.value)}
+                        placeholder="Type your message..."
+                        className="flex-1 focus:ring-2 focus:ring-blue-500"
+                        disabled={isLoading}
+                        maxLength={500}
+                      />
+                      <Button 
+                        type="submit" 
+                        disabled={isLoading || !inputMessage.trim()}
+                        className="px-4 hover:bg-blue-700 transition-colors"
+                      >
+                        <Send className="w-4 h-4" />
+                      </Button>
+                    </form>
+                    <p className="text-xs text-gray-500 mt-2 text-center">
+                      Press Enter to send • {inputMessage.length}/500 characters
+                    </p>
                   </div>
                 )}
-                <div ref={messagesEndRef} />
-              </div>
-            </ScrollArea>
+              </CardContent>
+            </Card>
+          </div>
 
-            {/* Input Area */}
-            {currentUser && (
-              <div className="border-t p-4 flex-shrink-0 bg-white">
-                <form onSubmit={handleSendMessage} className="flex gap-2">
-                  <Input
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    placeholder="Type your message..."
-                    className="flex-1 focus:ring-2 focus:ring-blue-500"
-                    disabled={isLoading}
-                    maxLength={500}
-                  />
-                  <Button 
-                    type="submit" 
-                    disabled={isLoading || !inputMessage.trim()}
-                    className="px-4 hover:bg-blue-700 transition-colors"
-                  >
-                    <Send className="w-4 h-4" />
-                  </Button>
-                </form>
-                <p className="text-xs text-gray-500 mt-2 text-center">
-                  Press Enter to send • {inputMessage.length}/500 characters
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          {/* Email Actions Sidebar - Takes 1/3 width on large screens */}
+          <div className="lg:col-span-1">
+            <ChatEmailActions
+              messages={messages}
+              currentUser={currentUser}
+              sessionId={sessionId}
+            />
+          </div>
+        </div>
       </div>
 
       <Footer />
