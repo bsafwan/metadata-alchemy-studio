@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -25,7 +24,9 @@ import AdminDashboardLayout from "./components/AdminDashboardLayout";
 import AdminDashboardHome from "./pages/AdminDashboardHome";
 import AdminClients from "./pages/AdminClients";
 import AdminProjects from "./pages/AdminProjects";
-import AdminAnalytics from "./pages/AdminAnalytics";
+import AdminStatus from "./pages/AdminStatus";
+import AdminPayments from "./pages/AdminPayments";
+import AdminMessages from "./pages/AdminMessages";
 import AdminSettings from "./pages/AdminSettings";
 import NotFound from "./pages/NotFound";
 
@@ -64,7 +65,9 @@ const App = () => (
             <Route index element={<AdminDashboardHome />} />
             <Route path="clients" element={<AdminClients />} />
             <Route path="projects" element={<AdminProjects />} />
-            <Route path="analytics" element={<AdminAnalytics />} />
+            <Route path="status" element={<AdminStatus />} />
+            <Route path="payments" element={<AdminPayments />} />
+            <Route path="messages" element={<AdminMessages />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>
 

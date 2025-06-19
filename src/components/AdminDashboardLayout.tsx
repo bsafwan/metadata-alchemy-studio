@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { 
@@ -26,9 +25,8 @@ import { Link, useLocation } from 'react-router-dom';
 
 const adminSidebarItems = [
   { title: 'Admin Overview', icon: Shield, url: '/admin' },
-  { title: 'Manage Clients', icon: Users, url: '/admin/clients' },
   { title: 'All Projects', icon: FolderKanban, url: '/admin/projects' },
-  { title: 'Analytics', icon: BarChart3, url: '/admin/analytics' },
+  { title: 'Manage Clients', icon: Users, url: '/admin/clients' },
   { title: 'System Status', icon: Activity, url: '/admin/status' },
   { title: 'Payments', icon: CreditCard, url: '/admin/payments' },
   { title: 'Messages', icon: MessageSquare, url: '/admin/messages' },
