@@ -4,28 +4,77 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, User, Mail, Lock, Building } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ArrowLeft, User, Mail, Lock, Building, Category } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { useToast } from '@/components/ui/use-toast';
+
+const businessCategories = [
+  'Cleaning Services',
+  'Plumbing Services',
+  'Electrical Services',
+  'HVAC Services',
+  'Landscaping & Gardening',
+  'Home Maintenance',
+  'Construction & Renovation',
+  'Pest Control',
+  'Moving Services',
+  'Appliance Repair',
+  'Roofing Services',
+  'Painting Services',
+  'Carpet Cleaning',
+  'Window Cleaning',
+  'Pool Maintenance',
+  'Other Physical Services'
+];
 
 const Onboard = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
-    company: '',
+    businessName: '',
+    businessCategory: '',
     password: '',
     confirmPassword: '',
-    agreeToTerms: false,
-    subscribeNewsletter: false
+    agreeToTerms: false
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    // Handle form submission logic here
+    
+    // Validation
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Password Mismatch",
+        description: "Passwords do not match. Please try again.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!formData.agreeToTerms) {
+      toast({
+        title: "Terms Required",
+        description: "Please agree to the terms of service to continue.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    console.log('Registration data:', formData);
+    
+    // Navigate to OTP verification page with form data
+    navigate('/verify-otp', { 
+      state: { 
+        registrationData: formData 
+      } 
+    });
   };
 
   const handleInputChange = (field: string, value: string | boolean) => {
@@ -47,17 +96,17 @@ const Onboard = () => {
               Back to Get Started
             </Link>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Your Account</h1>
-            <p className="text-gray-600">Join Elismet and unlock access to our full suite of services</p>
+            <p className="text-gray-600">Join Elismet and get your custom business management system</p>
           </div>
 
           <Card className="shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <User className="w-5 h-5 mr-2" />
-                Account Information
+                Business Registration
               </CardTitle>
               <CardDescription>
-                Please fill in your details to create your account
+                Tell us about yourself and your business to get started
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -101,16 +150,40 @@ const Onboard = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="company">Company (Optional)</Label>
+                  <Label htmlFor="businessName">Business Name *</Label>
                   <div className="relative">
                     <Building className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                     <Input
-                      id="company"
+                      id="businessName"
                       type="text"
                       className="pl-10"
-                      value={formData.company}
-                      onChange={(e) => handleInputChange('company', e.target.value)}
+                      value={formData.businessName}
+                      onChange={(e) => handleInputChange('businessName', e.target.value)}
+                      required
                     />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="businessCategory">Business Category *</Label>
+                  <div className="relative">
+                    <Category className="absolute left-3 top-3 w-4 h-4 text-gray-400 z-10" />
+                    <Select
+                      value={formData.businessCategory}
+                      onValueChange={(value) => handleInputChange('businessCategory', value)}
+                      required
+                    >
+                      <SelectTrigger className="pl-10">
+                        <SelectValue placeholder="Select your business category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {businessCategories.map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
@@ -163,21 +236,10 @@ const Onboard = () => {
                       </Link>
                     </Label>
                   </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="newsletter"
-                      checked={formData.subscribeNewsletter}
-                      onCheckedChange={(checked) => handleInputChange('subscribeNewsletter', !!checked)}
-                    />
-                    <Label htmlFor="newsletter" className="text-sm">
-                      Subscribe to our newsletter for updates and special offers
-                    </Label>
-                  </div>
                 </div>
 
                 <Button type="submit" className="w-full" size="lg">
-                  Create Account
+                  Continue to Verification
                 </Button>
               </form>
             </CardContent>

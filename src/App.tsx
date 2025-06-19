@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +10,9 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import GetStarted from "./pages/GetStarted";
 import Onboard from "./pages/Onboard";
+import VerifyOTP from "./pages/VerifyOTP";
+import CRMAssessment from "./pages/CRMAssessment";
+import Login from "./pages/Login";
 import ContactDirect from "./pages/ContactDirect";
 import LiveChat from "./pages/LiveChat";
 import DashboardLayout from "./components/DashboardLayout";
@@ -53,6 +57,9 @@ const App = () => (
           <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="/get-started" element={<GetStarted />} />
           <Route path="/onboard" element={<Onboard />} />
+          <Route path="/verify-otp" element={<VerifyOTP />} />
+          <Route path="/crm-assessment" element={<CRMAssessment />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/contact-direct" element={<ContactDirect />} />
           <Route path="/live-chat" element={<LiveChat />} />
           
