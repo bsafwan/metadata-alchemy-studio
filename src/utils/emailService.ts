@@ -60,6 +60,40 @@ export class EmailService {
   private static generateQuoteRequestTemplate(data: any) {
     const { customerName, customerEmail, requestDetails, messages } = data;
     
+    // If no messages provided, this is for the user (simple acknowledgment)
+    if (!messages || messages.length === 0) {
+      const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2563eb;">Thank You for Your Request!</h2>
+          <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p>Hello ${customerName},</p>
+            <p>${requestDetails}</p>
+          </div>
+          
+          <div style="margin: 20px 0; padding: 20px; background: #eff6ff; border-radius: 8px;">
+            <p>We appreciate your interest in our services and will be in touch soon.</p>
+            <p>Best regards,<br>The Elismet Team</p>
+          </div>
+        </div>
+      `;
+      
+      const text = `
+Thank You for Your Request!
+
+Hello ${customerName},
+
+${requestDetails}
+
+We appreciate your interest in our services and will be in touch soon.
+
+Best regards,
+The Elismet Team
+      `;
+      
+      return { html, text };
+    }
+
+    // Full details for company
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #2563eb;">🎯 Quote Request from ${customerName}</h2>
@@ -111,6 +145,40 @@ Please prepare and send a quote to ${customerEmail}
   private static generateChatSummaryTemplate(data: any) {
     const { customerName, customerEmail, sessionId, messages, summary } = data;
     
+    // If no messages provided, this is for the user (simple acknowledgment)
+    if (!messages || messages.length === 0) {
+      const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2563eb;">Thank You for Contacting Us!</h2>
+          <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p>Hello ${customerName},</p>
+            <p>${summary}</p>
+          </div>
+          
+          <div style="margin: 20px 0; padding: 20px; background: #eff6ff; border-radius: 8px;">
+            <p>We appreciate you taking the time to chat with us about your project needs.</p>
+            <p>Best regards,<br>The Elismet Team</p>
+          </div>
+        </div>
+      `;
+      
+      const text = `
+Thank You for Contacting Us!
+
+Hello ${customerName},
+
+${summary}
+
+We appreciate you taking the time to chat with us about your project needs.
+
+Best regards,
+The Elismet Team
+      `;
+      
+      return { html, text };
+    }
+
+    // Full transcript for company
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #2563eb;">Live Chat Conversation Summary</h2>
