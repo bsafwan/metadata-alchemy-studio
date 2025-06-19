@@ -4,12 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Send, Building, Mail, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import RichTextEditor from '@/components/RichTextEditor';
 import { saveCRMInquiry } from '@/utils/crmInquiryService';
 
 const ContactDirect = () => {
@@ -153,10 +153,13 @@ const ContactDirect = () => {
                       <Label htmlFor="crm_needs">
                         Tell us about your CRM needs *
                       </Label>
-                      <RichTextEditor
+                      <Textarea
+                        id="crm_needs"
                         value={formData.crm_needs}
-                        onChange={(value) => handleInputChange('crm_needs', value)}
+                        onChange={(e) => handleInputChange('crm_needs', e.target.value)}
                         placeholder="Describe your business requirements, current challenges, team size, integration needs, specific features you're looking for, budget range, timeline, etc."
+                        className="min-h-[200px] resize-vertical"
+                        required
                       />
                     </div>
 
