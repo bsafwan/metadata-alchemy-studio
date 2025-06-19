@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -31,6 +30,12 @@ import AdminMessages from "./pages/AdminMessages";
 import AdminSettings from "./pages/AdminSettings";
 import ProjectAdminLayout from "./components/ProjectAdminLayout";
 import ProjectAdminOverview from "./pages/ProjectAdminOverview";
+import ProjectAdminMessages from "./pages/ProjectAdminMessages";
+import ProjectAdminDemos from "./pages/ProjectAdminDemos";
+import ProjectAdminPayments from "./pages/ProjectAdminPayments";
+import ProjectAdminStatus from "./pages/ProjectAdminStatus";
+import ProjectAdminDelivery from "./pages/ProjectAdminDelivery";
+import ProjectAdminSupport from "./pages/ProjectAdminSupport";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -72,6 +77,17 @@ const App = () => (
             <Route path="payments" element={<AdminPayments />} />
             <Route path="messages" element={<AdminMessages />} />
             <Route path="settings" element={<AdminSettings />} />
+          </Route>
+
+          {/* Project-specific Admin Routes */}
+          <Route path="/admin/project/:projectId" element={<ProjectAdminLayout />}>
+            <Route index element={<ProjectAdminOverview />} />
+            <Route path="messages" element={<ProjectAdminMessages />} />
+            <Route path="demos" element={<ProjectAdminDemos />} />
+            <Route path="payments" element={<ProjectAdminPayments />} />
+            <Route path="status" element={<ProjectAdminStatus />} />
+            <Route path="delivery" element={<ProjectAdminDelivery />} />
+            <Route path="support" element={<ProjectAdminSupport />} />
           </Route>
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
