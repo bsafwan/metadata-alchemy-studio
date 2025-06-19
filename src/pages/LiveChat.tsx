@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Send, MessageCircle, User, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import UserRegistrationModal from '@/components/UserRegistrationModal';
@@ -14,7 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 const LiveChat = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [showRegistration, setShowRegistration] = useState(true);
   const [sessionId, setSessionId] = useState<string>('');
   const [currentUser, setCurrentUser] = useState<ChatUser | null>(null);
@@ -92,7 +93,7 @@ const LiveChat = () => {
       const welcomeMessage: ChatMessage = {
         id: `msg_${Date.now()}`,
         sessionId,
-        text: `Hello ${name}! Welcome to our live chat support. I'm here to help you with any questions about our services, pricing, or how we can assist your business. How can I help you today?`,
+        text: `Hello ${name}! Welcome to our live chat. I'm here to help you with any questions about our services, pricing, or how we can assist your business. How can I help you today?`,
         sender: 'assistant',
         timestamp: new Date()
       };
@@ -120,13 +121,13 @@ const LiveChat = () => {
       return response.data.message;
     } catch (error) {
       console.error('API Error:', error);
-      return "I apologize, but I'm having trouble connecting to our support system right now. Please try again in a moment, or feel free to contact us directly at contact@elismet.com.";
+      return "I apologize, but I'm having trouble connecting right now. Please try again in a moment, or feel free to contact us directly at contact@elismet.com.";
     }
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputMessage.trim() || !currentUser) return;
+    if (!inputMessage.trim() || !currentUser || isLoading) return;
 
     const userMessage: ChatMessage = {
       id: `msg_${Date.now()}`,
@@ -141,7 +142,7 @@ const LiveChat = () => {
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setInputMessage('');
-    setIsTyping(true);
+    setIsLoading(true);
 
     try {
       // Get AI response
@@ -161,7 +162,7 @@ const LiveChat = () => {
     } catch (error) {
       console.error('Error processing message:', error);
     } finally {
-      setIsTyping(false);
+      setIsLoading(false);
     }
   };
 
@@ -174,7 +175,7 @@ const LiveChat = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
       
       <UserRegistrationModal
@@ -182,44 +183,47 @@ const LiveChat = () => {
         onComplete={handleUserRegistration}
       />
       
-      <div className="container mx-auto px-6 py-16">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
-            <Link to="/get-started" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Get Started
-            </Link>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Live Chat</h1>
-            <p className="text-gray-600">Get instant answers to your questions about our services</p>
-          </div>
+      <div className="flex-1 container mx-auto px-4 py-8 max-w-6xl">
+        <div className="mb-6">
+          <Link to="/get-started" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4 transition-colors">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Get Started
+          </Link>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Live Chat</h1>
+          <p className="text-gray-600">Get instant answers to your questions about our services</p>
+        </div>
 
-          <Card className="shadow-lg h-[600px] flex flex-col">
-            <CardHeader className="border-b">
-              <CardTitle className="flex items-center">
+        <Card className="shadow-lg h-[calc(100vh-280px)] min-h-[500px] flex flex-col">
+          <CardHeader className="border-b flex-shrink-0 p-4">
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center">
                 <MessageCircle className="w-5 h-5 mr-2 text-blue-600" />
-                Chat with Elismet Support
-                {currentUser && (
-                  <div className="ml-auto flex items-center text-sm text-green-600">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                    Online - {currentUser.name}
-                  </div>
-                )}
-              </CardTitle>
-            </CardHeader>
-            
-            <CardContent className="flex-1 flex flex-col p-0">
-              {/* Messages Area */}
-              <div className="flex-1 p-4 overflow-y-auto space-y-4">
+                <span className="text-lg">Chat with Elismet</span>
+              </div>
+              {currentUser && (
+                <div className="flex items-center text-sm text-green-600">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                  <span className="hidden sm:inline">Online - {currentUser.name}</span>
+                  <span className="sm:hidden">Online</span>
+                </div>
+              )}
+            </CardTitle>
+          </CardHeader>
+          
+          <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
+            {/* Messages Area with Scroll */}
+            <ScrollArea className="flex-1 p-4">
+              <div className="space-y-4 pb-4">
                 {messages.map((message) => (
                   <div
                     key={message.id}
                     className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
-                    <div className={`flex max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'} items-start space-x-2`}>
+                    <div className={`flex max-w-[85%] sm:max-w-[75%] ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'} items-start gap-2`}>
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                         message.sender === 'user' 
-                          ? 'bg-blue-600 ml-2' 
-                          : 'bg-gray-200 mr-2'
+                          ? 'bg-blue-600' 
+                          : 'bg-gray-200'
                       }`}>
                         {message.sender === 'user' ? (
                           <User className="w-4 h-4 text-white" />
@@ -227,13 +231,13 @@ const LiveChat = () => {
                           <MessageCircle className="w-4 h-4 text-gray-600" />
                         )}
                       </div>
-                      <div className={`p-3 rounded-lg ${
+                      <div className={`p-3 rounded-lg break-words ${
                         message.sender === 'user'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-900'
+                          ? 'bg-blue-600 text-white rounded-tr-sm'
+                          : 'bg-gray-100 text-gray-900 rounded-tl-sm'
                       }`}>
-                        <p className="text-sm">{message.text}</p>
-                        <p className={`text-xs mt-1 ${
+                        <p className="text-sm leading-relaxed">{message.text}</p>
+                        <p className={`text-xs mt-2 ${
                           message.sender === 'user' ? 'text-blue-100' : 'text-gray-500'
                         }`}>
                           {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -243,16 +247,16 @@ const LiveChat = () => {
                   </div>
                 ))}
                 
-                {isTyping && (
+                {isLoading && (
                   <div className="flex justify-start">
-                    <div className="flex items-start space-x-2">
+                    <div className="flex items-start gap-2 max-w-[75%]">
                       <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
                         <MessageCircle className="w-4 h-4 text-gray-600" />
                       </div>
-                      <div className="bg-gray-100 p-3 rounded-lg">
-                        <div className="flex items-center space-x-1">
+                      <div className="bg-gray-100 p-3 rounded-lg rounded-tl-sm">
+                        <div className="flex items-center gap-2">
                           <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
-                          <p className="text-sm text-gray-500">Support is typing...</p>
+                          <p className="text-sm text-gray-500">Processing...</p>
                         </div>
                       </div>
                     </div>
@@ -260,27 +264,35 @@ const LiveChat = () => {
                 )}
                 <div ref={messagesEndRef} />
               </div>
+            </ScrollArea>
 
-              {/* Input Area */}
-              {currentUser && (
-                <div className="border-t p-4">
-                  <form onSubmit={handleSendMessage} className="flex space-x-2">
-                    <Input
-                      value={inputMessage}
-                      onChange={(e) => setInputMessage(e.target.value)}
-                      placeholder="Type your message..."
-                      className="flex-1"
-                      disabled={isTyping}
-                    />
-                    <Button type="submit" disabled={isTyping || !inputMessage.trim()}>
-                      <Send className="w-4 h-4" />
-                    </Button>
-                  </form>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+            {/* Input Area */}
+            {currentUser && (
+              <div className="border-t p-4 flex-shrink-0 bg-white">
+                <form onSubmit={handleSendMessage} className="flex gap-2">
+                  <Input
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    placeholder="Type your message..."
+                    className="flex-1 focus:ring-2 focus:ring-blue-500"
+                    disabled={isLoading}
+                    maxLength={500}
+                  />
+                  <Button 
+                    type="submit" 
+                    disabled={isLoading || !inputMessage.trim()}
+                    className="px-4 hover:bg-blue-700 transition-colors"
+                  >
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </form>
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  Press Enter to send • {inputMessage.length}/500 characters
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       <Footer />
