@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface EmailData {
@@ -8,7 +7,7 @@ export interface EmailData {
   subject: string;
   html?: string;
   text?: string;
-  template?: 'chat-summary' | 'escalation' | 'project-update' | 'payment-reminder' | 'admin-report';
+  template?: 'chat-summary' | 'quote-request' | 'escalation' | 'project-update' | 'payment-reminder' | 'admin-report';
   templateData?: Record<string, any>;
 }
 
@@ -43,6 +42,8 @@ export class EmailService {
     switch (template) {
       case 'chat-summary':
         return this.generateChatSummaryTemplate(data);
+      case 'quote-request':
+        return this.generateQuoteRequestTemplate(data);
       case 'escalation':
         return this.generateEscalationTemplate(data);
       case 'project-update':
@@ -54,6 +55,57 @@ export class EmailService {
       default:
         return { html: '', text: '' };
     }
+  }
+
+  private static generateQuoteRequestTemplate(data: any) {
+    const { customerName, customerEmail, requestDetails, messages } = data;
+    
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2563eb;">🎯 Quote Request from ${customerName}</h2>
+        <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h3>Customer Information</h3>
+          <p><strong>Name:</strong> ${customerName}</p>
+          <p><strong>Email:</strong> ${customerEmail}</p>
+          <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
+        </div>
+        
+        <div style="margin: 20px 0;">
+          <h3>Request Details</h3>
+          <p>${requestDetails}</p>
+        </div>
+        
+        <div style="margin: 20px 0;">
+          <h3>Recent Conversation Context</h3>
+          ${messages.map((msg: any) => `
+            <div style="margin: 10px 0; padding: 10px; background: ${msg.sender === 'user' ? '#e0f2fe' : '#f0f9ff'}; border-radius: 4px;">
+              <strong>${msg.sender === 'user' ? customerName : 'Assistant'}:</strong>
+              <p>${msg.text}</p>
+            </div>
+          `).join('')}
+        </div>
+        
+        <div style="margin: 20px 0; padding: 20px; background: #fef7cd; border-radius: 8px;">
+          <p><strong>Action Required:</strong> Please prepare and send a quote to ${customerEmail}</p>
+        </div>
+      </div>
+    `;
+    
+    const text = `
+Quote Request from ${customerName}
+
+Customer: ${customerName} (${customerEmail})
+Date: ${new Date().toLocaleString()}
+
+Request Details: ${requestDetails}
+
+Recent Messages:
+${messages.map((msg: any) => `${msg.sender === 'user' ? customerName : 'Assistant'}: ${msg.text}`).join('\n')}
+
+Please prepare and send a quote to ${customerEmail}
+    `;
+    
+    return { html, text };
   }
 
   private static generateChatSummaryTemplate(data: any) {
@@ -87,7 +139,7 @@ export class EmailService {
         </div>
         
         <div style="margin: 20px 0; padding: 20px; background: #fef7cd; border-radius: 8px;">
-          <p><strong>Next Steps:</strong> Please review this conversation and follow up with the customer if needed.</p>
+          <p><strong>Follow-up:</strong> This customer may need additional assistance. Please review and respond if necessary.</p>
         </div>
       </div>
     `;

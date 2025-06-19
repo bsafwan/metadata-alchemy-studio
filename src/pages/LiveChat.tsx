@@ -118,10 +118,20 @@ const LiveChat = () => {
         throw new Error(response.error.message);
       }
 
+      // Check if there's a quote request
+      if (response.data.quoteRequest) {
+        console.log('Quote request detected:', response.data.quoteRequest);
+        
+        // Call the global function to send quote request email
+        if ((window as any).sendQuoteRequest) {
+          await (window as any).sendQuoteRequest(response.data.quoteRequest);
+        }
+      }
+
       return response.data.message;
     } catch (error) {
       console.error('API Error:', error);
-      return "I apologize, but I'm having trouble connecting right now. Please try again in a moment, or feel free to contact us directly at contact@elismet.com.";
+      return "I apologize, but I'm having trouble connecting right now. Please try again in a moment, or feel free to contact us directly at bsafwanjamil677@gmail.com.";
     }
   };
 
@@ -193,9 +203,9 @@ const LiveChat = () => {
           <p className="text-gray-600">Get instant answers to your questions about our services</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Chat Card - Takes 2/3 width on large screens */}
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
+          {/* Chat Card - Full width */}
+          <div className="lg:col-span-1">
             <Card className="shadow-lg h-[calc(100vh-280px)] min-h-[500px] flex flex-col">
               <CardHeader className="border-b flex-shrink-0 p-4">
                 <CardTitle className="flex items-center justify-between">
@@ -297,16 +307,14 @@ const LiveChat = () => {
               </CardContent>
             </Card>
           </div>
-
-          {/* Email Actions Sidebar - Takes 1/3 width on large screens */}
-          <div className="lg:col-span-1">
-            <ChatEmailActions
-              messages={messages}
-              currentUser={currentUser}
-              sessionId={sessionId}
-            />
-          </div>
         </div>
+
+        {/* Hidden Email Actions Component */}
+        <ChatEmailActions
+          messages={messages}
+          currentUser={currentUser}
+          sessionId={sessionId}
+        />
       </div>
 
       <Footer />
