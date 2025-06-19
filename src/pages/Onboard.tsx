@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, User, Mail, Lock, Building, Category } from 'lucide-react';
+import { ArrowLeft, User, Mail, Lock, Building, Tag } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -167,7 +167,7 @@ const Onboard = () => {
                 <div className="space-y-2">
                   <Label htmlFor="businessCategory">Business Category *</Label>
                   <div className="relative">
-                    <Category className="absolute left-3 top-3 w-4 h-4 text-gray-400 z-10" />
+                    <Tag className="absolute left-3 top-3 w-4 h-4 text-gray-400 z-10" />
                     <Select
                       value={formData.businessCategory}
                       onValueChange={(value) => handleInputChange('businessCategory', value)}
