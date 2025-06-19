@@ -66,79 +66,83 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
   };
 
   return (
-    <div className="border border-gray-300 rounded-md overflow-hidden">
-      <div className="flex items-center gap-2 p-2 bg-gray-50 border-b border-gray-200">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => execCommand('bold')}
-          className="h-8 w-8 p-0"
-        >
-          <Bold className="h-4 w-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => execCommand('italic')}
-          className="h-8 w-8 p-0"
-        >
-          <Italic className="h-4 w-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => execCommand('insertUnorderedList')}
-          className="h-8 w-8 p-0"
-        >
-          <List className="h-4 w-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => execCommand('insertOrderedList')}
-          className="h-8 w-8 p-0"
-        >
-          <ListOrdered className="h-4 w-4" />
-        </Button>
-        <div className="flex items-center gap-1 ml-2">
-          <Type className="h-4 w-4 text-gray-500" />
-          <select
-            value={fontSize}
-            onChange={(e) => {
-              setFontSize(e.target.value);
-              execCommand('fontSize', e.target.value);
-            }}
-            className="text-xs border border-gray-300 rounded px-1 py-0.5"
+    <>
+      <div className="border border-gray-300 rounded-md overflow-hidden">
+        <div className="flex items-center gap-2 p-2 bg-gray-50 border-b border-gray-200">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => execCommand('bold')}
+            className="h-8 w-8 p-0"
           >
-            <option value="1">Small</option>
-            <option value="3">Normal</option>
-            <option value="4">Large</option>
-            <option value="5">X-Large</option>
-          </select>
+            <Bold className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => execCommand('italic')}
+            className="h-8 w-8 p-0"
+          >
+            <Italic className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => execCommand('insertUnorderedList')}
+            className="h-8 w-8 p-0"
+          >
+            <List className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => execCommand('insertOrderedList')}
+            className="h-8 w-8 p-0"
+          >
+            <ListOrdered className="h-4 w-4" />
+          </Button>
+          <div className="flex items-center gap-1 ml-2">
+            <Type className="h-4 w-4 text-gray-500" />
+            <select
+              value={fontSize}
+              onChange={(e) => {
+                setFontSize(e.target.value);
+                execCommand('fontSize', e.target.value);
+              }}
+              className="text-xs border border-gray-300 rounded px-1 py-0.5"
+            >
+              <option value="1">Small</option>
+              <option value="3">Normal</option>
+              <option value="4">Large</option>
+              <option value="5">X-Large</option>
+            </select>
+          </div>
         </div>
+        <div
+          ref={editorRef}
+          contentEditable
+          onInput={handleInput}
+          onKeyDown={handleKeyDown}
+          className="min-h-[200px] p-4 focus:outline-none"
+          style={{ fontSize: fontSize === '1' ? '12px' : fontSize === '3' ? '16px' : fontSize === '4' ? '18px' : '20px' }}
+          dangerouslySetInnerHTML={{ __html: value }}
+          data-placeholder={placeholder}
+        />
       </div>
-      <div
-        ref={editorRef}
-        contentEditable
-        onInput={handleInput}
-        onKeyDown={handleKeyDown}
-        className="min-h-[200px] p-4 focus:outline-none"
-        style={{ fontSize: fontSize === '1' ? '12px' : fontSize === '3' ? '16px' : fontSize === '4' ? '18px' : '20px' }}
-        dangerouslySetInnerHTML={{ __html: value }}
-        data-placeholder={placeholder}
-      />
-      <style jsx>{`
-        [contenteditable]:empty:before {
-          content: attr(data-placeholder);
-          color: #9ca3af;
-          pointer-events: none;
-        }
-      `}</style>
-    </div>
+      <style>
+        {`
+          [contenteditable]:empty:before {
+            content: attr(data-placeholder);
+            color: #9ca3af;
+            pointer-events: none;
+          }
+        `}
+      </style>
+    </>
   );
 };
 

@@ -33,6 +33,33 @@ export type Database = {
         }
         Relationships: []
       }
+      crm_inquiries: {
+        Row: {
+          company_name: string
+          created_at: string
+          crm_needs: string
+          email: string
+          id: string
+          phone: string
+        }
+        Insert: {
+          company_name: string
+          created_at?: string
+          crm_needs: string
+          email: string
+          id?: string
+          phone: string
+        }
+        Update: {
+          company_name?: string
+          created_at?: string
+          crm_needs?: string
+          email?: string
+          id?: string
+          phone?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
