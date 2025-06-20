@@ -237,7 +237,7 @@ export default function ProjectAdminMessages() {
           sender_type: 'admin',
           sender_name: 'Super Admin',
           sender_email: 'admin@elismet.com',
-          attachments: attachments
+          attachments: attachments as any
         });
 
       if (messageError) throw messageError;
