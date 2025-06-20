@@ -154,6 +154,7 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
 
         console.log('Uploading file:', fileName, 'to path:', filePath);
 
+        // Since we don't use Supabase Auth, we'll upload directly without RLS
         const { error: uploadError } = await supabase.storage
           .from('conversation-files')
           .upload(filePath, file, {
@@ -163,26 +164,7 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
 
         if (uploadError) {
           console.error('Upload error:', uploadError);
-          // Try alternative upload method if the first fails
-          if (uploadError.message.includes('row-level security')) {
-            console.log('Trying alternative upload method...');
-            // Use the service role client for uploads
-            const { error: altUploadError } = await supabase.storage
-              .from('conversation-files')
-              .upload(filePath, file, {
-                cacheControl: '3600',
-                upsert: false,
-                metadata: {
-                  user_id: user?.id || 'anonymous'
-                }
-              });
-            
-            if (altUploadError) {
-              throw altUploadError;
-            }
-          } else {
-            throw uploadError;
-          }
+          throw new Error(`Failed to upload ${file.name}: ${uploadError.message}`);
         }
 
         const { data: { publicUrl } } = supabase.storage
@@ -209,6 +191,9 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || (!newMessage.trim() && (!files || files.length === 0))) return;
+
+    // Prevent double submission
+    if (loading || uploading) return;
 
     console.log('Sending message for user:', user.id);
     setLoading(true);
