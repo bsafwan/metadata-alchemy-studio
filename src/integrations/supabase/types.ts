@@ -153,6 +153,62 @@ export type Database = {
         }
         Relationships: []
       }
+      delivery_items: {
+        Row: {
+          admin_notes: string | null
+          content: Json | null
+          created_at: string
+          description: string | null
+          files: Json | null
+          id: string
+          item_type: string
+          links: Json | null
+          project_id: string
+          requires_full_payment: boolean
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          content?: Json | null
+          created_at?: string
+          description?: string | null
+          files?: Json | null
+          id?: string
+          item_type: string
+          links?: Json | null
+          project_id: string
+          requires_full_payment?: boolean
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          content?: Json | null
+          created_at?: string
+          description?: string | null
+          files?: Json | null
+          id?: string
+          item_type?: string
+          links?: Json | null
+          project_id?: string
+          requires_full_payment?: boolean
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_items_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       demos: {
         Row: {
           created_at: string
@@ -343,6 +399,109 @@ export type Database = {
             columns: ["phase_id"]
             isOneToOne: false
             referencedRelation: "project_phases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_api_keys: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          id: string
+          is_required: boolean
+          key_description: string | null
+          key_name: string
+          key_type: string
+          key_value: string | null
+          project_id: string
+          provided_by: string | null
+          service_name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          is_required?: boolean
+          key_description?: string | null
+          key_name: string
+          key_type: string
+          key_value?: string | null
+          project_id: string
+          provided_by?: string | null
+          service_name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          is_required?: boolean
+          key_description?: string | null
+          key_name?: string
+          key_type?: string
+          key_value?: string | null
+          project_id?: string
+          provided_by?: string | null
+          service_name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_api_keys_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_deliveries: {
+        Row: {
+          admin_notes: string | null
+          approved_at: string | null
+          client_approval_notes: string | null
+          created_at: string
+          delivered_at: string | null
+          delivery_status: string
+          id: string
+          initiated_at: string | null
+          project_id: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          approved_at?: string | null
+          client_approval_notes?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery_status?: string
+          id?: string
+          initiated_at?: string | null
+          project_id: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          approved_at?: string | null
+          client_approval_notes?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery_status?: string
+          id?: string
+          initiated_at?: string | null
+          project_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_deliveries_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -694,6 +853,10 @@ export type Database = {
       generate_payment_reference: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      initialize_default_delivery_items: {
+        Args: { p_project_id: string }
+        Returns: undefined
       }
       update_phase_prices_from_total: {
         Args: { p_project_id: string; p_new_total: number }
