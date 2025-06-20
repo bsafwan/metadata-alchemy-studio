@@ -7,9 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, DollarSign, MessageSquare, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Plus, DollarSign, MessageSquare, CheckCircle, XCircle, Clock, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useZohoMail } from '@/hooks/useZohoMail';
 
 interface ProjectPhase {
   id: string;
@@ -44,10 +46,31 @@ export default function ProjectPhaseManager({ projectId, isAdminView = false, on
   const [negotiationMessage, setNegotiationMessage] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [project, setProject] = useState<any>(null);
+  const { sendEmail, isSending } = useZohoMail();
 
   React.useEffect(() => {
     fetchPhases();
+    fetchProject();
   }, [projectId]);
+
+  const fetchProject = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select(`
+          *,
+          users!inner(first_name, last_name, email, business_name)
+        `)
+        .eq('id', projectId)
+        .single();
+      
+      if (error) throw error;
+      setProject(data);
+    } catch (error) {
+      console.error('Error fetching project:', error);
+    }
+  };
 
   const fetchPhases = async () => {
     try {
@@ -67,6 +90,64 @@ export default function ProjectPhaseManager({ projectId, isAdminView = false, on
     }
   };
 
+  const sendPricingNotificationEmail = async (phase: ProjectPhase, action: 'new_pricing' | 'counter_offer' | 'accepted') => {
+    if (!project) return;
+
+    const isAdminAction = isAdminView;
+    const recipientEmail = isAdminAction ? 'bsafwanjamil677@gmail.com' : project.users.email;
+    const customerName = `${project.users.first_name} ${project.users.last_name}`;
+    
+    let subject = '';
+    let templateData = {};
+
+    switch (action) {
+      case 'new_pricing':
+        subject = isAdminAction 
+          ? `New Pricing Phases - ${project.project_name}`
+          : `New Pricing Available - ${project.project_name}`;
+        templateData = {
+          customerName: isAdminAction ? 'Admin' : customerName,
+          projectName: project.project_name,
+          phaseName: phase.phase_name,
+          proposedPrice: phase.admin_proposed_price,
+          action: 'New pricing phases have been created',
+          actionRequired: isAdminView ? 'Review and respond' : 'Review pricing and confirm or negotiate'
+        };
+        break;
+
+      case 'counter_offer':
+        subject = `Counter Offer Received - ${project.project_name}`;
+        templateData = {
+          customerName: isAdminAction ? 'Admin' : customerName,
+          projectName: project.project_name,
+          phaseName: phase.phase_name,
+          proposedPrice: isAdminAction ? phase.admin_proposed_price : phase.user_proposed_price,
+          action: 'A counter offer has been submitted',
+          actionRequired: 'Review and respond to the counter offer'
+        };
+        break;
+
+      case 'accepted':
+        subject = `Phase Price Accepted - ${project.project_name}`;
+        templateData = {
+          customerName: isAdminAction ? 'Admin' : customerName,
+          projectName: project.project_name,
+          phaseName: phase.phase_name,
+          proposedPrice: phase.final_agreed_price,
+          action: 'Phase pricing has been accepted',
+          actionRequired: 'Continue with project planning'
+        };
+        break;
+    }
+
+    await sendEmail({
+      to: [recipientEmail],
+      subject,
+      template: 'project-update',
+      templateData
+    });
+  };
+
   const addPhase = async () => {
     if (!newPhaseName.trim() || !newPhasePrice) return;
     
@@ -74,7 +155,7 @@ export default function ProjectPhaseManager({ projectId, isAdminView = false, on
     try {
       const maxOrder = Math.max(...phases.map(p => p.phase_order), 0);
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('project_phases')
         .insert({
           project_id: projectId,
@@ -82,11 +163,16 @@ export default function ProjectPhaseManager({ projectId, isAdminView = false, on
           admin_proposed_price: parseFloat(newPhasePrice),
           phase_order: maxOrder + 1,
           status: 'pending'
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
       
-      toast.success('Phase added successfully');
+      // Send email notification
+      await sendPricingNotificationEmail(data, 'new_pricing');
+      
+      toast.success('Phase added and user notified via email');
       setNewPhaseName('');
       setNewPhasePrice('');
       setDialogOpen(false);
@@ -126,14 +212,19 @@ export default function ProjectPhaseManager({ projectId, isAdminView = false, on
         ? { admin_proposed_price: parseFloat(price), status: 'negotiating' }
         : { user_proposed_price: parseFloat(price), status: 'negotiating' };
 
-      const { error: phaseError } = await supabase
+      const { data: updatedPhase, error: phaseError } = await supabase
         .from('project_phases')
         .update(updateData)
-        .eq('id', phaseId);
+        .eq('id', phaseId)
+        .select()
+        .single();
 
       if (phaseError) throw phaseError;
       
-      toast.success('Counter offer submitted');
+      // Send email notification
+      await sendPricingNotificationEmail(updatedPhase, 'counter_offer');
+      
+      toast.success('Counter offer submitted and notification sent');
       setCounterOffer(prev => ({ ...prev, [phaseId]: '' }));
       setNegotiationMessage(prev => ({ ...prev, [phaseId]: '' }));
       fetchPhases();
@@ -149,19 +240,39 @@ export default function ProjectPhaseManager({ projectId, isAdminView = false, on
   const acceptPrice = async (phaseId: string, price: number) => {
     setLoading(true);
     try {
-      const { error } = await supabase
+      const { data: updatedPhase, error } = await supabase
         .from('project_phases')
         .update({
           final_agreed_price: price,
           status: 'agreed'
         })
-        .eq('id', phaseId);
+        .eq('id', phaseId)
+        .select()
+        .single();
 
       if (error) throw error;
       
-      toast.success('Price accepted');
+      // Send email notification
+      await sendPricingNotificationEmail(updatedPhase, 'accepted');
+      
+      toast.success('Price accepted and notification sent');
       fetchPhases();
       onPhaseUpdate?.();
+      
+      // Check if all phases are agreed to start project
+      const allPhases = await supabase
+        .from('project_phases')
+        .select('status')
+        .eq('project_id', projectId);
+      
+      if (allPhases.data?.every(p => p.status === 'agreed')) {
+        await supabase
+          .from('projects')
+          .update({ status: 'active' })
+          .eq('id', projectId);
+        
+        toast.success('🎉 All phases agreed! Project is now active!');
+      }
     } catch (error) {
       console.error('Error accepting price:', error);
       toast.error('Failed to accept price');
@@ -191,15 +302,18 @@ export default function ProjectPhaseManager({ projectId, isAdminView = false, on
   const allPhasesAgreed = phases.length > 0 && phases.every(phase => phase.status === 'agreed');
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Project Phases & Pricing</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="w-5 h-5" />
+                Project Phases & Pricing
+              </CardTitle>
               <CardDescription>
                 {isAdminView 
-                  ? 'Manage project phases and pricing structure' 
+                  ? 'Manage project phases and pricing structure with email notifications' 
                   : 'Review and negotiate pricing for each project phase'
                 }
               </CardDescription>
@@ -216,7 +330,7 @@ export default function ProjectPhaseManager({ projectId, isAdminView = false, on
                   <DialogHeader>
                     <DialogTitle>Add New Phase</DialogTitle>
                     <DialogDescription>
-                      Create a new project phase with pricing
+                      Create a new project phase with pricing (user will be notified via email)
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
@@ -239,8 +353,8 @@ export default function ProjectPhaseManager({ projectId, isAdminView = false, on
                         onChange={(e) => setNewPhasePrice(e.target.value)}
                       />
                     </div>
-                    <Button onClick={addPhase} disabled={loading || !newPhaseName.trim() || !newPhasePrice}>
-                      {loading ? 'Adding...' : 'Add Phase'}
+                    <Button onClick={addPhase} disabled={loading || !newPhaseName.trim() || !newPhasePrice || isSending}>
+                      {loading || isSending ? 'Adding & Sending Email...' : 'Add Phase & Notify User'}
                     </Button>
                   </div>
                 </DialogContent>
@@ -250,119 +364,137 @@ export default function ProjectPhaseManager({ projectId, isAdminView = false, on
         </CardHeader>
         <CardContent>
           {phases.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">
-              {isAdminView ? 'No phases created yet' : 'No phases available for this project'}
-            </p>
+            <div className="text-center py-12">
+              <DollarSign className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground text-lg">
+                {isAdminView ? 'No phases created yet' : 'No phases available for this project'}
+              </p>
+              {isAdminView && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Add project phases to start the pricing process
+                </p>
+              )}
+            </div>
           ) : (
-            <div className="space-y-4">
-              {phases.map((phase) => (
-                <Card key={phase.id} className="border-l-4 border-l-blue-500">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <h3 className="font-semibold">{phase.phase_name}</h3>
-                        <Badge variant={getStatusColor(phase.status)} className="flex items-center gap-1">
+            <div className="space-y-6">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Phase</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Admin Price</TableHead>
+                    <TableHead>Your Price</TableHead>
+                    <TableHead>Agreed Price</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {phases.map((phase) => (
+                    <TableRow key={phase.id}>
+                      <TableCell className="font-medium">{phase.phase_name}</TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusColor(phase.status)} className="flex items-center gap-1 w-fit">
                           {getStatusIcon(phase.status)}
                           {phase.status}
                         </Badge>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {phase.admin_proposed_price && (
-                        <div className="bg-blue-50 p-3 rounded-lg">
-                          <div className="text-sm font-medium text-blue-700">Admin Price</div>
-                          <div className="text-lg font-bold text-blue-900">
+                      </TableCell>
+                      <TableCell>
+                        {phase.admin_proposed_price && (
+                          <div className="font-semibold text-blue-600">
                             ${phase.admin_proposed_price.toFixed(2)}
                           </div>
-                        </div>
-                      )}
-                      {phase.user_proposed_price && (
-                        <div className="bg-green-50 p-3 rounded-lg">
-                          <div className="text-sm font-medium text-green-700">Your Price</div>
-                          <div className="text-lg font-bold text-green-900">
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {phase.user_proposed_price && (
+                          <div className="font-semibold text-green-600">
                             ${phase.user_proposed_price.toFixed(2)}
                           </div>
-                        </div>
-                      )}
-                      {phase.final_agreed_price && (
-                        <div className="bg-emerald-50 p-3 rounded-lg">
-                          <div className="text-sm font-medium text-emerald-700">Agreed Price</div>
-                          <div className="text-lg font-bold text-emerald-900">
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {phase.final_agreed_price && (
+                          <div className="font-bold text-emerald-600">
                             ${phase.final_agreed_price.toFixed(2)}
                           </div>
-                        </div>
-                      )}
-                    </div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-2">
+                          {/* User actions */}
+                          {phase.status === 'pending' && !isAdminView && phase.admin_proposed_price && (
+                            <div className="flex gap-2">
+                              <Button 
+                                size="sm"
+                                onClick={() => acceptPrice(phase.id, phase.admin_proposed_price!)}
+                                disabled={loading || isSending}
+                                className="bg-green-600 hover:bg-green-700"
+                              >
+                                <CheckCircle className="w-4 h-4 mr-1" />
+                                Accept
+                              </Button>
+                            </div>
+                          )}
 
-                    {phase.status === 'pending' && !isAdminView && phase.admin_proposed_price && (
-                      <div className="space-y-3 border-t pt-4">
-                        <div className="flex gap-2">
-                          <Button 
-                            size="sm"
-                            onClick={() => acceptPrice(phase.id, phase.admin_proposed_price!)}
-                            disabled={loading}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            Accept ${phase.admin_proposed_price.toFixed(2)}
-                          </Button>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Counter Offer</Label>
-                          <div className="flex gap-2">
-                            <Input
-                              type="number"
-                              placeholder="Your price..."
-                              value={counterOffer[phase.id] || ''}
-                              onChange={(e) => setCounterOffer(prev => ({ ...prev, [phase.id]: e.target.value }))}
-                            />
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => submitCounterOffer(phase.id)}
-                              disabled={loading || !counterOffer[phase.id]}
-                            >
-                              Submit
-                            </Button>
-                          </div>
-                          <Textarea
-                            placeholder="Optional: Add a message with your counter offer..."
-                            value={negotiationMessage[phase.id] || ''}
-                            onChange={(e) => setNegotiationMessage(prev => ({ ...prev, [phase.id]: e.target.value }))}
-                            rows={2}
-                          />
-                        </div>
-                      </div>
-                    )}
+                          {/* Admin actions */}
+                          {phase.status === 'negotiating' && isAdminView && phase.user_proposed_price && (
+                            <div className="flex gap-2">
+                              <Button 
+                                size="sm"
+                                onClick={() => acceptPrice(phase.id, phase.user_proposed_price!)}
+                                disabled={loading || isSending}
+                                className="bg-green-600 hover:bg-green-700"
+                              >
+                                <CheckCircle className="w-4 h-4 mr-1" />
+                                Accept User's Price
+                              </Button>
+                            </div>
+                          )}
 
-                    {phase.status === 'negotiating' && isAdminView && phase.user_proposed_price && (
-                      <div className="space-y-3 border-t pt-4">
-                        <p className="text-sm text-muted-foreground">
-                          User proposed: ${phase.user_proposed_price.toFixed(2)}
-                        </p>
-                        <div className="flex gap-2">
-                          <Button 
-                            size="sm"
-                            onClick={() => acceptPrice(phase.id, phase.user_proposed_price!)}
-                            disabled={loading}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            Accept User's Price
-                          </Button>
+                          {/* Counter offer section */}
+                          {((phase.status === 'pending' && !isAdminView) || 
+                            (phase.status === 'negotiating' && isAdminView)) && (
+                            <div className="space-y-2 pt-2 border-t">
+                              <div className="flex gap-2">
+                                <Input
+                                  type="number"
+                                  placeholder="Counter offer..."
+                                  value={counterOffer[phase.id] || ''}
+                                  onChange={(e) => setCounterOffer(prev => ({ ...prev, [phase.id]: e.target.value }))}
+                                  className="w-32"
+                                />
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => submitCounterOffer(phase.id)}
+                                  disabled={loading || !counterOffer[phase.id] || isSending}
+                                >
+                                  <MessageSquare className="w-4 h-4 mr-1" />
+                                  Counter
+                                </Button>
+                              </div>
+                              <Textarea
+                                placeholder="Optional message..."
+                                value={negotiationMessage[phase.id] || ''}
+                                onChange={(e) => setNegotiationMessage(prev => ({ ...prev, [phase.id]: e.target.value }))}
+                                rows={2}
+                                className="text-xs"
+                              />
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
 
               {allPhasesAgreed && (
                 <Card className="border-green-200 bg-green-50">
                   <CardContent className="pt-6">
                     <div className="flex items-center gap-2 text-green-700">
                       <CheckCircle className="w-5 h-5" />
-                      <span className="font-semibold">All phases agreed! Project can now begin.</span>
+                      <span className="font-semibold">🎉 All phases agreed! Project is now active and ready to begin.</span>
                     </div>
                     <div className="mt-2 text-sm text-green-600">
                       Total project cost: ${phases.reduce((sum, phase) => sum + (phase.final_agreed_price || 0), 0).toFixed(2)}
