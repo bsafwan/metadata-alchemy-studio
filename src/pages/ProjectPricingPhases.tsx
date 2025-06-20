@@ -1,36 +1,39 @@
 
 import React from 'react';
-import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import ProjectPlanManager from '@/components/ProjectPlanManager';
 import ProjectPhaseManager from '@/components/ProjectPhaseManager';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function ProjectPricingPhases() {
-  const { projectId } = useParams();
+  const { user } = useAuth();
 
-  const { data: project, isLoading } = useQuery({
-    queryKey: ['project', projectId],
+  const { data: project, isLoading, refetch } = useQuery({
+    queryKey: ['user-project', user?.id],
     queryFn: async () => {
+      if (!user?.id) throw new Error('User not authenticated');
+      
       const { data, error } = await supabase
         .from('projects')
         .select(`
           *,
           users!inner(first_name, last_name, email, business_name)
         `)
-        .eq('id', projectId!)
+        .eq('user_id', user.id)
+        .eq('is_active', true)
         .single();
       
       if (error) throw error;
       return data;
     },
-    enabled: !!projectId
+    enabled: !!user?.id
   });
 
   const refetchData = () => {
-    // This would trigger a refetch of any dependent data
+    refetch();
   };
 
   if (isLoading) {
@@ -45,7 +48,7 @@ export default function ProjectPricingPhases() {
     return (
       <Card>
         <CardContent className="py-8 text-center">
-          <p className="text-muted-foreground">Project not found</p>
+          <p className="text-muted-foreground">No active project found. Please contact support if you believe this is an error.</p>
         </CardContent>
       </Card>
     );
@@ -56,18 +59,18 @@ export default function ProjectPricingPhases() {
       <div>
         <h2 className="text-2xl font-bold">Project Planning & Pricing</h2>
         <p className="text-muted-foreground">
-          Project: {project.project_name} | Client: {project.users.first_name} {project.users.last_name}
+          Project: {project.project_name} | Status: {project.status}
         </p>
       </div>
 
       <ProjectPlanManager 
-        projectId={projectId!} 
+        projectId={project.id} 
         isAdminView={false}
         onPlanUpdate={refetchData}
       />
       
       <ProjectPhaseManager 
-        projectId={projectId!} 
+        projectId={project.id} 
         isAdminView={false}
         onPhaseUpdate={refetchData}
       />
