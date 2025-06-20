@@ -5,9 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageSquare, Send, Paperclip, Download, Image, ArrowLeft, Loader2 } from 'lucide-react';
+import { MessageSquare, Send, Paperclip, Download, Image, ArrowLeft, Loader2, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -94,7 +93,6 @@ export default function ProjectAdminMessages() {
       
       if (error) throw error;
       
-      // Transform the database messages to match our Message interface
       return (data as DatabaseMessage[]).map((msg): Message => ({
         id: msg.id,
         sender_type: msg.sender_type as 'user' | 'admin',
@@ -110,7 +108,6 @@ export default function ProjectAdminMessages() {
 
   useEffect(() => {
     if (selectedConversation) {
-      // Subscribe to new messages for real-time updates
       const channel = supabase
         .channel(`conversation-${selectedConversation}`)
         .on(
@@ -242,13 +239,11 @@ export default function ProjectAdminMessages() {
 
       if (messageError) throw messageError;
 
-      // Update conversation timestamp
       await supabase
         .from('conversations')
         .update({ updated_at: new Date().toISOString() })
         .eq('id', conversationId);
 
-      // Send email notification
       const { error: emailError } = await supabase.functions.invoke('send-conversation-email', {
         body: {
           conversationId,
@@ -324,202 +319,212 @@ export default function ProjectAdminMessages() {
     );
   }
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Project Conversations</h2>
-        <Badge variant="outline">{conversations?.length || 0} Conversations</Badge>
-      </div>
+  if (!selectedConversation) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">Project Conversations</h2>
+          <Badge variant="outline">{conversations?.length || 0} Conversations</Badge>
+        </div>
 
-      <div className="space-y-4">
-        {conversations?.map((conversation) => (
-          <Card key={conversation.id} className="cursor-pointer hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <MessageSquare className="w-5 h-5 text-blue-500" />
-                  <div>
-                    <CardTitle className="text-lg">{conversation.subject}</CardTitle>
-                    <CardDescription>
-                      Client: {conversation.users.first_name} {conversation.users.last_name} ({conversation.users.business_name})
-                    </CardDescription>
+        <div className="space-y-4">
+          {conversations?.map((conversation) => (
+            <Card key={conversation.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedConversation(conversation.id)}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <MessageSquare className="w-5 h-5 text-blue-500" />
+                    <div>
+                      <CardTitle className="text-lg">{conversation.subject}</CardTitle>
+                      <CardDescription>
+                        Client: {conversation.users.first_name} {conversation.users.last_name} ({conversation.users.business_name})
+                      </CardDescription>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
                   <Badge variant={conversation.status === 'active' ? 'default' : 'secondary'}>
                     {conversation.status}
                   </Badge>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button 
-                        size="sm" 
-                        onClick={() => setSelectedConversation(conversation.id)}
-                      >
-                        <MessageSquare className="w-4 h-4 mr-2" />
-                        Open Chat
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
-                      <DialogHeader>
-                        <DialogTitle>{conversation.subject}</DialogTitle>
-                        <p className="text-sm text-muted-foreground">
-                          Conversation with {conversation.users.first_name} {conversation.users.last_name}
-                        </p>
-                      </DialogHeader>
-                      
-                      <ScrollArea className="flex-1 max-h-96">
-                        <div className="space-y-4 p-4">
-                          {messages?.map((message) => (
-                            <div
-                              key={message.id}
-                              className={`flex ${message.sender_type === 'admin' ? 'justify-end' : 'justify-start'}`}
-                            >
-                              <div
-                                className={`max-w-[70%] p-4 rounded-lg ${
-                                  message.sender_type === 'admin'
-                                    ? 'bg-blue-500 text-white'
-                                    : 'bg-gray-100 text-gray-900'
-                                }`}
-                              >
-                                <div className="flex items-center gap-2 mb-2">
-                                  <span className="text-sm font-medium">
-                                    {message.sender_name}
-                                  </span>
-                                  <span className="text-xs opacity-70">
-                                    {new Date(message.created_at).toLocaleTimeString()}
-                                  </span>
-                                </div>
-                                {message.message_content && (
-                                  <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                                    {message.message_content}
-                                  </div>
-                                )}
-                                {message.attachments && message.attachments.length > 0 && (
-                                  <div className="mt-3 space-y-2">
-                                    {message.attachments.map((attachment, index) => (
-                                      <div key={index} className="border border-white/20 rounded-lg p-3 bg-black/10">
-                                        {isImage(attachment.type) ? (
-                                          <div>
-                                            <img
-                                              src={attachment.url}
-                                              alt={attachment.name}
-                                              className="max-w-full h-auto rounded-md mb-2"
-                                              style={{ maxHeight: '250px' }}
-                                            />
-                                            <div className="flex items-center justify-between">
-                                              <span className="text-xs font-medium">{attachment.name}</span>
-                                              <button
-                                                onClick={() => handleDownload(attachment)}
-                                                className="text-xs underline hover:opacity-80 flex items-center gap-1 cursor-pointer"
-                                              >
-                                                <Download className="w-3 h-3" />
-                                                Download
-                                              </button>
-                                            </div>
-                                          </div>
-                                        ) : (
-                                          <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                              <Paperclip className="w-4 h-4" />
-                                              <span className="text-xs font-medium">{attachment.name}</span>
-                                            </div>
-                                            <button
-                                              onClick={() => handleDownload(attachment)}
-                                              className="text-xs underline hover:opacity-80 flex items-center gap-1 cursor-pointer"
-                                            >
-                                              <Download className="w-3 h-3" />
-                                              Download
-                                            </button>
-                                          </div>
-                                        )}
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                          <div ref={messagesEndRef} />
-                        </div>
-                      </ScrollArea>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Last updated: {new Date(conversation.updated_at).toLocaleString()}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
 
-                      <div className="border-t p-4 bg-white">
-                        <form onSubmit={handleSendMessage} className="space-y-3">
-                          {files && files.length > 0 && (
-                            <div className="border rounded-lg p-3 space-y-2 bg-gray-50">
-                              <p className="text-sm font-medium">Attached files:</p>
-                              {Array.from(files).map((file, index) => (
-                                <div key={index} className="text-sm text-muted-foreground flex items-center gap-2">
-                                  {isImage(file.type) ? <Image className="w-4 h-4" /> : <Paperclip className="w-4 h-4" />}
-                                  {file.name} ({formatFileSize(file.size)})
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          <div className="flex gap-2">
-                            <Textarea
-                              value={newMessage}
-                              onChange={(e) => setNewMessage(e.target.value)}
-                              placeholder="Type your message..."
-                              rows={3}
-                              className="flex-1 resize-none"
-                              disabled={loading || sendReplyMutation.isPending}
-                            />
-                            <div className="flex flex-col gap-2">
-                              <input
-                                ref={fileInputRef}
-                                type="file"
-                                multiple
-                                onChange={(e) => setFiles(e.target.files)}
-                                className="hidden"
-                              />
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => fileInputRef.current?.click()}
-                                className="h-10 w-10"
-                                disabled={loading || sendReplyMutation.isPending}
-                              >
-                                <Paperclip className="w-4 h-4" />
-                              </Button>
-                              <Button 
-                                type="submit" 
-                                disabled={loading || sendReplyMutation.isPending || (!newMessage.trim() && (!files || files.length === 0))}
-                                size="sm"
-                                className="h-10 w-10"
-                              >
-                                {loading || sendReplyMutation.isPending ? (
-                                  <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                  <Send className="w-4 h-4" />
-                                )}
-                              </Button>
-                            </div>
-                          </div>
-                        </form>
+          {!conversations || conversations.length === 0 && (
+            <Card>
+              <CardContent className="py-8 text-center">
+                <p className="text-muted-foreground">No conversations found for this project</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  const currentConversation = conversations?.find(c => c.id === selectedConversation);
+  
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" onClick={() => setSelectedConversation(null)}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Conversations
+        </Button>
+        <div>
+          <h2 className="text-2xl font-bold">{currentConversation?.subject}</h2>
+          <p className="text-muted-foreground">
+            Client: {currentConversation?.users.first_name} {currentConversation?.users.last_name} ({currentConversation?.users.business_name})
+          </p>
+        </div>
+        <Badge variant={currentConversation?.status === 'active' ? 'default' : 'secondary'}>
+          {currentConversation?.status}
+        </Badge>
+      </div>
+
+      <Card className="h-[600px] flex flex-col">
+        <CardHeader className="pb-3 flex-shrink-0">
+          <CardTitle className="text-lg">Messages</CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
+          <ScrollArea className="flex-1 px-4">
+            <div className="space-y-4 py-4">
+              {messages?.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.sender_type === 'admin' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[70%] p-4 rounded-lg ${
+                      message.sender_type === 'admin'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-100 text-gray-900'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sm font-medium">
+                        {message.sender_name}
+                      </span>
+                      <span className="text-xs opacity-70">
+                        {new Date(message.created_at).toLocaleTimeString()}
+                      </span>
+                    </div>
+                    {message.message_content && (
+                      <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                        {message.message_content}
                       </div>
-                    </DialogContent>
-                  </Dialog>
+                    )}
+                    {message.attachments && message.attachments.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {message.attachments.map((attachment, index) => (
+                          <div key={index} className="border border-white/20 rounded-lg p-3 bg-black/10">
+                            {isImage(attachment.type) ? (
+                              <div>
+                                <img
+                                  src={attachment.url}
+                                  alt={attachment.name}
+                                  className="max-w-full h-auto rounded-md mb-2"
+                                  style={{ maxHeight: '250px' }}
+                                />
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs font-medium">{attachment.name}</span>
+                                  <button
+                                    onClick={() => handleDownload(attachment)}
+                                    className="text-xs underline hover:opacity-80 flex items-center gap-1 cursor-pointer"
+                                  >
+                                    <Download className="w-3 h-3" />
+                                    Download
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Paperclip className="w-4 h-4" />
+                                  <span className="text-xs font-medium">{attachment.name}</span>
+                                </div>
+                                <button
+                                  onClick={() => handleDownload(attachment)}
+                                  className="text-xs underline hover:opacity-80 flex items-center gap-1 cursor-pointer"
+                                  >
+                                  <Download className="w-3 h-3" />
+                                  Download
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+          </ScrollArea>
+
+          <div className="border-t p-4 flex-shrink-0 bg-white">
+            <form onSubmit={handleSendMessage} className="space-y-3">
+              {files && files.length > 0 && (
+                <div className="border rounded-lg p-3 space-y-2 bg-gray-50">
+                  <p className="text-sm font-medium">Attached files:</p>
+                  {Array.from(files).map((file, index) => (
+                    <div key={index} className="text-sm text-muted-foreground flex items-center gap-2">
+                      {isImage(file.type) ? <Image className="w-4 h-4" /> : <Paperclip className="w-4 h-4" />}
+                      {file.name} ({formatFileSize(file.size)})
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="flex gap-2">
+                <Textarea
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder="Type your message..."
+                  rows={3}
+                  className="flex-1 resize-none"
+                  disabled={loading || sendReplyMutation.isPending}
+                />
+                <div className="flex flex-col gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    onChange={(e) => setFiles(e.target.files)}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="h-10 w-10"
+                    disabled={loading || sendReplyMutation.isPending}
+                  >
+                    <Paperclip className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={loading || sendReplyMutation.isPending || (!newMessage.trim() && (!files || files.length === 0))}
+                    size="sm"
+                    className="h-10 w-10"
+                  >
+                    {loading || sendReplyMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4" />
+                    )}
+                  </Button>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Last updated: {new Date(conversation.updated_at).toLocaleString()}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-
-        {!conversations || conversations.length === 0 && (
-          <Card>
-            <CardContent className="py-8 text-center">
-              <p className="text-muted-foreground">No conversations found for this project</p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+            </form>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
