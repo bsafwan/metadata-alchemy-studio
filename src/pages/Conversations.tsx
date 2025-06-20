@@ -14,6 +14,10 @@ interface Conversation {
   status: string;
   created_at: string;
   updated_at: string;
+  project: {
+    id: string;
+    project_name: string;
+  };
   latest_message?: {
     message_content: string;
     sender_name: string;
@@ -40,11 +44,12 @@ export default function Conversations() {
 
     setLoading(true);
     try {
-      // Get conversations with latest message and message count
+      // Get conversations with project info and latest message and message count
       const { data, error } = await supabase
         .from('conversations')
         .select(`
           *,
+          projects!inner(id, project_name),
           conversation_messages (
             message_content,
             sender_name,
@@ -70,6 +75,7 @@ export default function Conversations() {
           status: conv.status,
           created_at: conv.created_at,
           updated_at: conv.updated_at,
+          project: conv.projects,
           latest_message: latestMessage,
           message_count: messages.length
         };
@@ -149,6 +155,11 @@ export default function Conversations() {
                     <div className="flex-1">
                       <CardTitle className="text-base">{conv.subject}</CardTitle>
                       <CardDescription className="text-sm">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge variant="outline" className="text-xs">
+                            {conv.project.project_name}
+                          </Badge>
+                        </div>
                         {conv.latest_message ? (
                           <>
                             <span className="font-medium">

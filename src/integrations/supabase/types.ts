@@ -78,7 +78,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          project_id: string | null
+          project_id: string
           status: string
           subject: string
           updated_at: string
@@ -87,7 +87,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
-          project_id?: string | null
+          project_id: string
           status?: string
           subject: string
           updated_at?: string
@@ -96,7 +96,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
-          project_id?: string | null
+          project_id?: string
           status?: string
           subject?: string
           updated_at?: string
@@ -115,6 +115,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_conversations_project_id"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]

@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,10 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Send, Paperclip, X, Image } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
-interface NewConversationDialogProps {
+interface AdminNewConversationDialogProps {
   onConversationCreated: () => void;
   preSelectedProjectId?: string;
 }
@@ -19,9 +19,15 @@ interface Project {
   id: string;
   project_name: string;
   status: string;
+  users: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    business_name: string;
+  };
 }
 
-const NewConversationDialog = ({ onConversationCreated, preSelectedProjectId }: NewConversationDialogProps) => {
+const AdminNewConversationDialog = ({ onConversationCreated, preSelectedProjectId }: AdminNewConversationDialogProps) => {
   const [open, setOpen] = useState(false);
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
@@ -29,14 +35,13 @@ const NewConversationDialog = ({ onConversationCreated, preSelectedProjectId }: 
   const [loading, setLoading] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>(preSelectedProjectId || '');
-  const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (user && open) {
+    if (open) {
       fetchProjects();
     }
-  }, [user, open]);
+  }, [open]);
 
   useEffect(() => {
     if (preSelectedProjectId) {
@@ -45,20 +50,21 @@ const NewConversationDialog = ({ onConversationCreated, preSelectedProjectId }: 
   }, [preSelectedProjectId]);
 
   const fetchProjects = async () => {
-    if (!user) return;
-
     try {
       const { data, error } = await supabase
         .from('projects')
-        .select('id, project_name, status')
-        .eq('user_id', user.id)
+        .select(`
+          id,
+          project_name,
+          status,
+          users!inner(first_name, last_name, email, business_name)
+        `)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       setProjects(data || []);
 
-      // Auto-select first project if none selected and not pre-selected
       if (data && data.length > 0 && !selectedProjectId && !preSelectedProjectId) {
         setSelectedProjectId(data[0].id);
       }
@@ -80,14 +86,11 @@ const NewConversationDialog = ({ onConversationCreated, preSelectedProjectId }: 
         const fileName = `${timestamp}_${file.name}`;
         const filePath = `${conversationId}/${fileName}`;
 
-        console.log('Uploading file:', fileName);
-
         const { error: uploadError } = await supabase.storage
           .from('conversation-files')
           .upload(filePath, file);
 
         if (uploadError) {
-          console.error('Upload error:', uploadError);
           throw new Error(`Failed to upload ${file.name}`);
         }
 
@@ -132,19 +135,21 @@ const NewConversationDialog = ({ onConversationCreated, preSelectedProjectId }: 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !selectedProjectId || (!subject.trim() || (!message.trim() && (!files || files.length === 0)))) return;
+    if (!selectedProjectId || (!subject.trim() || (!message.trim() && (!files || files.length === 0)))) return;
     if (loading) return;
 
-    console.log('Creating conversation for user:', user.id, 'project:', selectedProjectId);
     setLoading(true);
     
     try {
-      // Create conversation with required project_id
+      const selectedProject = projects.find(p => p.id === selectedProjectId);
+      if (!selectedProject) throw new Error('Project not found');
+
+      // Create conversation
       const { data: conversation, error: convError } = await supabase
         .from('conversations')
         .insert({
-          user_id: user.id,
-          project_id: selectedProjectId, // Always include project_id
+          user_id: selectedProject.users.id,
+          project_id: selectedProjectId,
           subject: subject.trim()
         })
         .select()
@@ -155,19 +160,17 @@ const NewConversationDialog = ({ onConversationCreated, preSelectedProjectId }: 
         throw new Error('Failed to create conversation');
       }
 
-      console.log('Conversation created:', conversation);
-
       // Upload files
       const attachments = await uploadFiles(conversation.id);
 
-      // Add first message
+      // Add admin message
       const { error: msgError } = await supabase
         .from('conversation_messages')
         .insert({
           conversation_id: conversation.id,
-          sender_type: 'user',
-          sender_name: `${user.first_name} ${user.last_name}`,
-          sender_email: user.email,
+          sender_type: 'admin',
+          sender_name: 'Elismet Support Team',
+          sender_email: 'support@elismet.com',
           message_content: message.trim() || '(File attachment)',
           attachments: attachments
         });
@@ -177,7 +180,7 @@ const NewConversationDialog = ({ onConversationCreated, preSelectedProjectId }: 
         throw new Error('Failed to send message');
       }
 
-      // Send email notification
+      // Send email notification to project owner
       try {
         await supabase.functions.invoke('send-conversation-email', {
           body: {
@@ -208,19 +211,21 @@ const NewConversationDialog = ({ onConversationCreated, preSelectedProjectId }: 
     }
   };
 
+  const selectedProject = projects.find(p => p.id === selectedProjectId);
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
           <Plus className="w-4 h-4 mr-2" />
-          New Conversation
+          Start New Conversation
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Start New Conversation</DialogTitle>
+          <DialogTitle className="text-2xl">Start New Conversation (Admin)</DialogTitle>
           <DialogDescription className="text-lg">
-            Send a message directly to our support team with optional file attachments
+            Start a conversation with a project owner
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -230,21 +235,33 @@ const NewConversationDialog = ({ onConversationCreated, preSelectedProjectId }: 
               {projects.length > 0 ? (
                 <Select value={selectedProjectId} onValueChange={setSelectedProjectId} required>
                   <SelectTrigger className="h-12 text-base">
-                    <SelectValue placeholder="Select a project for this conversation" />
+                    <SelectValue placeholder="Select a project" />
                   </SelectTrigger>
                   <SelectContent>
                     {projects.map((project) => (
                       <SelectItem key={project.id} value={project.id}>
-                        {project.project_name} ({project.status})
+                        {project.project_name} - {project.users.business_name} ({project.users.first_name} {project.users.last_name})
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               ) : (
                 <div className="p-4 border rounded-lg bg-gray-50">
-                  <p className="text-sm text-gray-600">No active projects found. Please create a project first.</p>
+                  <p className="text-sm text-gray-600">No active projects found.</p>
                 </div>
               )}
+            </div>
+          )}
+
+          {selectedProject && (
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <h4 className="font-medium text-blue-900">Conversation will be sent to:</h4>
+              <p className="text-blue-700">
+                {selectedProject.users.first_name} {selectedProject.users.last_name} ({selectedProject.users.email})
+              </p>
+              <p className="text-sm text-blue-600">
+                Business: {selectedProject.users.business_name} | Project: {selectedProject.project_name}
+              </p>
             </div>
           )}
           
@@ -345,4 +362,4 @@ const NewConversationDialog = ({ onConversationCreated, preSelectedProjectId }: 
   );
 };
 
-export default NewConversationDialog;
+export default AdminNewConversationDialog;

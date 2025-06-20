@@ -1,304 +1,255 @@
-
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { FolderPlus, CheckCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { useToast } from '@/components/ui/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
+import { ArrowRight, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { EmailService } from '@/utils/emailService';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
-const crmFeatures = [
-  { id: 'customer_management', label: 'Customer Management & Contact Database' },
-  { id: 'appointment_scheduling', label: 'Appointment Scheduling & Calendar' },
-  { id: 'job_tracking', label: 'Job/Service Tracking & Status Updates' },
-  { id: 'invoicing_billing', label: 'Invoicing & Billing System' },
-  { id: 'payment_processing', label: 'Payment Processing & Tracking' },
-  { id: 'inventory_management', label: 'Inventory & Equipment Management' },
-  { id: 'employee_management', label: 'Employee & Team Management' },
-  { id: 'reporting_analytics', label: 'Reporting & Analytics Dashboard' },
-  { id: 'mobile_app', label: 'Mobile App for Field Workers' },
-  { id: 'customer_portal', label: 'Customer Self-Service Portal' },
-  { id: 'automated_reminders', label: 'Automated Reminders & Notifications' },
-  { id: 'quote_estimation', label: 'Quote & Estimation Tools' }
+const AVAILABLE_FEATURES = [
+  'User Authentication',
+  'Dashboard & Analytics',
+  'Payment Processing',
+  'File Upload & Management',
+  'Real-time Chat',
+  'Email Notifications',
+  'API Integration',
+  'Mobile Responsive Design',
+  'Custom Reporting',
+  'Third-party Integrations'
 ];
 
-const ProjectSetup = () => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const { user } = useAuth();
+export default function ProjectSetup() {
   const [projectName, setProjectName] = useState('');
-  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
-  const [customRequirements, setCustomRequirements] = useState('');
-  const [currentChallenges, setCurrentChallenges] = useState('');
   const [businessGoals, setBusinessGoals] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [currentChallenges, setCurrentChallenges] = useState('');
+  const [customRequirements, setCustomRequirements] = useState('');
+  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
-  const handleFeatureToggle = (featureId: string) => {
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    if (user.has_completed_initial_setup) {
+      navigate('/dashboard');
+      return;
+    }
+  }, [user, navigate]);
+
+  const handleFeatureToggle = (feature: string) => {
     setSelectedFeatures(prev => 
-      prev.includes(featureId) 
-        ? prev.filter(id => id !== featureId)
-        : [...prev, featureId]
+      prev.includes(feature) 
+        ? prev.filter(f => f !== feature)
+        : [...prev, feature]
     );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user || selectedFeatures.length === 0) return;
 
-    if (!projectName.trim()) {
-      toast({
-        title: "Project Name Required",
-        description: "Please enter a name for your project.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (selectedFeatures.length === 0) {
-      toast({
-        title: "Select Features",
-        description: "Please select at least one CRM feature you need.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
+    setLoading(true);
     try {
-      // Create project in database with 'in_progress' status instead of 'pending'
-      const { data: projectData, error: projectError } = await supabase
+      // Create the project
+      const { data: project, error: projectError } = await supabase
         .from('projects')
         .insert({
-          user_id: user!.id,
-          project_name: projectName,
+          user_id: user.id,
+          project_name: projectName.trim(),
           selected_features: selectedFeatures,
-          custom_requirements: customRequirements,
-          current_challenges: currentChallenges,
-          business_goals: businessGoals,
-          status: 'in_progress'
+          business_goals: businessGoals.trim() || null,
+          current_challenges: currentChallenges.trim() || null,
+          custom_requirements: customRequirements.trim() || null,
+          status: 'pending'
         })
         .select()
         .single();
 
       if (projectError) throw projectError;
 
-      // Mark user as having completed initial setup
-      await supabase
-        .from('users')
-        .update({ has_completed_initial_setup: true })
-        .eq('id', user!.id);
-
-      // Create initial message for admin
-      const messageContent = `New Project Request from ${user!.first_name} ${user!.last_name}
-
-Business: ${user!.business_name} (${user!.business_category})
-Email: ${user!.email}
-Project Name: ${projectName}
-
-Selected Features:
-${selectedFeatures.map(f => crmFeatures.find(cf => cf.id === f)?.label).join('\n')}
-
-Custom Requirements:
-${customRequirements || 'None specified'}
-
-Current Challenges:
-${currentChallenges || 'None specified'}
-
-Business Goals:
-${businessGoals || 'None specified'}`;
-
-      // Save message to database
-      const { error: messageError } = await supabase
-        .from('messages')
+      // Create initial conversation for the project
+      const { data: conversation, error: convError } = await supabase
+        .from('conversations')
         .insert({
-          user_id: user!.id,
-          project_id: projectData.id,
-          message_type: 'initial_project_request',
-          content: messageContent,
-          sender_email: user!.email,
-          recipient_email: 'bsafwanjamil677@gmail.com'
+          user_id: user.id,
+          project_id: project.id,
+          subject: `Project Setup - ${projectName.trim()}`,
+          status: 'active'
+        })
+        .select()
+        .single();
+
+      if (convError) throw convError;
+
+      // Create initial welcome message
+      const welcomeMessage = `Welcome to your new project: ${projectName}!
+
+Project Details:
+- Selected Features: ${selectedFeatures.join(', ')}
+${businessGoals ? `- Business Goals: ${businessGoals}` : ''}
+${currentChallenges ? `- Current Challenges: ${currentChallenges}` : ''}
+${customRequirements ? `- Custom Requirements: ${customRequirements}` : ''}
+
+Our team will review your project requirements and get back to you shortly with a detailed project plan and timeline. Feel free to ask any questions or provide additional information through this conversation system.`;
+
+      const { error: msgError } = await supabase
+        .from('conversation_messages')
+        .insert({
+          conversation_id: conversation.id,
+          sender_type: 'admin',
+          sender_name: 'Elismet Team',
+          sender_email: 'team@elismet.com',
+          message_content: welcomeMessage
         });
 
-      if (messageError) throw messageError;
+      if (msgError) throw msgError;
 
-      // Send email notification to admin
-      await EmailService.sendEmail({
-        to: ['bsafwanjamil677@gmail.com'],
-        subject: `New Project Request - ${projectName}`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #2563eb;">New Project Request</h2>
-            <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <h3>Client Information</h3>
-              <p><strong>Name:</strong> ${user!.first_name} ${user!.last_name}</p>
-              <p><strong>Email:</strong> ${user!.email}</p>
-              <p><strong>Business:</strong> ${user!.business_name}</p>
-              <p><strong>Category:</strong> ${user!.business_category}</p>
-            </div>
-            <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <h3>Project Details</h3>
-              <p><strong>Project Name:</strong> ${projectName}</p>
-              <h4>Selected Features:</h4>
-              <ul>
-                ${selectedFeatures.map(f => `<li>${crmFeatures.find(cf => cf.id === f)?.label}</li>`).join('')}
-              </ul>
-              ${customRequirements ? `<p><strong>Custom Requirements:</strong><br>${customRequirements}</p>` : ''}
-              ${currentChallenges ? `<p><strong>Current Challenges:</strong><br>${currentChallenges}</p>` : ''}
-              ${businessGoals ? `<p><strong>Business Goals:</strong><br>${businessGoals}</p>` : ''}
-            </div>
-            <p>Please review and respond to the client.</p>
-          </div>
-        `,
-        text: messageContent
-      });
+      // Send email notification to super admin about new project
+      try {
+        await supabase.functions.invoke('send-conversation-email', {
+          body: {
+            conversationId: conversation.id,
+            messageContent: welcomeMessage,
+            attachments: []
+          }
+        });
+      } catch (emailError) {
+        console.error('Email notification failed:', emailError);
+        // Don't fail the whole operation if email fails
+      }
 
-      // Set selected project
-      localStorage.setItem('selected_project_id', projectData.id);
+      // Mark user setup as complete
+      const { error: userError } = await supabase
+        .from('users')
+        .update({ has_completed_initial_setup: true })
+        .eq('id', user.id);
 
-      toast({
-        title: "Project Created!",
-        description: "Your project has been submitted. We'll contact you within 24 hours.",
-      });
+      if (userError) throw userError;
 
+      toast.success('Project setup completed successfully!');
       navigate('/dashboard');
     } catch (error) {
-      console.error('Project creation error:', error);
-      toast({
-        title: "Creation Failed",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive"
-      });
+      console.error('Error setting up project:', error);
+      toast.error((error as Error).message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  if (!user) {
-    navigate('/login');
-    return null;
-  }
+  if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      
-      <div className="container mx-auto px-6 py-16">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Setup Your Project</h1>
-            <p className="text-gray-600">Tell us about your CRM needs for {user.business_name}</p>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="max-w-4xl mx-auto">
+        <Card className="shadow-xl">
+          <CardHeader className="text-center">
+            <CardTitle className="text-3xl font-bold text-gray-900">Project Setup</CardTitle>
+            <CardDescription className="text-lg text-gray-600">
+              Let's configure your project requirements and get started
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="space-y-3">
+                <Label htmlFor="projectName" className="text-base font-medium">Project Name *</Label>
+                <Input
+                  id="projectName"
+                  value={projectName}
+                  onChange={(e) => setProjectName(e.target.value)}
+                  placeholder="Enter your project name"
+                  required
+                  className="h-12 text-base"
+                />
+              </div>
 
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <FolderPlus className="w-5 h-5 mr-2" />
-                Project Configuration
-              </CardTitle>
-              <CardDescription>
-                Configure your custom CRM system requirements
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-8">
-                <div className="space-y-2">
-                  <Label htmlFor="projectName">Project Name *</Label>
-                  <Input
-                    id="projectName"
-                    type="text"
-                    placeholder="Enter a name for your CRM project"
-                    value={projectName}
-                    onChange={(e) => setProjectName(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-4">
-                  <Label className="text-base font-semibold">What CRM features do you need? *</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {crmFeatures.map((feature) => (
-                      <div key={feature.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={feature.id}
-                          checked={selectedFeatures.includes(feature.id)}
-                          onCheckedChange={() => handleFeatureToggle(feature.id)}
-                        />
-                        <Label htmlFor={feature.id} className="text-sm font-normal">
-                          {feature.label}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="customRequirements">Any specific custom requirements?</Label>
-                  <Textarea
-                    id="customRequirements"
-                    placeholder="Describe any specific features or integrations you need..."
-                    value={customRequirements}
-                    onChange={(e) => setCustomRequirements(e.target.value)}
-                    rows={4}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="currentChallenges">What are your current business challenges?</Label>
-                  <Textarea
-                    id="currentChallenges"
-                    placeholder="Tell us about the problems you're facing..."
-                    value={currentChallenges}
-                    onChange={(e) => setCurrentChallenges(e.target.value)}
-                    rows={4}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="businessGoals">What are your business goals for the next year?</Label>
-                  <Textarea
-                    id="businessGoals"
-                    placeholder="Share your growth plans..."
-                    value={businessGoals}
-                    onChange={(e) => setBusinessGoals(e.target.value)}
-                    rows={4}
-                  />
-                </div>
-
-                <div className="bg-blue-50 p-6 rounded-lg">
-                  <div className="flex items-start space-x-3">
-                    <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5" />
-                    <div>
-                      <h3 className="font-semibold text-blue-900 mb-2">What happens next?</h3>
-                      <ul className="text-sm text-blue-800 space-y-1">
-                        <li>• We'll review your requirements and create a custom proposal</li>
-                        <li>• Our team will contact you within 24 hours to discuss your needs</li>
-                        <li>• We'll provide you with a timeline and pricing for your custom CRM</li>
-                        <li>• Once approved, we'll start building your personalized system</li>
-                      </ul>
+              <div className="space-y-4">
+                <Label className="text-base font-medium">Select Features *</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {AVAILABLE_FEATURES.map((feature) => (
+                    <div key={feature} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                      <Checkbox
+                        id={feature}
+                        checked={selectedFeatures.includes(feature)}
+                        onCheckedChange={() => handleFeatureToggle(feature)}
+                      />
+                      <Label htmlFor={feature} className="text-sm font-medium cursor-pointer flex-1">
+                        {feature}
+                      </Label>
+                      {selectedFeatures.includes(feature) && (
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                      )}
                     </div>
-                  </div>
+                  ))}
                 </div>
+                {selectedFeatures.length === 0 && (
+                  <p className="text-sm text-red-500">Please select at least one feature</p>
+                )}
+              </div>
 
-                <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
-                  {isLoading ? "Creating Project..." : "Create Project"}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
+              <div className="space-y-3">
+                <Label htmlFor="businessGoals" className="text-base font-medium">Business Goals (Optional)</Label>
+                <Textarea
+                  id="businessGoals"
+                  value={businessGoals}
+                  onChange={(e) => setBusinessGoals(e.target.value)}
+                  placeholder="Describe your main business objectives for this project"
+                  rows={3}
+                  className="resize-none text-base"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <Label htmlFor="currentChallenges" className="text-base font-medium">Current Challenges (Optional)</Label>
+                <Textarea
+                  id="currentChallenges"
+                  value={currentChallenges}
+                  onChange={(e) => setCurrentChallenges(e.target.value)}
+                  placeholder="What challenges are you facing that this project should address?"
+                  rows={3}
+                  className="resize-none text-base"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <Label htmlFor="customRequirements" className="text-base font-medium">Custom Requirements (Optional)</Label>
+                <Textarea
+                  id="customRequirements"
+                  value={customRequirements}
+                  onChange={(e) => setCustomRequirements(e.target.value)}
+                  placeholder="Any specific technical requirements or integrations needed?"
+                  rows={3}
+                  className="resize-none text-base"
+                />
+              </div>
+
+              <Button 
+                type="submit" 
+                disabled={loading || !projectName.trim() || selectedFeatures.length === 0}
+                className="w-full h-14 text-lg"
+              >
+                {loading ? (
+                  'Setting up your project...'
+                ) : (
+                  <>
+                    Complete Project Setup
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </>
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
-
-      <Footer />
     </div>
   );
-};
-
-export default ProjectSetup;
+}
