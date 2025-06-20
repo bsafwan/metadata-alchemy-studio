@@ -82,7 +82,16 @@ export default function DeliveryItemManager({
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setDeliveryItems(data || []);
+      
+      // Ensure data is properly typed
+      const typedData = (data || []).map(item => ({
+        ...item,
+        content: item.content || {},
+        files: item.files || [],
+        links: item.links || []
+      })) as DeliveryItem[];
+      
+      setDeliveryItems(typedData);
     } catch (error) {
       console.error('Error fetching delivery items:', error);
     }
@@ -115,10 +124,17 @@ export default function DeliveryItemManager({
 
     setLoading(true);
     try {
+      let contentJson = {};
+      try {
+        contentJson = JSON.parse(formData.content || '{}');
+      } catch (e) {
+        contentJson = {};
+      }
+
       const { error } = await supabase
         .from('delivery_items')
         .update({
-          content: JSON.parse(formData.content || '{}'),
+          content: contentJson,
           files: formData.files,
           links: formData.links,
           admin_notes: formData.admin_notes,
@@ -186,6 +202,38 @@ export default function DeliveryItemManager({
       admin_notes: item.admin_notes || '',
       status: item.status
     });
+  };
+
+  // Helper function to safely render links
+  const renderLinks = (links: Json) => {
+    if (!Array.isArray(links) || links.length === 0) return null;
+    
+    return (
+      <div className="flex flex-wrap gap-2">
+        {links.map((link: any, index: number) => (
+          <Button key={index} size="sm" variant="outline" asChild>
+            <a href={link.url} target="_blank" rel="noopener noreferrer">
+              <LinkIcon className="w-4 h-4 mr-1" />
+              {link.title || 'Link'}
+            </a>
+          </Button>
+        ))}
+      </div>
+    );
+  };
+
+  // Helper function to safely render content
+  const renderContent = (content: Json) => {
+    if (!content || typeof content !== 'object' || Object.keys(content).length === 0) return null;
+    
+    return (
+      <div className="text-sm">
+        <strong>Details:</strong>
+        <pre className="bg-gray-50 p-2 rounded mt-1 text-xs overflow-auto">
+          {JSON.stringify(content, null, 2)}
+        </pre>
+      </div>
+    );
   };
 
   const completedItems = deliveryItems.filter(item => item.status === 'delivered').length;
@@ -262,27 +310,8 @@ export default function DeliveryItemManager({
             <CardContent>
               {canViewItem(item) ? (
                 <div className="space-y-3">
-                  {item.content && typeof item.content === 'object' && Object.keys(item.content).length > 0 && (
-                    <div className="text-sm">
-                      <strong>Details:</strong>
-                      <pre className="bg-gray-50 p-2 rounded mt-1 text-xs overflow-auto">
-                        {JSON.stringify(item.content, null, 2)}
-                      </pre>
-                    </div>
-                  )}
-                  
-                  {Array.isArray(item.links) && item.links.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {item.links.map((link: any, index: number) => (
-                        <Button key={index} size="sm" variant="outline" asChild>
-                          <a href={link.url} target="_blank" rel="noopener noreferrer">
-                            <LinkIcon className="w-4 h-4 mr-1" />
-                            {link.title || 'Link'}
-                          </a>
-                        </Button>
-                      ))}
-                    </div>
-                  )}
+                  {renderContent(item.content)}
+                  {renderLinks(item.links)}
 
                   {item.admin_notes && (
                     <div className="bg-blue-50 p-3 rounded border border-blue-200">
