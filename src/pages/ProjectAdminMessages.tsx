@@ -43,6 +43,7 @@ interface Conversation {
   status: string;
   created_at: string;
   updated_at: string;
+  project_id: string | null;
   users: {
     first_name: string;
     last_name: string;
@@ -62,9 +63,30 @@ export default function ProjectAdminMessages() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  console.log('Current projectId:', projectId);
+
+  // Debug query to see all conversations
+  const { data: allConversations } = useQuery({
+    queryKey: ['all-conversations-debug'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('conversations')
+        .select(`
+          *,
+          users!inner(first_name, last_name, email, business_name)
+        `)
+        .order('updated_at', { ascending: false });
+      
+      if (error) throw error;
+      console.log('All conversations:', data);
+      return data;
+    }
+  });
+
   const { data: conversations, isLoading } = useQuery({
     queryKey: ['project-conversations', projectId],
     queryFn: async () => {
+      console.log('Fetching conversations for project:', projectId);
       const { data, error } = await supabase
         .from('conversations')
         .select(`
@@ -74,7 +96,11 @@ export default function ProjectAdminMessages() {
         .eq('project_id', projectId)
         .order('updated_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching conversations:', error);
+        throw error;
+      }
+      console.log('Project conversations:', data);
       return data as Conversation[];
     },
     enabled: !!projectId
@@ -104,6 +130,49 @@ export default function ProjectAdminMessages() {
       }));
     },
     enabled: !!selectedConversation
+  });
+
+  // Create test conversation mutation
+  const createTestConversationMutation = useMutation({
+    mutationFn: async () => {
+      // First get the user for this project
+      const { data: projectData, error: projectError } = await supabase
+        .from('projects')
+        .select('user_id')
+        .eq('id', projectId)
+        .single();
+
+      if (projectError) throw projectError;
+
+      const { data, error } = await supabase
+        .from('conversations')
+        .insert({
+          project_id: projectId,
+          user_id: projectData.user_id,
+          subject: 'Test Conversation for Project',
+          status: 'active'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Test conversation created successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ['project-conversations'] });
+    },
+    onError: (error) => {
+      console.error('Error creating test conversation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create test conversation",
+        variant: "destructive"
+      });
+    }
   });
 
   useEffect(() => {
@@ -324,8 +393,44 @@ export default function ProjectAdminMessages() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold">Project Conversations</h2>
-          <Badge variant="outline">{conversations?.length || 0} Conversations</Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline">{conversations?.length || 0} Conversations</Badge>
+            <Button 
+              onClick={() => createTestConversationMutation.mutate()}
+              disabled={createTestConversationMutation.isPending}
+              size="sm"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Test Conversation
+            </Button>
+          </div>
         </div>
+
+        {/* Debug Information */}
+        <Card className="border-yellow-200 bg-yellow-50">
+          <CardHeader>
+            <CardTitle className="text-sm">Debug Information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 text-sm">
+              <p><strong>Project ID:</strong> {projectId}</p>
+              <p><strong>Total conversations in DB:</strong> {allConversations?.length || 0}</p>
+              <p><strong>Project-specific conversations:</strong> {conversations?.length || 0}</p>
+              {allConversations && allConversations.length > 0 && (
+                <div>
+                  <p><strong>All conversations project_ids:</strong></p>
+                  <ul className="list-disc list-inside pl-4">
+                    {allConversations.map(conv => (
+                      <li key={conv.id}>
+                        {conv.subject} - project_id: {conv.project_id || 'null'}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="space-y-4">
           {conversations?.map((conversation) => (
@@ -358,6 +463,9 @@ export default function ProjectAdminMessages() {
             <Card>
               <CardContent className="py-8 text-center">
                 <p className="text-muted-foreground">No conversations found for this project</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Try creating a test conversation using the button above.
+                </p>
               </CardContent>
             </Card>
           )}
