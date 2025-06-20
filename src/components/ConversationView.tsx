@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -71,7 +70,7 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
             sender_name: newMsg.sender_name,
             sender_email: newMsg.sender_email,
             message_content: newMsg.message_content,
-            attachments: newMsg.attachments || [],
+            attachments: Array.isArray(newMsg.attachments) ? newMsg.attachments : [],
             created_at: newMsg.created_at
           };
           setMessages(prev => [...prev, formattedMessage]);
@@ -119,14 +118,14 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
       return;
     }
 
-    // Cast the data to our Message interface
+    // Cast the data to our Message interface with proper attachment handling
     const formattedMessages: Message[] = (data || []).map(msg => ({
       id: msg.id,
       sender_type: msg.sender_type as 'user' | 'admin',
       sender_name: msg.sender_name,
       sender_email: msg.sender_email,
       message_content: msg.message_content,
-      attachments: msg.attachments || [],
+      attachments: Array.isArray(msg.attachments) ? msg.attachments : [],
       created_at: msg.created_at
     }));
 
