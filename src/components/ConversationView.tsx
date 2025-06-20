@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -261,7 +260,7 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
         </Badge>
       </div>
 
-      <Card className="h-[500px] flex flex-col">
+      <Card className="h-[600px] flex flex-col">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg">Messages</CardTitle>
         </CardHeader>
@@ -273,14 +272,14 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
                 className={`flex ${message.sender_type === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[70%] p-3 rounded-lg ${
+                  className={`max-w-[70%] p-4 rounded-lg ${
                     message.sender_type === 'user'
                       ? 'bg-blue-500 text-white'
                       : 'bg-gray-100 text-gray-900'
                   }`}
                 >
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-medium">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-sm font-medium">
                       {message.sender_name}
                     </span>
                     <span className="text-xs opacity-70">
@@ -288,29 +287,32 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
                     </span>
                   </div>
                   {message.message_content && (
-                    <p className="whitespace-pre-wrap">{message.message_content}</p>
+                    <div 
+                      className="whitespace-pre-wrap text-sm leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: message.message_content }}
+                    />
                   )}
                   {message.attachments && message.attachments.length > 0 && (
-                    <div className="mt-2 space-y-2">
+                    <div className="mt-3 space-y-2">
                       {message.attachments.map((attachment, index) => (
-                        <div key={index} className="border border-white/20 rounded p-2">
+                        <div key={index} className="border border-white/20 rounded-lg p-3 bg-black/10">
                           {isImage(attachment.type) ? (
                             <div>
                               <img
                                 src={attachment.url}
                                 alt={attachment.name}
-                                className="max-w-full h-auto rounded mb-2"
-                                style={{ maxHeight: '200px' }}
+                                className="max-w-full h-auto rounded-md mb-2"
+                                style={{ maxHeight: '250px' }}
                               />
                               <div className="flex items-center justify-between">
-                                <span className="text-xs">{attachment.name}</span>
+                                <span className="text-xs font-medium">{attachment.name}</span>
                                 <a
                                   href={attachment.url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-xs underline hover:opacity-80"
+                                  className="text-xs underline hover:opacity-80 flex items-center gap-1"
                                 >
-                                  <Download className="w-3 h-3 inline mr-1" />
+                                  <Download className="w-3 h-3" />
                                   Download
                                 </a>
                               </div>
@@ -319,15 +321,15 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <Paperclip className="w-4 h-4" />
-                                <span className="text-xs">{attachment.name}</span>
+                                <span className="text-xs font-medium">{attachment.name}</span>
                               </div>
                               <a
                                 href={attachment.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-xs underline hover:opacity-80"
+                                className="text-xs underline hover:opacity-80 flex items-center gap-1"
                               >
-                                <Download className="w-3 h-3 inline mr-1" />
+                                <Download className="w-3 h-3" />
                                 Download
                               </a>
                             </div>
@@ -344,11 +346,11 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
 
           <form onSubmit={handleSendMessage} className="space-y-3">
             {files && files.length > 0 && (
-              <div className="border rounded p-2 space-y-1">
+              <div className="border rounded-lg p-3 space-y-2 bg-gray-50">
                 <p className="text-sm font-medium">Attached files:</p>
                 {Array.from(files).map((file, index) => (
-                  <div key={index} className="text-xs text-muted-foreground flex items-center gap-2">
-                    {isImage(file.type) ? <Image className="w-3 h-3" /> : <Paperclip className="w-3 h-3" />}
+                  <div key={index} className="text-sm text-muted-foreground flex items-center gap-2">
+                    {isImage(file.type) ? <Image className="w-4 h-4" /> : <Paperclip className="w-4 h-4" />}
                     {file.name} ({formatFileSize(file.size)})
                   </div>
                 ))}
@@ -359,8 +361,8 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Type your message..."
-                rows={2}
-                className="flex-1"
+                rows={3}
+                className="flex-1 resize-none"
               />
               <div className="flex flex-col gap-2">
                 <input
@@ -375,6 +377,7 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
                   variant="outline"
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
+                  className="h-10 w-10"
                 >
                   <Paperclip className="w-4 h-4" />
                 </Button>
@@ -382,6 +385,7 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
                   type="submit" 
                   disabled={loading || uploading || (!newMessage.trim() && (!files || files.length === 0))}
                   size="sm"
+                  className="h-10 w-10"
                 >
                   {loading || uploading ? '...' : <Send className="w-4 h-4" />}
                 </Button>
