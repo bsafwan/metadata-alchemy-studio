@@ -1,54 +1,189 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MessageSquare, Clock, User } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import NewConversationDialog from '@/components/NewConversationDialog';
+import ConversationView from '@/components/ConversationView';
+
+interface Conversation {
+  id: string;
+  subject: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  latest_message?: {
+    message_content: string;
+    sender_name: string;
+    sender_type: string;
+    created_at: string;
+  };
+  message_count: number;
+}
 
 export default function Conversations() {
-  const conversations = [
-    { id: 1, name: 'Sarah Johnson', message: 'Hey, how is the project going?', time: '2 min ago', unread: 3 },
-    { id: 2, name: 'Mike Wilson', message: 'Can we schedule a call?', time: '1 hour ago', unread: 0 },
-    { id: 3, name: 'Emma Davis', message: 'Love the new design!', time: '3 hours ago', unread: 1 },
-    { id: 4, name: 'John Smith', message: 'Payment has been processed', time: '1 day ago', unread: 0 },
-  ];
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      fetchConversations();
+    }
+  }, [user]);
+
+  const fetchConversations = async () => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      // Get conversations with latest message and message count
+      const { data, error } = await supabase
+        .from('conversations')
+        .select(`
+          *,
+          conversation_messages (
+            message_content,
+            sender_name,
+            sender_type,
+            created_at
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Process conversations to get latest message and count
+      const processedConversations = data.map(conv => {
+        const messages = conv.conversation_messages || [];
+        const latestMessage = messages.length > 0 
+          ? messages.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
+          : null;
+
+        return {
+          id: conv.id,
+          subject: conv.subject,
+          status: conv.status,
+          created_at: conv.created_at,
+          updated_at: conv.updated_at,
+          latest_message: latestMessage,
+          message_count: messages.length
+        };
+      });
+
+      setConversations(processedConversations);
+    } catch (error) {
+      console.error('Error fetching conversations:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    return date.toLocaleDateString();
+  };
+
+  if (selectedConversation) {
+    return (
+      <ConversationView
+        conversationId={selectedConversation}
+        onBack={() => setSelectedConversation(null)}
+      />
+    );
+  }
+
+  if (loading) {
+    return <div>Loading conversations...</div>;
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Conversations</h2>
-        <Badge variant="outline">4 Active</Badge>
+        <div className="flex items-center gap-4">
+          <Badge variant="outline">{conversations.length} Total</Badge>
+          <NewConversationDialog onConversationCreated={fetchConversations} />
+        </div>
       </div>
 
-      <div className="grid gap-4">
-        {conversations.map((conv) => (
-          <Card key={conv.id} className="hover:shadow-md transition-shadow cursor-pointer">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-elismet-blue rounded-full flex items-center justify-center">
-                    <User className="w-5 h-5 text-white" />
+      {conversations.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <MessageSquare className="w-12 h-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No conversations yet</h3>
+            <p className="text-muted-foreground text-center mb-4">
+              Start your first conversation with our support team
+            </p>
+            <NewConversationDialog onConversationCreated={fetchConversations} />
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4">
+          {conversations.map((conv) => (
+            <Card 
+              key={conv.id} 
+              className="hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => setSelectedConversation(conv.id)}
+            >
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                      <MessageSquare className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <CardTitle className="text-base">{conv.subject}</CardTitle>
+                      <CardDescription className="text-sm">
+                        {conv.latest_message ? (
+                          <>
+                            <span className="font-medium">
+                              {conv.latest_message.sender_type === 'user' ? 'You' : conv.latest_message.sender_name}:
+                            </span>{' '}
+                            {conv.latest_message.message_content.length > 60
+                              ? `${conv.latest_message.message_content.substring(0, 60)}...`
+                              : conv.latest_message.message_content}
+                          </>
+                        ) : (
+                          'No messages yet'
+                        )}
+                      </CardDescription>
+                    </div>
                   </div>
-                  <div>
-                    <CardTitle className="text-base">{conv.name}</CardTitle>
-                    <CardDescription className="text-sm">{conv.message}</CardDescription>
+                  <div className="text-right">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                      <Clock className="w-4 h-4" />
+                      {formatTime(conv.latest_message?.created_at || conv.created_at)}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={conv.status === 'active' ? 'default' : 'secondary'}>
+                        {conv.status}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {conv.message_count} msg{conv.message_count !== 1 ? 's' : ''}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                    <Clock className="w-4 h-4" />
-                    {conv.time}
-                  </div>
-                  {conv.unread > 0 && (
-                    <Badge variant="destructive" className="text-xs">
-                      {conv.unread}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-        ))}
-      </div>
+              </CardHeader>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
