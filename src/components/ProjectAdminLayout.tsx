@@ -29,6 +29,7 @@ import { Button } from '@/components/ui/button';
 const projectSidebarItems = [
   { title: 'Project Overview', icon: Home, url: '' },
   { title: 'Messages', icon: MessageSquare, url: '/messages' },
+  { title: 'Pricing & Phases', icon: Calculator, url: '/pricing-phases' },
   { title: 'Demos & Previews', icon: Monitor, url: '/demos' },
   { title: 'Payments', icon: CreditCard, url: '/payments' },
   { title: 'Status', icon: Activity, url: '/status' },

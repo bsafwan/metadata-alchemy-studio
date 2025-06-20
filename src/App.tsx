@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -47,6 +46,8 @@ import ProjectAdminSupport from "./pages/ProjectAdminSupport";
 import SuperAdminLogin from "./pages/SuperAdminLogin";
 import NotFound from "./pages/NotFound";
 import Account from "./pages/Account";
+import ProjectPricingPhases from "./pages/ProjectPricingPhases";
+import AdminProjectPricingPhases from "./pages/AdminProjectPricingPhases";
 
 const queryClient = new QueryClient();
 
@@ -92,6 +93,7 @@ const App = () => (
                 <Route index element={<DashboardHome />} />
                 <Route path="conversations" element={<Conversations />} />
                 <Route path="project-overview" element={<ProjectOverview />} />
+                <Route path="pricing-phases" element={<ProjectPricingPhases />} />
                 <Route path="demos" element={<DemosAndPreviews />} />
                 <Route path="payments" element={<PaymentsAndDues />} />
                 <Route path="status" element={<Status />} />
@@ -122,6 +124,7 @@ const App = () => (
               }>
                 <Route index element={<ProjectAdminOverview />} />
                 <Route path="messages" element={<ProjectAdminMessages />} />
+                <Route path="pricing-phases" element={<AdminProjectPricingPhases />} />
                 <Route path="demos" element={<ProjectAdminDemos />} />
                 <Route path="payments" element={<ProjectAdminPayments />} />
                 <Route path="status" element={<ProjectAdminStatus />} />

@@ -201,6 +201,126 @@ export type Database = {
           },
         ]
       }
+      pricing_negotiations: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          phase_id: string
+          proposed_by: string
+          proposed_price: number
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          phase_id: string
+          proposed_by: string
+          proposed_price: number
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          phase_id?: string
+          proposed_by?: string
+          proposed_price?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_negotiations_phase_id_fkey"
+            columns: ["phase_id"]
+            isOneToOne: false
+            referencedRelation: "project_phases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_phases: {
+        Row: {
+          admin_proposed_price: number | null
+          created_at: string
+          final_agreed_price: number | null
+          id: string
+          phase_name: string
+          phase_order: number
+          project_id: string
+          status: string
+          updated_at: string
+          user_proposed_price: number | null
+        }
+        Insert: {
+          admin_proposed_price?: number | null
+          created_at?: string
+          final_agreed_price?: number | null
+          id?: string
+          phase_name: string
+          phase_order?: number
+          project_id: string
+          status?: string
+          updated_at?: string
+          user_proposed_price?: number | null
+        }
+        Update: {
+          admin_proposed_price?: number | null
+          created_at?: string
+          final_agreed_price?: number | null
+          id?: string
+          phase_name?: string
+          phase_order?: number
+          project_id?: string
+          status?: string
+          updated_at?: string
+          user_proposed_price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_phases_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_plans: {
+        Row: {
+          created_at: string
+          id: string
+          plan_details: string
+          project_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          plan_details: string
+          project_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          plan_details?: string
+          project_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_plans_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           business_goals: string | null
