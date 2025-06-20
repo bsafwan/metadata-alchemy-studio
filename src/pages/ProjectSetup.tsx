@@ -73,7 +73,7 @@ const ProjectSetup = () => {
     setIsLoading(true);
 
     try {
-      // Create project in database
+      // Create project in database with 'in_progress' status instead of 'pending'
       const { data: projectData, error: projectError } = await supabase
         .from('projects')
         .insert({
@@ -83,7 +83,7 @@ const ProjectSetup = () => {
           custom_requirements: customRequirements,
           current_challenges: currentChallenges,
           business_goals: businessGoals,
-          status: 'pending'
+          status: 'in_progress'
         })
         .select()
         .single();
