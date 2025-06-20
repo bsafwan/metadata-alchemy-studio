@@ -88,6 +88,7 @@ const NewConversationDialog = ({ onConversationCreated }: NewConversationDialogP
     e.preventDefault();
     if (!user || (!subject.trim() || (!message.trim() && (!files || files.length === 0)))) return;
 
+    console.log('Creating conversation for user:', user.id);
     setLoading(true);
     try {
       // Create conversation
@@ -100,7 +101,12 @@ const NewConversationDialog = ({ onConversationCreated }: NewConversationDialogP
         .select()
         .single();
 
-      if (convError) throw convError;
+      if (convError) {
+        console.error('Conversation creation error:', convError);
+        throw convError;
+      }
+
+      console.log('Conversation created:', conversation);
 
       // Upload files first
       const attachments = await uploadFiles(conversation.id);
@@ -117,21 +123,29 @@ const NewConversationDialog = ({ onConversationCreated }: NewConversationDialogP
           attachments: attachments
         });
 
-      if (msgError) throw msgError;
+      if (msgError) {
+        console.error('Message creation error:', msgError);
+        throw msgError;
+      }
 
       // Send email notification
-      await fetch(`https://gemhywggtdryovqmalqh.supabase.co/functions/v1/send-conversation-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlbWh5d2dndGRyeW92cW1hbHFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzNjQ4MzEsImV4cCI6MjA2NTk0MDgzMX0.PjNg5nqMq7qdPdw-PWNj-b0NtRYxgx9zpJSFdtL8Gig`
-        },
-        body: JSON.stringify({
-          conversationId: conversation.id,
-          messageContent: message.trim() || '(File attachment)',
-          attachments
-        })
-      });
+      try {
+        await fetch(`https://gemhywggtdryovqmalqh.supabase.co/functions/v1/send-conversation-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlbWh5d2dndGRyeW92cW1hbHFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzNjQ4MzEsImV4cCI6MjA2NTk0MDgzMX0.PjNg5nqMq7qdPdw-PWNj-b0NtRYxgx9zpJSFdtL8Gig`
+          },
+          body: JSON.stringify({
+            conversationId: conversation.id,
+            messageContent: message.trim() || '(File attachment)',
+            attachments
+          })
+        });
+      } catch (emailError) {
+        console.error('Email notification failed:', emailError);
+        // Don't fail the whole operation if email fails
+      }
 
       toast.success('Conversation started successfully!');
       setSubject('');
@@ -158,41 +172,41 @@ const NewConversationDialog = ({ onConversationCreated }: NewConversationDialogP
           New Conversation
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl">Start New Conversation</DialogTitle>
-          <DialogDescription className="text-base">
+          <DialogTitle className="text-2xl">Start New Conversation</DialogTitle>
+          <DialogDescription className="text-lg">
             Send a message directly to our support team with optional file attachments
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="subject" className="text-sm font-medium">Subject</Label>
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="space-y-3">
+            <Label htmlFor="subject" className="text-base font-medium">Subject</Label>
             <Input
               id="subject"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               placeholder="What would you like to discuss?"
               required
-              className="h-11"
+              className="h-12 text-base"
             />
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="message" className="text-sm font-medium">Message</Label>
+          <div className="space-y-3">
+            <Label htmlFor="message" className="text-base font-medium">Message</Label>
             <Textarea
               id="message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Type your message here..."
-              rows={6}
-              className="resize-none"
+              rows={8}
+              className="resize-none text-base min-h-[200px]"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Attachments (optional)</Label>
-            <div className="flex items-center gap-2">
+          <div className="space-y-4">
+            <Label className="text-base font-medium">Attachments (optional)</Label>
+            <div className="flex items-center gap-3">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -204,38 +218,38 @@ const NewConversationDialog = ({ onConversationCreated }: NewConversationDialogP
                 type="button"
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
-                className="h-10"
+                className="h-12 px-6"
               >
-                <Paperclip className="w-4 h-4 mr-2" />
+                <Paperclip className="w-5 h-5 mr-2" />
                 Add Files
               </Button>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-base text-muted-foreground">
                 {files && files.length > 0 ? `${files.length} file(s) selected` : 'No files selected'}
               </span>
             </div>
             
             {files && files.length > 0 && (
-              <div className="border rounded-lg p-4 space-y-2 bg-gray-50">
-                <p className="text-sm font-medium text-gray-700">Selected files:</p>
+              <div className="border rounded-lg p-6 space-y-3 bg-gray-50">
+                <p className="text-base font-medium text-gray-700">Selected files:</p>
                 {Array.from(files).map((file, index) => (
-                  <div key={index} className="flex items-center justify-between bg-white p-2 rounded border">
-                    <div className="flex items-center gap-2">
+                  <div key={index} className="flex items-center justify-between bg-white p-4 rounded border">
+                    <div className="flex items-center gap-3">
                       {isImage(file.type) ? (
-                        <Image className="w-4 h-4 text-blue-500" />
+                        <Image className="w-5 h-5 text-blue-500" />
                       ) : (
-                        <Paperclip className="w-4 h-4 text-gray-500" />
+                        <Paperclip className="w-5 h-5 text-gray-500" />
                       )}
-                      <span className="text-sm font-medium">{file.name}</span>
-                      <span className="text-xs text-gray-500">({formatFileSize(file.size)})</span>
+                      <span className="text-base font-medium">{file.name}</span>
+                      <span className="text-sm text-gray-500">({formatFileSize(file.size)})</span>
                     </div>
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
                       onClick={() => removeFile(index)}
-                      className="h-6 w-6 p-0 hover:bg-red-100"
+                      className="h-8 w-8 p-0 hover:bg-red-100"
                     >
-                      <X className="w-3 h-3 text-red-500" />
+                      <X className="w-4 h-4 text-red-500" />
                     </Button>
                   </div>
                 ))}
@@ -246,13 +260,13 @@ const NewConversationDialog = ({ onConversationCreated }: NewConversationDialogP
           <Button 
             type="submit" 
             disabled={loading || uploading || (!subject.trim() || (!message.trim() && (!files || files.length === 0)))} 
-            className="w-full h-11"
+            className="w-full h-14 text-lg"
           >
             {loading || uploading ? (
               'Sending...'
             ) : (
               <>
-                <Send className="w-4 h-4 mr-2" />
+                <Send className="w-5 h-5 mr-2" />
                 Send Message
               </>
             )}

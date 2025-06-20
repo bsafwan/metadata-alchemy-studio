@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -63,6 +64,7 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
           filter: `conversation_id=eq.${conversationId}`
         },
         (payload) => {
+          console.log('New message received:', payload);
           const newMsg = payload.new as any;
           const formattedMessage: Message = {
             id: newMsg.id,
@@ -92,6 +94,7 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
   };
 
   const fetchConversation = async () => {
+    console.log('Fetching conversation:', conversationId);
     const { data, error } = await supabase
       .from('conversations')
       .select('*')
@@ -103,10 +106,12 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
       return;
     }
 
+    console.log('Conversation fetched:', data);
     setConversation(data);
   };
 
   const fetchMessages = async () => {
+    console.log('Fetching messages for conversation:', conversationId);
     const { data, error } = await supabase
       .from('conversation_messages')
       .select('*')
@@ -118,7 +123,8 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
       return;
     }
 
-    // Cast the data to our Message interface with proper attachment handling
+    console.log('Messages fetched:', data);
+    // Properly cast the data to Message interface
     const formattedMessages: Message[] = (data || []).map(msg => ({
       id: msg.id,
       sender_type: msg.sender_type as 'user' | 'admin',
@@ -176,6 +182,7 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
     e.preventDefault();
     if (!user || (!newMessage.trim() && (!files || files.length === 0))) return;
 
+    console.log('Sending message for user:', user.id);
     setLoading(true);
     try {
       // Upload files first
@@ -193,7 +200,10 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
           attachments: attachments
         });
 
-      if (msgError) throw msgError;
+      if (msgError) {
+        console.error('Message creation error:', msgError);
+        throw msgError;
+      }
 
       // Update conversation timestamp
       await supabase
@@ -202,18 +212,23 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
         .eq('id', conversationId);
 
       // Send email notification
-      await fetch(`https://gemhywggtdryovqmalqh.supabase.co/functions/v1/send-conversation-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlbWh5d2dndGRyeW92cW1hbHFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzNjQ4MzEsImV4cCI6MjA2NTk0MDgzMX0.PjNg5nqMq7qdPdw-PWNj-b0NtRYxgx9zpJSFdtL8Gig`
-        },
-        body: JSON.stringify({
-          conversationId,
-          messageContent: newMessage.trim() || '(File attachment)',
-          attachments
-        })
-      });
+      try {
+        await fetch(`https://gemhywggtdryovqmalqh.supabase.co/functions/v1/send-conversation-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlbWh5d2dndGRyeW92cW1hbHFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzNjQ4MzEsImV4cCI6MjA2NTk0MDgzMX0.PjNg5nqMq7qdPdw-PWNj-b0NtRYxgx9zpJSFdtL8Gig`
+          },
+          body: JSON.stringify({
+            conversationId,
+            messageContent: newMessage.trim() || '(File attachment)',
+            attachments
+          })
+        });
+      } catch (emailError) {
+        console.error('Email notification failed:', emailError);
+        // Don't fail the whole operation if email fails
+      }
 
       setNewMessage('');
       setFiles(null);
