@@ -1,38 +1,27 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Input } from '@/components/ui/input';
-import { DollarSign, CreditCard, AlertCircle, CheckCircle, Clock, FileText, Send, ExternalLink } from 'lucide-react';
+import { DollarSign, Download, CheckCircle, Clock, AlertCircle, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import PaymentInvoiceModal from './PaymentInvoiceModal';
-import PaymentSubmissionModal from './PaymentSubmissionModal';
-import AdminPaymentVerificationModal from './AdminPaymentVerificationModal';
-import { useZohoMail } from '@/hooks/useZohoMail';
+import SimplePaymentSubmissionModal from './SimplePaymentSubmissionModal';
+import { generateProfessionalInvoice } from '@/utils/professionalInvoiceGenerator';
 
 interface PhasePayment {
   id: string;
   project_id: string;
-  phase_id: string;
   amount: number;
   status: string;
   due_date: string | null;
-  paid_at: string | null;
-  payment_method: string | null;
+  submitted_at: string | null;
+  payment_date: string | null;
   transaction_id: string | null;
   reference_number: string | null;
-  payoneer_link: string | null;
-  payment_channel: string | null;
-  user_bank_details: string | null;
-  admin_notes: string | null;
-  payment_instructions_sent_at: string | null;
+  is_automatic: boolean | null;
   created_at: string;
-  project_phases: {
-    phase_name: string;
-    phase_order: number;
-  };
 }
 
 interface PhasePaymentManagerProps {
@@ -43,15 +32,12 @@ interface PhasePaymentManagerProps {
 export default function PhasePaymentManager({ projectId, isAdminView = false }: PhasePaymentManagerProps) {
   const [payments, setPayments] = useState<PhasePayment[]>([]);
   const [loading, setLoading] = useState(false);
-  const [invoiceModal, setInvoiceModal] = useState<{open: boolean, payment: PhasePayment | null}>({open: false, payment: null});
   const [submissionModal, setSubmissionModal] = useState<{open: boolean, payment: PhasePayment | null}>({open: false, payment: null});
-  const [verificationModal, setVerificationModal] = useState<{open: boolean, payment: PhasePayment | null}>({open: false, payment: null});
-  const [payoneerLink, setPayoneerLink] = useState('');
-  const [editingPayoneer, setEditingPayoneer] = useState<string | null>(null);
-  const { sendEmail } = useZohoMail();
+  const [projectData, setProjectData] = useState<any>(null);
 
   useEffect(() => {
     fetchPayments();
+    fetchProjectData();
     
     // Real-time subscription
     const channel = supabase
@@ -79,12 +65,9 @@ export default function PhasePaymentManager({ projectId, isAdminView = false }: 
     try {
       const { data, error } = await supabase
         .from('phase_payments')
-        .select(`
-          *,
-          project_phases(phase_name, phase_order)
-        `)
+        .select('*')
         .eq('project_id', projectId)
-        .order('project_phases(phase_order)', { ascending: true });
+        .order('created_at', { ascending: true });
 
       if (error) throw error;
       setPayments(data || []);
@@ -93,124 +76,97 @@ export default function PhasePaymentManager({ projectId, isAdminView = false }: 
     }
   };
 
-  const sendPaymentInstructions = async (payment: PhasePayment) => {
-    setLoading(true);
+  const fetchProjectData = async () => {
     try {
-      // Get project and user details
-      const { data: projectData } = await supabase
+      const { data, error } = await supabase
         .from('projects')
         .select(`
           *,
-          users!inner(first_name, last_name, email)
+          users!inner(first_name, last_name, email, business_name, business_category)
         `)
         .eq('id', projectId)
         .single();
 
-      if (!projectData) throw new Error('Project not found');
+      if (error) throw error;
+      setProjectData(data);
+    } catch (error) {
+      console.error('Error fetching project data:', error);
+    }
+  };
 
-      const invoiceData = {
-        reference_number: payment.reference_number || 'N/A',
-        amount: payment.amount,
-        phase_name: payment.project_phases.phase_name,
-        project_name: projectData.project_name,
-        client_name: `${projectData.users.first_name} ${projectData.users.last_name}`,
-        client_email: projectData.users.email,
-        due_date: payment.due_date ? new Date(payment.due_date).toLocaleDateString() : 'Upon receipt',
-        created_date: new Date(payment.created_at).toLocaleDateString()
-      };
+  const downloadInvoice = (payment: PhasePayment) => {
+    if (!projectData) return;
 
-      await sendEmail({
-        to: [projectData.users.email],
-        subject: `Payment Invoice - ${payment.reference_number}`,
-        html: `
-          <h2>Payment Invoice - ${payment.reference_number}</h2>
-          <p>Dear ${invoiceData.client_name},</p>
-          <p>Please find below your payment invoice for the completed phase:</p>
-          
-          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #ff8c00;">Invoice Details</h3>
-            <p><strong>Reference Number:</strong> ${payment.reference_number}</p>
-            <p><strong>Project:</strong> ${projectData.project_name}</p>
-            <p><strong>Phase:</strong> ${payment.project_phases.phase_name}</p>
-            <p><strong>Amount:</strong> $${payment.amount.toFixed(2)}</p>
-            <p><strong>Due Date:</strong> ${invoiceData.due_date}</p>
-          </div>
+    const invoiceData = {
+      reference_number: payment.reference_number || 'N/A',
+      amount: payment.amount,
+      project_name: projectData.project_name,
+      client_name: `${projectData.users.first_name} ${projectData.users.last_name}`,
+      client_email: projectData.users.email,
+      client_business: projectData.users.business_name,
+      client_industry: projectData.users.business_category,
+      due_date: payment.due_date ? new Date(payment.due_date).toLocaleDateString() : 'Upon receipt',
+      created_date: new Date(payment.created_at).toLocaleDateString()
+    };
 
-          <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #1976d2;">Payment Instructions</h3>
-            <p><strong>Bank Name:</strong> Citibank</p>
-            <p><strong>Bank Address:</strong> 111 Wall Street New York, NY 10043 USA</p>
-            <p><strong>Routing (ABA):</strong> 031100209</p>
-            <p><strong>SWIFT Code:</strong> CITIUS33</p>
-            <p><strong>Account Number:</strong> 70586980001243422</p>
-            <p><strong>Beneficiary Name:</strong> MD RABIULLAH</p>
-            <p style="background: yellow; padding: 10px; border-radius: 4px; margin-top: 10px;">
-              <strong>IMPORTANT: Reference Number - ${payment.reference_number}</strong><br>
-              Please include this reference number with your payment
-            </p>
-          </div>
+    const pdfDataUri = generateProfessionalInvoice(invoiceData);
+    const link = document.createElement('a');
+    link.href = pdfDataUri;
+    link.download = `Invoice-${payment.reference_number}.pdf`;
+    link.click();
+  };
 
-          ${payment.payoneer_link ? `
-          <div style="background: #f3e5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #7b1fa2;">Alternative Payment Option</h3>
-            <p>You can also pay using Payoneer:</p>
-            <p><a href="${payment.payoneer_link}" target="_blank" style="background: #ff8c00; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">Pay with Payoneer</a></p>
-          </div>
-          ` : ''}
-
-          <div style="background: #fff3e0; padding: 15px; border-radius: 8px; margin: 20px 0;">
-            <h4>Important Notes:</h4>
-            <ul>
-              <li>Only payments from business accounts are supported</li>
-              <li>Personal bank account payments will be declined</li>
-              <li>Please ensure beneficiary name matches exactly</li>
-            </ul>
-          </div>
-
-          <p>After making the payment, please log into your dashboard to submit the transaction details for verification.</p>
-          
-          <p>Best regards,<br>Elismet Ltd Team</p>
-        `
-      });
-
-      // Update payment instructions sent timestamp
-      await supabase
+  const approvePayment = async (paymentId: string) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
         .from('phase_payments')
-        .update({ payment_instructions_sent_at: new Date().toISOString() })
-        .eq('id', payment.id);
+        .update({ 
+          status: 'paid',
+          paid_at: new Date().toISOString()
+        })
+        .eq('id', paymentId);
 
-      toast.success('Payment instructions sent successfully');
+      if (error) throw error;
+      toast.success('Payment approved successfully');
       fetchPayments();
     } catch (error) {
-      console.error('Error sending payment instructions:', error);
-      toast.error('Failed to send payment instructions');
+      console.error('Error approving payment:', error);
+      toast.error('Failed to approve payment');
     } finally {
       setLoading(false);
     }
   };
 
-  const updatePayoneerLink = async (paymentId: string, link: string) => {
+  const requestResubmission = async (paymentId: string) => {
+    setLoading(true);
     try {
       const { error } = await supabase
         .from('phase_payments')
-        .update({ payoneer_link: link.trim() || null })
+        .update({ 
+          status: 'due',
+          submitted_at: null,
+          payment_date: null,
+          transaction_id: null
+        })
         .eq('id', paymentId);
 
       if (error) throw error;
-      toast.success('Payoneer link updated');
+      toast.success('Payment marked for resubmission');
       fetchPayments();
-      setEditingPayoneer(null);
     } catch (error) {
-      console.error('Error updating Payoneer link:', error);
-      toast.error('Failed to update Payoneer link');
+      console.error('Error requesting resubmission:', error);
+      toast.error('Failed to request resubmission');
+    } finally {
+      setLoading(false);
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'paid': return 'default';
-      case 'due': return 'secondary';
-      case 'overdue': return 'destructive';
+      case 'submitted': return 'secondary';
+      case 'due': return 'destructive';
       default: return 'outline';
     }
   };
@@ -218,8 +174,8 @@ export default function PhasePaymentManager({ projectId, isAdminView = false }: 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'paid': return <CheckCircle className="w-4 h-4" />;
+      case 'submitted': return <Clock className="w-4 h-4" />;
       case 'due': return <AlertCircle className="w-4 h-4" />;
-      case 'overdue': return <AlertCircle className="w-4 h-4" />;
       default: return <Clock className="w-4 h-4" />;
     }
   };
@@ -245,7 +201,7 @@ export default function PhasePaymentManager({ projectId, isAdminView = false }: 
               Payment Progress
             </CardTitle>
             <CardDescription>
-              {Math.round(progressPercent)}% of phase payments completed
+              {Math.round(progressPercent)}% of payments completed
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -265,7 +221,7 @@ export default function PhasePaymentManager({ projectId, isAdminView = false }: 
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-lg">
-                    Phase {payment.project_phases.phase_order}: {payment.project_phases.phase_name}
+                    {payment.is_automatic ? '50% Milestone Payment' : 'Phase Payment'}
                   </CardTitle>
                   <CardDescription>
                     Amount: ${payment.amount.toFixed(2)}
@@ -291,151 +247,60 @@ export default function PhasePaymentManager({ projectId, isAdminView = false }: 
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <div className="text-sm text-muted-foreground">
-                  Created: {new Date(payment.created_at).toLocaleDateString()}
-                  {payment.paid_at && (
-                    <span className="ml-2 text-green-600">
-                      • Paid: {new Date(payment.paid_at).toLocaleDateString()}
-                    </span>
-                  )}
-                  {payment.transaction_id && (
-                    <span className="ml-2">
-                      • TX: {payment.transaction_id}
-                    </span>
-                  )}
-                  {payment.payment_channel && (
-                    <span className="ml-2">
-                      • Method: {payment.payment_channel}
-                    </span>
-                  )}
-                </div>
-
-                {isAdminView && (
-                  <div className="space-y-3 border-t pt-3">
-                    <div className="flex items-center gap-2">
-                      {editingPayoneer === payment.id ? (
-                        <>
-                          <Input
-                            value={payoneerLink}
-                            onChange={(e) => setPayoneerLink(e.target.value)}
-                            placeholder="Enter Payoneer payment link"
-                            className="flex-1"
-                          />
-                          <Button 
-                            size="sm" 
-                            onClick={() => updatePayoneerLink(payment.id, payoneerLink)}
-                          >
-                            Save
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={() => setEditingPayoneer(null)}
-                          >
-                            Cancel
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          {payment.payoneer_link ? (
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm">Payoneer:</span>
-                              <a 
-                                href={payment.payoneer_link} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:underline text-sm"
-                              >
-                                {payment.payoneer_link.substring(0, 50)}...
-                                <ExternalLink className="w-3 h-3 inline ml-1" />
-                              </a>
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => {
-                                  setPayoneerLink(payment.payoneer_link || '');
-                                  setEditingPayoneer(payment.id);
-                                }}
-                              >
-                                Edit
-                              </Button>
-                            </div>
-                          ) : (
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => {
-                                setPayoneerLink('');
-                                setEditingPayoneer(payment.id);
-                              }}
-                            >
-                              Add Payoneer Link
-                            </Button>
-                          )}
-                        </>
-                      )}
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        onClick={() => sendPaymentInstructions(payment)}
-                        disabled={loading}
-                        variant="outline"
-                      >
-                        <Send className="w-4 h-4 mr-1" />
-                        Send Instructions
-                      </Button>
-                      
-                      {payment.status !== 'paid' && (
-                        <Button
-                          size="sm"
-                          onClick={() => setVerificationModal({open: true, payment})}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          <CreditCard className="w-4 h-4 mr-1" />
-                          Mark Paid
-                        </Button>
-                      )}
-                    </div>
+                {payment.submitted_at && (
+                  <div className="text-sm text-muted-foreground">
+                    Submitted: {new Date(payment.submitted_at).toLocaleDateString()}
+                    {payment.payment_date && (
+                      <span className="ml-2">• Payment Date: {payment.payment_date}</span>
+                    )}
+                    {payment.transaction_id && (
+                      <span className="ml-2">• TX: {payment.transaction_id}</span>
+                    )}
                   </div>
                 )}
 
-                {!isAdminView && (
-                  <div className="flex gap-2 border-t pt-3">
+                <div className="flex gap-2 border-t pt-3">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => downloadInvoice(payment)}
+                  >
+                    <Download className="w-4 h-4 mr-1" />
+                    Download Invoice
+                  </Button>
+
+                  {!isAdminView && payment.status === 'due' && (
                     <Button
                       size="sm"
-                      variant="outline"
-                      onClick={() => setInvoiceModal({open: true, payment})}
+                      onClick={() => setSubmissionModal({open: true, payment})}
+                      className="bg-blue-600 hover:bg-blue-700"
                     >
-                      <FileText className="w-4 h-4 mr-1" />
-                      View Invoice
+                      <CheckCircle className="w-4 h-4 mr-1" />
+                      Submit Payment
                     </Button>
-                    
-                    {payment.payoneer_link && (
+                  )}
+
+                  {isAdminView && payment.status === 'submitted' && (
+                    <>
+                      <Button
+                        size="sm"
+                        onClick={() => approvePayment(payment.id)}
+                        disabled={loading}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        Approve
+                      </Button>
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => window.open(payment.payoneer_link, '_blank')}
-                        className="bg-purple-50 border-purple-200 text-purple-700"
+                        onClick={() => requestResubmission(payment.id)}
+                        disabled={loading}
                       >
-                        <ExternalLink className="w-4 h-4 mr-1" />
-                        Pay with Payoneer
+                        Request Resubmission
                       </Button>
-                    )}
-
-                    {payment.status === 'due' && (
-                      <Button
-                        size="sm"
-                        onClick={() => setSubmissionModal({open: true, payment})}
-                        className="bg-blue-600 hover:bg-blue-700"
-                      >
-                        <CheckCircle className="w-4 h-4 mr-1" />
-                        Mark as Completed
-                      </Button>
-                    )}
-                  </div>
-                )}
+                    </>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -446,62 +311,22 @@ export default function PhasePaymentManager({ projectId, isAdminView = false }: 
         <Card>
           <CardContent className="py-8 text-center">
             <DollarSign className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No phase payments yet</p>
+            <p className="text-muted-foreground">No payments yet</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Payments are created when previews are approved
+              Payments are created automatically when project reaches 50%
             </p>
           </CardContent>
         </Card>
       )}
 
-      {invoiceModal.open && invoiceModal.payment && (
-        <PaymentInvoiceModal
-          isOpen={invoiceModal.open}
-          onClose={() => setInvoiceModal({open: false, payment: null})}
-          paymentData={{
-            reference_number: invoiceModal.payment.reference_number || 'N/A',
-            amount: invoiceModal.payment.amount,
-            phase_name: invoiceModal.payment.project_phases.phase_name,
-            project_name: 'Project', // Would need to fetch this
-            client_name: 'Client', // Would need to fetch this
-            client_email: 'client@example.com', // Would need to fetch this
-            due_date: invoiceModal.payment.due_date ? new Date(invoiceModal.payment.due_date).toLocaleDateString() : 'Upon receipt',
-            created_date: new Date(invoiceModal.payment.created_at).toLocaleDateString()
-          }}
-        />
-      )}
-
       {submissionModal.open && submissionModal.payment && (
-        <PaymentSubmissionModal
+        <SimplePaymentSubmissionModal
           isOpen={submissionModal.open}
           onClose={() => setSubmissionModal({open: false, payment: null})}
           paymentId={submissionModal.payment.id}
-          paymentData={{
-            reference_number: submissionModal.payment.reference_number || 'N/A',
-            amount: submissionModal.payment.amount,
-            phase_name: submissionModal.payment.project_phases.phase_name,
-            project_name: 'Project' // Would need to fetch this
-          }}
+          referenceNumber={submissionModal.payment.reference_number || 'N/A'}
+          amount={submissionModal.payment.amount}
           onSubmissionComplete={fetchPayments}
-        />
-      )}
-
-      {verificationModal.open && verificationModal.payment && (
-        <AdminPaymentVerificationModal
-          isOpen={verificationModal.open}
-          onClose={() => setVerificationModal({open: false, payment: null})}
-          paymentId={verificationModal.payment.id}
-          paymentData={{
-            reference_number: verificationModal.payment.reference_number || 'N/A',
-            amount: verificationModal.payment.amount,
-            phase_name: verificationModal.payment.project_phases.phase_name,
-            project_name: 'Project', // Would need to fetch this
-            client_email: 'client@example.com', // Would need to fetch this
-            client_name: 'Client', // Would need to fetch this
-            transaction_id: verificationModal.payment.transaction_id,
-            payment_channel: verificationModal.payment.payment_channel
-          }}
-          onVerificationComplete={fetchPayments}
         />
       )}
     </div>

@@ -254,8 +254,10 @@ export type Database = {
           due_date: string | null
           id: string
           invoice_pdf_path: string | null
+          is_automatic: boolean | null
           paid_at: string | null
           payment_channel: string | null
+          payment_date: string | null
           payment_instructions_sent_at: string | null
           payment_method: string | null
           payoneer_link: string | null
@@ -263,6 +265,7 @@ export type Database = {
           project_id: string
           reference_number: string | null
           status: string
+          submitted_at: string | null
           transaction_id: string | null
           updated_at: string
           user_bank_details: string | null
@@ -274,8 +277,10 @@ export type Database = {
           due_date?: string | null
           id?: string
           invoice_pdf_path?: string | null
+          is_automatic?: boolean | null
           paid_at?: string | null
           payment_channel?: string | null
+          payment_date?: string | null
           payment_instructions_sent_at?: string | null
           payment_method?: string | null
           payoneer_link?: string | null
@@ -283,6 +288,7 @@ export type Database = {
           project_id: string
           reference_number?: string | null
           status?: string
+          submitted_at?: string | null
           transaction_id?: string | null
           updated_at?: string
           user_bank_details?: string | null
@@ -294,8 +300,10 @@ export type Database = {
           due_date?: string | null
           id?: string
           invoice_pdf_path?: string | null
+          is_automatic?: boolean | null
           paid_at?: string | null
           payment_channel?: string | null
+          payment_date?: string | null
           payment_instructions_sent_at?: string | null
           payment_method?: string | null
           payoneer_link?: string | null
@@ -303,6 +311,7 @@ export type Database = {
           project_id?: string
           reference_number?: string | null
           status?: string
+          submitted_at?: string | null
           transaction_id?: string | null
           updated_at?: string
           user_bank_details?: string | null
@@ -521,9 +530,11 @@ export type Database = {
           custom_requirements: string | null
           id: string
           is_active: boolean
+          progression_percentage: number | null
           project_name: string
           selected_features: string[]
           status: string
+          total_project_amount: number | null
           updated_at: string
           user_id: string
         }
@@ -534,9 +545,11 @@ export type Database = {
           custom_requirements?: string | null
           id?: string
           is_active?: boolean
+          progression_percentage?: number | null
           project_name: string
           selected_features?: string[]
           status?: string
+          total_project_amount?: number | null
           updated_at?: string
           user_id: string
         }
@@ -547,9 +560,11 @@ export type Database = {
           custom_requirements?: string | null
           id?: string
           is_active?: boolean
+          progression_percentage?: number | null
           project_name?: string
           selected_features?: string[]
           status?: string
+          total_project_amount?: number | null
           updated_at?: string
           user_id?: string
         }
