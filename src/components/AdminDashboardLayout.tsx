@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { 
@@ -19,9 +20,13 @@ import {
   Settings, 
   Activity, 
   CreditCard, 
-  MessageSquare 
+  MessageSquare,
+  LogOut
 } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { useSuperAdmin } from '@/contexts/SuperAdminContext';
+import { useToast } from '@/components/ui/use-toast';
 
 const adminSidebarItems = [
   { title: 'Admin Overview', icon: Shield, url: '/admin' },
@@ -35,6 +40,18 @@ const adminSidebarItems = [
 
 export default function AdminDashboardLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useSuperAdmin();
+  const { toast } = useToast();
+
+  const handleLogout = () => {
+    logout();
+    toast({
+      title: "Logged Out",
+      description: "Super admin session ended.",
+    });
+    navigate('/system-control-panel-auth-gateway-x7k9m2p8q4w1');
+  };
 
   return (
     <SidebarProvider>
@@ -49,6 +66,17 @@ export default function AdminDashboardLayout() {
                 <h2 className="font-semibold text-lg">Admin Panel</h2>
                 <p className="text-xs text-muted-foreground">Master Dashboard</p>
               </div>
+            </div>
+            <div className="mt-4">
+              <Button 
+                onClick={handleLogout}
+                variant="outline"
+                size="sm"
+                className="w-full flex items-center justify-center text-red-600 border-red-200 hover:bg-red-50"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </Button>
             </div>
           </SidebarHeader>
           <SidebarContent>
