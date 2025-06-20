@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -12,18 +11,30 @@ import { MessageSquare, Send, Paperclip, Download, Image, ArrowLeft, Loader2 } f
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 
+interface Attachment {
+  name: string;
+  url: string;
+  type: string;
+  size?: number;
+}
+
 interface Message {
   id: string;
   sender_type: 'user' | 'admin';
   sender_name: string;
   sender_email: string;
   message_content: string;
-  attachments: Array<{
-    name: string;
-    url: string;
-    type: string;
-    size?: number;
-  }>;
+  attachments: Attachment[];
+  created_at: string;
+}
+
+interface DatabaseMessage {
+  id: string;
+  sender_type: string;
+  sender_name: string;
+  sender_email: string;
+  message_content: string;
+  attachments: any;
   created_at: string;
 }
 
@@ -82,7 +93,17 @@ export default function ProjectAdminMessages() {
         .order('created_at', { ascending: true });
       
       if (error) throw error;
-      return data as Message[];
+      
+      // Transform the database messages to match our Message interface
+      return (data as DatabaseMessage[]).map((msg): Message => ({
+        id: msg.id,
+        sender_type: msg.sender_type as 'user' | 'admin',
+        sender_name: msg.sender_name,
+        sender_email: msg.sender_email,
+        message_content: msg.message_content,
+        attachments: Array.isArray(msg.attachments) ? msg.attachments as Attachment[] : [],
+        created_at: msg.created_at
+      }));
     },
     enabled: !!selectedConversation
   });
@@ -121,7 +142,7 @@ export default function ProjectAdminMessages() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const uploadFiles = async (): Promise<Array<{name: string; url: string; type: string}>> => {
+  const uploadFiles = async (): Promise<Attachment[]> => {
     if (!files || files.length === 0) return [];
 
     const uploadedFiles = [];
@@ -167,7 +188,7 @@ export default function ProjectAdminMessages() {
     return uploadedFiles;
   };
 
-  const handleDownload = async (attachment: {name: string; url: string; type: string}) => {
+  const handleDownload = async (attachment: Attachment) => {
     try {
       console.log('Downloading file:', attachment.name);
       
@@ -206,7 +227,7 @@ export default function ProjectAdminMessages() {
     mutationFn: async ({ conversationId, message, attachments }: { 
       conversationId: string; 
       message: string; 
-      attachments: Array<{name: string; url: string; type: string}> 
+      attachments: Attachment[] 
     }) => {
       const { error: messageError } = await supabase
         .from('conversation_messages')
