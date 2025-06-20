@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -72,7 +71,7 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
             sender_name: newMsg.sender_name,
             sender_email: newMsg.sender_email,
             message_content: newMsg.message_content,
-            attachments: Array.isArray(newMsg.attachments) ? newMsg.attachments : [],
+            attachments: Array.isArray(newMsg.attachments) ? newMsg.attachments as Array<{name: string; url: string; type: string; size?: number}> : [],
             created_at: newMsg.created_at
           };
           
@@ -82,6 +81,32 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
             if (exists) return prev;
             return [...prev, formattedMessage];
           });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'conversation_messages',
+          filter: `conversation_id=eq.${conversationId}`
+        },
+        (payload) => {
+          console.log('Message updated:', payload);
+          const updatedMsg = payload.new as any;
+          const formattedMessage: Message = {
+            id: updatedMsg.id,
+            sender_type: updatedMsg.sender_type as 'user' | 'admin',
+            sender_name: updatedMsg.sender_name,
+            sender_email: updatedMsg.sender_email,
+            message_content: updatedMsg.message_content,
+            attachments: Array.isArray(updatedMsg.attachments) ? updatedMsg.attachments as Array<{name: string; url: string; type: string; size?: number}> : [],
+            created_at: updatedMsg.created_at
+          };
+          
+          setMessages(prev => prev.map(msg => 
+            msg.id === formattedMessage.id ? formattedMessage : msg
+          ));
         }
       )
       .subscribe();
@@ -136,7 +161,7 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
       sender_name: msg.sender_name,
       sender_email: msg.sender_email,
       message_content: msg.message_content,
-      attachments: Array.isArray(msg.attachments) ? msg.attachments : [],
+      attachments: Array.isArray(msg.attachments) ? msg.attachments as Array<{name: string; url: string; type: string; size?: number}> : [],
       created_at: msg.created_at
     }));
 
