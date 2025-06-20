@@ -77,7 +77,14 @@ export default function DemoManager({ isAdminView = false }: DemoManagerProps) {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setDemos(data || []);
+      
+      // Transform the data to ensure demo_files is properly handled
+      const transformedData = (data || []).map(demo => ({
+        ...demo,
+        demo_files: Array.isArray(demo.demo_files) ? demo.demo_files : []
+      }));
+      
+      setDemos(transformedData);
     } catch (error) {
       console.error('Error fetching demos:', error);
     }

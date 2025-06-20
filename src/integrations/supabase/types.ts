@@ -157,6 +157,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string | null
+          demo_files: Json | null
           demo_type: string
           demo_url: string | null
           description: string | null
@@ -170,6 +171,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by?: string | null
+          demo_files?: Json | null
           demo_type: string
           demo_url?: string | null
           description?: string | null
@@ -183,6 +185,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string | null
+          demo_files?: Json | null
           demo_type?: string
           demo_url?: string | null
           description?: string | null
@@ -313,6 +316,7 @@ export type Database = {
           status: string
           title: string
           updated_at: string
+          uploaded_files: Json | null
           user_feedback: string | null
         }
         Insert: {
@@ -327,6 +331,7 @@ export type Database = {
           status?: string
           title: string
           updated_at?: string
+          uploaded_files?: Json | null
           user_feedback?: string | null
         }
         Update: {
@@ -341,6 +346,7 @@ export type Database = {
           status?: string
           title?: string
           updated_at?: string
+          uploaded_files?: Json | null
           user_feedback?: string | null
         }
         Relationships: [

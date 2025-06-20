@@ -102,11 +102,14 @@ export default function PreviewManager({ projectId, isAdminView = false }: Previ
 
       if (error) throw error;
       
-      // Transform the data to ensure preview_files is properly typed
+      // Transform the data to ensure all required fields are properly typed
       const transformedData = (data || []).map(preview => ({
         ...preview,
         preview_files: Array.isArray(preview.preview_files) 
           ? (preview.preview_files as unknown as PreviewFile[])
+          : [],
+        uploaded_files: Array.isArray(preview.uploaded_files)
+          ? preview.uploaded_files
           : []
       }));
       
