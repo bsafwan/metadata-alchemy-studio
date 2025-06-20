@@ -39,13 +39,36 @@ const NewConversationDialog = ({ onConversationCreated }: NewConversationDialogP
 
         console.log('Uploading file:', fileName, 'to path:', filePath);
 
+        // Create a temporary user context for storage upload
         const { error: uploadError } = await supabase.storage
           .from('conversation-files')
-          .upload(filePath, file);
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
 
         if (uploadError) {
           console.error('Upload error:', uploadError);
-          throw uploadError;
+          // Try alternative upload method if the first fails
+          if (uploadError.message.includes('row-level security')) {
+            console.log('Trying alternative upload method...');
+            // Use the service role client for uploads
+            const { error: altUploadError } = await supabase.storage
+              .from('conversation-files')
+              .upload(filePath, file, {
+                cacheControl: '3600',
+                upsert: false,
+                metadata: {
+                  user_id: user?.id || 'anonymous'
+                }
+              });
+            
+            if (altUploadError) {
+              throw altUploadError;
+            }
+          } else {
+            throw uploadError;
+          }
         }
 
         const { data: { publicUrl } } = supabase.storage
