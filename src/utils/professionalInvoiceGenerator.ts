@@ -17,19 +17,19 @@ export const generateProfessionalInvoice = (invoiceData: InvoiceData): string =>
   const doc = new jsPDF();
   
   // Set up colors
-  const primaryColor = [255, 140, 0]; // Orange
-  const darkColor = [51, 51, 51]; // Dark gray
-  const lightGray = [245, 245, 245];
+  const primaryColor = [255, 140, 0] as const; // Orange
+  const darkColor = [51, 51, 51] as const; // Dark gray
+  const lightGray = [245, 245, 245] as const;
   
   // Header Background
-  doc.setFillColor(...primaryColor);
+  doc.setFillColor(255, 140, 0);
   doc.rect(0, 0, 210, 40, 'F');
   
   // Company Logo Area (Orange box)
   doc.setFillColor(255, 255, 255);
   doc.rect(15, 8, 25, 25, 'F');
   doc.setFontSize(16);
-  doc.setTextColor(...primaryColor);
+  doc.setTextColor(255, 140, 0);
   doc.text('E', 27, 23);
   
   // Company Name
@@ -44,7 +44,7 @@ export const generateProfessionalInvoice = (invoiceData: InvoiceData): string =>
   
   // Company Details Section
   doc.setFontSize(9);
-  doc.setTextColor(...darkColor);
+  doc.setTextColor(51, 51, 51);
   doc.text('Company Number: 16433590', 15, 50);
   doc.text('Office 12611, 182-184 High Street North', 15, 55);
   doc.text('East Ham, London, E6 2JA, United Kingdom', 15, 60);
@@ -52,10 +52,10 @@ export const generateProfessionalInvoice = (invoiceData: InvoiceData): string =>
   doc.text('Phone: +44 7380480139', 15, 70);
   
   // Invoice Details Box
-  doc.setFillColor(...lightGray);
+  doc.setFillColor(245, 245, 245);
   doc.rect(120, 45, 75, 30, 'F');
   doc.setFontSize(10);
-  doc.setTextColor(...darkColor);
+  doc.setTextColor(51, 51, 51);
   doc.text('Invoice Number:', 125, 52);
   doc.setFont(undefined, 'bold');
   doc.text(invoiceData.reference_number, 125, 58);
@@ -64,14 +64,14 @@ export const generateProfessionalInvoice = (invoiceData: InvoiceData): string =>
   doc.text(invoiceData.created_date, 125, 70);
   
   // Bill To Section
-  doc.setFillColor(...primaryColor);
+  doc.setFillColor(255, 140, 0);
   doc.rect(15, 85, 180, 8, 'F');
   doc.setFontSize(12);
   doc.setTextColor(255, 255, 255);
   doc.text('BILL TO', 20, 91);
   
   doc.setFontSize(11);
-  doc.setTextColor(...darkColor);
+  doc.setTextColor(51, 51, 51);
   doc.setFont(undefined, 'bold');
   doc.text(invoiceData.client_name, 20, 102);
   doc.setFont(undefined, 'normal');
@@ -80,7 +80,7 @@ export const generateProfessionalInvoice = (invoiceData: InvoiceData): string =>
   doc.text(invoiceData.client_email, 20, 120);
   
   // Service Details Table Header
-  doc.setFillColor(...primaryColor);
+  doc.setFillColor(255, 140, 0);
   doc.rect(15, 135, 180, 10, 'F');
   doc.setFontSize(10);
   doc.setTextColor(255, 255, 255);
@@ -90,16 +90,16 @@ export const generateProfessionalInvoice = (invoiceData: InvoiceData): string =>
   // Service Details Row
   doc.setFillColor(255, 255, 255);
   doc.rect(15, 145, 180, 15, 'F');
-  doc.setDrawColor(...darkColor);
+  doc.setDrawColor(51, 51, 51);
   doc.rect(15, 145, 180, 15);
-  doc.setTextColor(...darkColor);
+  doc.setTextColor(51, 51, 51);
   doc.text(`Project: ${invoiceData.project_name}`, 20, 152);
   doc.text('50% Project Payment (Milestone)', 20, 157);
   doc.setFont(undefined, 'bold');
   doc.text(`$${invoiceData.amount.toFixed(2)}`, 160, 155);
   
   // Total Amount Box
-  doc.setFillColor(...primaryColor);
+  doc.setFillColor(255, 140, 0);
   doc.rect(120, 170, 75, 20, 'F');
   doc.setFontSize(14);
   doc.setTextColor(255, 255, 255);
@@ -115,12 +115,12 @@ export const generateProfessionalInvoice = (invoiceData: InvoiceData): string =>
   doc.rect(15, 200, 180, 60);
   
   doc.setFontSize(12);
-  doc.setTextColor(...primaryColor);
+  doc.setTextColor(255, 140, 0);
   doc.setFont(undefined, 'bold');
   doc.text('PAYMENT INSTRUCTIONS', 20, 210);
   
   doc.setFontSize(9);
-  doc.setTextColor(...darkColor);
+  doc.setTextColor(51, 51, 51);
   doc.setFont(undefined, 'normal');
   doc.text('Bank Name: Citibank', 20, 220);
   doc.text('Bank Address: 111 Wall Street, New York, NY 10043 USA', 20, 225);
@@ -141,7 +141,7 @@ export const generateProfessionalInvoice = (invoiceData: InvoiceData): string =>
   
   // Due Date
   doc.setFontSize(10);
-  doc.setTextColor(...darkColor);
+  doc.setTextColor(51, 51, 51);
   doc.setFont(undefined, 'normal');
   doc.text(`Due Date: ${invoiceData.due_date}`, 20, 290);
   
