@@ -153,6 +153,48 @@ export type Database = {
         }
         Relationships: []
       }
+      demos: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          demo_type: string
+          demo_url: string | null
+          description: string | null
+          file_path: string | null
+          id: string
+          is_active: boolean | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          demo_type: string
+          demo_url?: string | null
+          description?: string | null
+          file_path?: string | null
+          id?: string
+          is_active?: boolean | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          demo_type?: string
+          demo_url?: string | null
+          description?: string | null
+          file_path?: string | null
+          id?: string
+          is_active?: boolean | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
@@ -197,6 +239,123 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      phase_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          due_date: string | null
+          id: string
+          paid_at: string | null
+          payment_method: string | null
+          phase_id: string
+          project_id: string
+          status: string
+          transaction_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          phase_id: string
+          project_id: string
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          phase_id?: string
+          project_id?: string
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "phase_payments_phase_id_fkey"
+            columns: ["phase_id"]
+            isOneToOne: true
+            referencedRelation: "project_phases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "phase_payments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      previews: {
+        Row: {
+          approved_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          phase_id: string
+          preview_files: Json | null
+          project_id: string
+          status: string
+          title: string
+          updated_at: string
+          user_feedback: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          phase_id: string
+          preview_files?: Json | null
+          project_id: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_feedback?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          phase_id?: string
+          preview_files?: Json | null
+          project_id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_feedback?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "previews_phase_id_fkey"
+            columns: ["phase_id"]
+            isOneToOne: false
+            referencedRelation: "project_phases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "previews_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]

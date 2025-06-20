@@ -22,7 +22,8 @@ import DashboardLayout from "./components/DashboardLayout";
 import DashboardHome from "./pages/DashboardHome";
 import Conversations from "./pages/Conversations";
 import ProjectOverview from "./pages/ProjectOverview";
-import DemosAndPreviews from "./pages/DemosAndPreviews";
+import Demos from "./pages/Demos";
+import Previews from "./pages/Previews";
 import PaymentsAndDues from "./pages/PaymentsAndDues";
 import Status from "./pages/Status";
 import DeliveryManagement from "./pages/DeliveryManagement";
@@ -92,9 +93,9 @@ const App = () => (
               }>
                 <Route index element={<DashboardHome />} />
                 <Route path="conversations" element={<Conversations />} />
-                <Route path="project-overview" element={<ProjectOverview />} />
                 <Route path="pricing-phases" element={<ProjectPricingPhases />} />
-                <Route path="demos" element={<DemosAndPreviews />} />
+                <Route path="demos" element={<Demos />} />
+                <Route path="previews" element={<Previews />} />
                 <Route path="payments" element={<PaymentsAndDues />} />
                 <Route path="status" element={<Status />} />
                 <Route path="delivery" element={<DeliveryManagement />} />
@@ -125,7 +126,8 @@ const App = () => (
                 <Route index element={<ProjectAdminOverview />} />
                 <Route path="messages" element={<ProjectAdminMessages />} />
                 <Route path="pricing-phases" element={<AdminProjectPricingPhases />} />
-                <Route path="demos" element={<ProjectAdminDemos />} />
+                <Route path="demos" element={<ProjectAdminDemosNew />} />
+                <Route path="previews" element={<ProjectAdminPreviews />} />
                 <Route path="payments" element={<ProjectAdminPayments />} />
                 <Route path="status" element={<ProjectAdminStatus />} />
                 <Route path="delivery" element={<ProjectAdminDelivery />} />

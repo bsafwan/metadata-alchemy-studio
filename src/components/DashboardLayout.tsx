@@ -15,8 +15,8 @@ import {
 import { 
   Home,
   MessageSquare, 
-  FileText, 
   Monitor, 
+  Eye,
   CreditCard, 
   Activity, 
   Truck, 
@@ -29,9 +29,9 @@ import { useAuth } from '@/contexts/AuthContext';
 const sidebarItems = [
   { title: 'Dashboard', icon: Home, url: '/dashboard' },
   { title: 'Conversations', icon: MessageSquare, url: '/dashboard/conversations' },
-  { title: 'Project Overview', icon: FileText, url: '/dashboard/project-overview' },
   { title: 'Pricing & Phases', icon: Calculator, url: '/dashboard/pricing-phases' },
-  { title: 'Demos & Previews', icon: Monitor, url: '/dashboard/demos' },
+  { title: 'Demos', icon: Monitor, url: '/dashboard/demos' },
+  { title: 'Previews', icon: Eye, url: '/dashboard/previews' },
   { title: 'Payments & Dues', icon: CreditCard, url: '/dashboard/payments' },
   { title: 'Status', icon: Activity, url: '/dashboard/status' },
   { title: 'Delivery', icon: Truck, url: '/dashboard/delivery' },
@@ -49,7 +49,7 @@ export default function DashboardLayout() {
           <SidebarHeader className="p-4">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-elismet-orange rounded-lg flex items-center justify-center">
-                <FileText className="text-white w-4 h-4" />
+                <Monitor className="text-white w-4 h-4" />
               </div>
               <div>
                 <h2 className="font-semibold text-lg">Dashboard</h2>
