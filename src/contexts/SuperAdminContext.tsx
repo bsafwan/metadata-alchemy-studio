@@ -33,16 +33,21 @@ export const SuperAdminProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
+      console.log('Attempting super admin login for:', email);
+      
       // Call edge function to verify super admin credentials
       const response = await fetch(`https://gemhywggtdryovqmalqh.supabase.co/functions/v1/super-admin-auth`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlbWh5d2dndGRyeW92cW1hbHFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzNjQ4MzEsImV4cCI6MjA2NTk0MDgzMX0.PjNg5nqMq7qdPdw-PWNj-b0NtRYxgx9zpJSFdtL8Gig`
         },
         body: JSON.stringify({ email, password }),
       });
 
+      console.log('Response status:', response.status);
       const result = await response.json();
+      console.log('Response data:', result);
       
       if (result.authenticated) {
         setIsAuthenticated(true);
