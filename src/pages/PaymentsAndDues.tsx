@@ -1,15 +1,14 @@
-
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuthContext } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { TrendingUp, DollarSign, Loader2 } from 'lucide-react';
 import ProjectPaymentManager from '@/components/ProjectPaymentManager';
 
 export default function PaymentsAndDues() {
-  const { user } = useAuthContext();
+  const { user } = useAuth();
 
   const { data: projects, isLoading } = useQuery({
     queryKey: ['user-projects-payments', user?.id],

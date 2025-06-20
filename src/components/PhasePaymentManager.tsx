@@ -4,13 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { DollarSign, Download, CheckCircle, Clock, AlertCircle, FileText } from 'lucide-react';
+import { DollarSign, Download, CheckCircle, Clock, AlertCircle, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import SimplePaymentSubmissionModal from './SimplePaymentSubmissionModal';
-import { generateProfessionalInvoice } from '@/utils/professionalInvoiceGenerator';
+import PaymentSubmissionModal from './PaymentSubmissionModal';
+import AdminPaymentVerificationModal from './AdminPaymentVerificationModal';
 
-interface PhasePayment {
+interface ProjectPayment {
   id: string;
   project_id: string;
   amount: number;
@@ -30,24 +30,23 @@ interface PhasePaymentManagerProps {
 }
 
 export default function PhasePaymentManager({ projectId, isAdminView = false }: PhasePaymentManagerProps) {
-  const [payments, setPayments] = useState<PhasePayment[]>([]);
+  const [payments, setPayments] = useState<ProjectPayment[]>([]);
   const [loading, setLoading] = useState(false);
-  const [submissionModal, setSubmissionModal] = useState<{open: boolean, payment: PhasePayment | null}>({open: false, payment: null});
-  const [projectData, setProjectData] = useState<any>(null);
+  const [submissionModal, setSubmissionModal] = useState<{open: boolean, payment: ProjectPayment | null}>({open: false, payment: null});
+  const [verificationModal, setVerificationModal] = useState<{open: boolean, payment: ProjectPayment | null}>({open: false, payment: null});
 
   useEffect(() => {
     fetchPayments();
-    fetchProjectData();
     
     // Real-time subscription
     const channel = supabase
-      .channel('phase-payments')
+      .channel('project-payments')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'phase_payments',
+          table: 'project_payments',
           filter: `project_id=eq.${projectId}`
         },
         () => {
@@ -64,7 +63,7 @@ export default function PhasePaymentManager({ projectId, isAdminView = false }: 
   const fetchPayments = async () => {
     try {
       const { data, error } = await supabase
-        .from('phase_payments')
+        .from('project_payments')
         .select('*')
         .eq('project_id', projectId)
         .order('created_at', { ascending: true });
@@ -76,90 +75,9 @@ export default function PhasePaymentManager({ projectId, isAdminView = false }: 
     }
   };
 
-  const fetchProjectData = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('projects')
-        .select(`
-          *,
-          users!inner(first_name, last_name, email, business_name, business_category)
-        `)
-        .eq('id', projectId)
-        .single();
-
-      if (error) throw error;
-      setProjectData(data);
-    } catch (error) {
-      console.error('Error fetching project data:', error);
-    }
-  };
-
-  const downloadInvoice = (payment: PhasePayment) => {
-    if (!projectData) return;
-
-    const invoiceData = {
-      reference_number: payment.reference_number || 'N/A',
-      amount: payment.amount,
-      project_name: projectData.project_name,
-      client_name: `${projectData.users.first_name} ${projectData.users.last_name}`,
-      client_email: projectData.users.email,
-      client_business: projectData.users.business_name,
-      client_industry: projectData.users.business_category,
-      due_date: payment.due_date ? new Date(payment.due_date).toLocaleDateString() : 'Upon receipt',
-      created_date: new Date(payment.created_at).toLocaleDateString()
-    };
-
-    const pdfDataUri = generateProfessionalInvoice(invoiceData);
-    const link = document.createElement('a');
-    link.href = pdfDataUri;
-    link.download = `Invoice-${payment.reference_number}.pdf`;
-    link.click();
-  };
-
-  const approvePayment = async (paymentId: string) => {
-    setLoading(true);
-    try {
-      const { error } = await supabase
-        .from('phase_payments')
-        .update({ 
-          status: 'paid',
-          paid_at: new Date().toISOString()
-        })
-        .eq('id', paymentId);
-
-      if (error) throw error;
-      toast.success('Payment approved successfully');
-      fetchPayments();
-    } catch (error) {
-      console.error('Error approving payment:', error);
-      toast.error('Failed to approve payment');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const requestResubmission = async (paymentId: string) => {
-    setLoading(true);
-    try {
-      const { error } = await supabase
-        .from('phase_payments')
-        .update({ 
-          status: 'due',
-          submitted_at: null,
-          payment_date: null,
-          transaction_id: null
-        })
-        .eq('id', paymentId);
-
-      if (error) throw error;
-      toast.success('Payment marked for resubmission');
-      fetchPayments();
-    } catch (error) {
-      console.error('Error requesting resubmission:', error);
-      toast.error('Failed to request resubmission');
-    } finally {
-      setLoading(false);
-    }
+  const downloadInvoice = (payment: ProjectPayment) => {
+    // This would generate and download an invoice
+    toast.info('Invoice download functionality will be implemented');
   };
 
   const getStatusColor = (status: string) => {
@@ -187,7 +105,7 @@ export default function PhasePaymentManager({ projectId, isAdminView = false }: 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Phase Payments</h2>
+        <h2 className="text-2xl font-bold">Project Payments</h2>
         <Badge variant="outline">
           ${paidAmount.toFixed(0)} / ${totalAmount.toFixed(0)}
         </Badge>
@@ -221,7 +139,7 @@ export default function PhasePaymentManager({ projectId, isAdminView = false }: 
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-lg">
-                    {payment.is_automatic ? '50% Milestone Payment' : 'Phase Payment'}
+                    50% Milestone Payment
                   </CardTitle>
                   <CardDescription>
                     Amount: ${payment.amount.toFixed(2)}
@@ -281,24 +199,14 @@ export default function PhasePaymentManager({ projectId, isAdminView = false }: 
                   )}
 
                   {isAdminView && payment.status === 'submitted' && (
-                    <>
-                      <Button
-                        size="sm"
-                        onClick={() => approvePayment(payment.id)}
-                        disabled={loading}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        Approve
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => requestResubmission(payment.id)}
-                        disabled={loading}
-                      >
-                        Request Resubmission
-                      </Button>
-                    </>
+                    <Button
+                      size="sm"
+                      onClick={() => setVerificationModal({open: true, payment})}
+                      className="bg-orange-600 hover:bg-orange-700"
+                    >
+                      <Eye className="w-4 h-4 mr-1" />
+                      Review Payment
+                    </Button>
                   )}
                 </div>
               </div>
@@ -313,20 +221,27 @@ export default function PhasePaymentManager({ projectId, isAdminView = false }: 
             <DollarSign className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
             <p className="text-muted-foreground">No payments yet</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Payments are created automatically when project reaches 50%
+              Payments are created automatically when project reaches 50% progression
             </p>
           </CardContent>
         </Card>
       )}
 
       {submissionModal.open && submissionModal.payment && (
-        <SimplePaymentSubmissionModal
+        <PaymentSubmissionModal
           isOpen={submissionModal.open}
           onClose={() => setSubmissionModal({open: false, payment: null})}
-          paymentId={submissionModal.payment.id}
-          referenceNumber={submissionModal.payment.reference_number || 'N/A'}
-          amount={submissionModal.payment.amount}
+          payment={submissionModal.payment}
           onSubmissionComplete={fetchPayments}
+        />
+      )}
+
+      {verificationModal.open && verificationModal.payment && (
+        <AdminPaymentVerificationModal
+          isOpen={verificationModal.open}
+          onClose={() => setVerificationModal({open: false, payment: null})}
+          payment={verificationModal.payment}
+          onPaymentUpdate={fetchPayments}
         />
       )}
     </div>
