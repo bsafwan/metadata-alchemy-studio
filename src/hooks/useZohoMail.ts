@@ -53,10 +53,38 @@ export const useZohoMail = () => {
     });
   };
 
+  const sendPreviewNotification = async (
+    emails: string[],
+    previewData: {
+      customerName: string;
+      projectName: string;
+      previewTitle: string;
+      phaseName: string;
+      action: string;
+      feedback?: string;
+    }
+  ) => {
+    return await sendEmail({
+      to: emails,
+      subject: `Preview ${previewData.action}: ${previewData.previewTitle}`,
+      template: 'project-update',
+      templateData: {
+        clientName: previewData.customerName,
+        projectName: previewData.projectName,
+        milestone: `${previewData.phaseName} - Preview ${previewData.action}`,
+        status: `Preview has been ${previewData.action}`,
+        nextSteps: previewData.feedback 
+          ? `Customer feedback: "${previewData.feedback}"`
+          : `Preview "${previewData.previewTitle}" is ready for review.`
+      }
+    });
+  };
+
   return {
     sendEmail,
     sendChatSummary,
     sendQuoteRequest,
+    sendPreviewNotification,
     isSending
   };
 };

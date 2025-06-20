@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Outlet, useLocation, useParams } from 'react-router-dom';
 import { 
@@ -15,7 +14,6 @@ import {
 import { 
   FolderKanban, 
   MessageSquare, 
-  Monitor, 
   Eye,
   CreditCard, 
   Activity, 
@@ -35,7 +33,6 @@ export default function ProjectAdminLayout() {
     { title: 'Overview', icon: FolderKanban, url: `/admin/project/${projectId}` },
     { title: 'Messages', icon: MessageSquare, url: `/admin/project/${projectId}/messages` },
     { title: 'Pricing & Phases', icon: Calculator, url: `/admin/project/${projectId}/pricing-phases` },
-    { title: 'Demos', icon: Monitor, url: `/admin/project/${projectId}/demos` },
     { title: 'Previews', icon: Eye, url: `/admin/project/${projectId}/previews` },
     { title: 'Payments', icon: CreditCard, url: `/admin/project/${projectId}/payments` },
     { title: 'Status', icon: Activity, url: `/admin/project/${projectId}/status` },

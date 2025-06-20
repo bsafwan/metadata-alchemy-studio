@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import FileUploader from './FileUploader';
 import FileDisplay from './FileDisplay';
+import { useZohoMail } from '@/hooks/useZohoMail';
 
 interface PreviewFile {
   type: string;
@@ -51,6 +52,7 @@ interface PreviewManagerProps {
 }
 
 export default function PreviewManager({ projectId, isAdminView = false }: PreviewManagerProps) {
+  const { sendEmail } = useZohoMail();
   const [previews, setPreviews] = useState<Preview[]>([]);
   const [phases, setPhases] = useState<ProjectPhase[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -165,11 +167,42 @@ export default function PreviewManager({ projectId, isAdminView = false }: Previ
         if (error) throw error;
         toast.success('Preview updated');
       } else {
-        const { error } = await supabase
+        const { data: newPreview, error } = await supabase
           .from('previews')
-          .insert([previewData]);
+          .insert([previewData])
+          .select(`
+            *,
+            projects!inner(
+              project_name,
+              users!inner(first_name, last_name, email, business_name)
+            ),
+            project_phases!inner(phase_name, phase_order)
+          `)
+          .single();
         
         if (error) throw error;
+
+        // Send email notification to user when admin creates a preview
+        if (isAdminView && newPreview) {
+          try {
+            await sendEmail({
+              to: [newPreview.projects.users.email],
+              subject: `New Preview Available: ${newPreview.title}`,
+              template: 'project-update',
+              templateData: {
+                clientName: `${newPreview.projects.users.first_name} ${newPreview.projects.users.last_name}`,
+                projectName: newPreview.projects.project_name,
+                milestone: `${newPreview.project_phases.phase_name} - Preview Available`,
+                status: 'New preview ready for review',
+                nextSteps: `Please review the preview "${newPreview.title}" and provide your feedback. You can approve or request changes through your project dashboard.`
+              }
+            });
+          } catch (emailError) {
+            console.error('Failed to send preview notification email:', emailError);
+            // Don't fail the preview creation if email fails
+          }
+        }
+        
         toast.success('Preview created');
       }
       
@@ -257,12 +290,64 @@ export default function PreviewManager({ projectId, isAdminView = false }: Previ
         updateData.user_feedback = feedback;
       }
 
-      const { error } = await supabase
+      const { data: updatedPreview, error } = await supabase
         .from('previews')
         .update(updateData)
-        .eq('id', previewId);
+        .eq('id', previewId)
+        .select(`
+          *,
+          projects!inner(
+            project_name,
+            users!inner(first_name, last_name, email, business_name)
+          ),
+          project_phases!inner(phase_name, phase_order)
+        `)
+        .single();
       
       if (error) throw error;
+
+      // Send email notification to admin when user responds to preview
+      if (!isAdminView && updatedPreview) {
+        try {
+          const adminEmail = 'bsafwanjamil677@gmail.com';
+          const actionText = status === 'approved' ? 'approved' : 'rejected';
+          const emailSubject = `Preview ${actionText}: ${updatedPreview.title}`;
+          
+          let emailContent = `
+            Customer ${updatedPreview.projects.users.first_name} ${updatedPreview.projects.users.last_name} has ${actionText} the preview "${updatedPreview.title}".
+            
+            Project: ${updatedPreview.projects.project_name}
+            Phase: ${updatedPreview.project_phases.phase_name}
+            Customer: ${updatedPreview.projects.users.first_name} ${updatedPreview.projects.users.last_name} (${updatedPreview.projects.users.email})
+            Business: ${updatedPreview.projects.users.business_name}
+          `;
+
+          if (status === 'rejected' && feedback) {
+            emailContent += `\n\nRejection Feedback:\n${feedback}`;
+          }
+
+          await sendEmail({
+            to: [adminEmail],
+            subject: emailSubject,
+            template: 'project-update',
+            templateData: {
+              clientName: 'Admin',
+              projectName: updatedPreview.projects.project_name,
+              milestone: `Preview Response: ${updatedPreview.title}`,
+              status: `Customer has ${actionText} the preview`,
+              nextSteps: status === 'rejected' && feedback 
+                ? `Customer feedback: "${feedback}". Please review and make necessary adjustments.`
+                : status === 'approved'
+                ? 'Preview has been approved. You can proceed with the next phase.'
+                : 'Please review the customer response and take appropriate action.'
+            }
+          });
+        } catch (emailError) {
+          console.error('Failed to send admin notification email:', emailError);
+          // Don't fail the approval if email fails
+        }
+      }
+
       toast.success(`Preview ${status}`);
       setShowRejectionDialog(null);
       setRejectionFeedback('');
