@@ -143,6 +143,7 @@ export default function ProjectPaymentManager({ projectId, isAdminView = false }
   const approvePayment = async (paymentId: string) => {
     setLoading(true);
     try {
+      // Update payment status
       const { error } = await supabase
         .from('project_payments')
         .update({ 
@@ -152,7 +153,37 @@ export default function ProjectPaymentManager({ projectId, isAdminView = false }
         .eq('id', paymentId);
 
       if (error) throw error;
-      toast.success('Payment approved successfully');
+
+      // Get payment and project details for confirmation email
+      const { data: paymentData, error: fetchError } = await supabase
+        .from('project_payments')
+        .select(`
+          reference_number,
+          amount,
+          transaction_id,
+          projects!inner(
+            project_name,
+            users!inner(first_name, last_name, email)
+          )
+        `)
+        .eq('id', paymentId)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching payment data for confirmation:', fetchError);
+      } else {
+        // Send payment confirmation email to client
+        const { PaymentEmailService } = await import('@/utils/paymentEmailService');
+        await PaymentEmailService.sendPaymentConfirmation({
+          client_email: paymentData.projects.users.email,
+          client_name: `${paymentData.projects.users.first_name} ${paymentData.projects.users.last_name}`,
+          project_name: paymentData.projects.project_name,
+          amount: paymentData.amount,
+          reference_number: paymentData.reference_number
+        });
+      }
+
+      toast.success('Payment approved and confirmation sent to client');
       fetchPayments();
     } catch (error) {
       console.error('Error approving payment:', error);

@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Minus, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { PaymentEmailService } from '@/utils/paymentEmailService';
 
 interface ProjectProgressionManagerProps {
   projectId: string;
@@ -49,7 +50,7 @@ export default function ProjectProgressionManager({
         if (negError) {
           console.error('Error fetching negotiations:', negError);
         } else if (negotiation) {
-          projectTotal = negotiation.proposed_total_price;
+          projectTotal = negoti​ation.proposed_total_price;
           console.log('Found negotiated total:', projectTotal);
         } else {
           console.log('No accepted negotiations found, calculating from phases...');
@@ -73,6 +74,9 @@ export default function ProjectProgressionManager({
 
       console.log('Final project total:', projectTotal);
 
+      // Check if we're reaching 50% for the first time
+      const isReaching50Percent = newPercentage >= 50 && currentProgression < 50;
+
       // Update both progression and total amount
       const { error } = await supabase
         .from('projects')
@@ -88,7 +92,61 @@ export default function ProjectProgressionManager({
       }
       
       console.log('Project updated successfully');
-      toast.success(`Project progression updated to ${newPercentage}%`);
+
+      // If we just reached 50%, send the payment invoice email
+      if (isReaching50Percent && projectTotal > 0) {
+        console.log('50% milestone reached, sending invoice email...');
+        
+        // Get project and user details for the email
+        const { data: projectData, error: projectError } = await supabase
+          .from('projects')
+          .select(`
+            project_name,
+            users!inner(first_name, last_name, email, business_name, business_category)
+          `)
+          .eq('id', projectId)
+          .single();
+
+        if (projectError) {
+          console.error('Error fetching project data for email:', projectError);
+        } else if (projectData) {
+          // Get the payment record that should have been created by the trigger
+          const { data: paymentData, error: paymentError } = await supabase
+            .from('project_payments')
+            .select('reference_number, due_date')
+            .eq('project_id', projectId)
+            .eq('is_automatic', true)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (paymentError) {
+            console.error('Error fetching payment data:', paymentError);
+          } else if (paymentData) {
+            const emailSuccess = await PaymentEmailService.sendPaymentInvoice({
+              client_email: projectData.users.email,
+              client_name: `${projectData.users.first_name} ${projectData.users.last_name}`,
+              project_name: projectData.project_name,
+              amount: projectTotal * 0.5,
+              reference_number: paymentData.reference_number,
+              due_date: paymentData.due_date ? new Date(paymentData.due_date).toLocaleDateString() : 'Upon receipt',
+              client_business: projectData.users.business_name,
+              client_industry: projectData.users.business_category
+            });
+
+            if (emailSuccess) {
+              toast.success(`50% payment initialized! Invoice sent to ${projectData.users.email}`);
+            } else {
+              toast.error('Payment initialized but failed to send invoice email');
+            }
+          } else {
+            toast.warning('Payment initialized but invoice details not found');
+          }
+        }
+      } else {
+        toast.success(`Project progression updated to ${newPercentage}%`);
+      }
+      
       onProgressionUpdate();
     } catch (error) {
       console.error('Error updating progression:', error);
@@ -168,7 +226,7 @@ export default function ProjectProgressionManager({
         {currentProgression >= 50 && totalAmount > 0 && (
           <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
             <p className="text-sm text-green-700">
-              🎉 Automatic 50% payment initialized for ${(totalAmount * 0.5).toFixed(2)}
+              🎉 50% milestone reached! Invoice sent for ${(totalAmount * 0.5).toFixed(2)}
             </p>
           </div>
         )}

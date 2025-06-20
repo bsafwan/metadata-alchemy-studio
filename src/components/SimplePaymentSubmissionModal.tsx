@@ -1,12 +1,15 @@
-
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { Calendar } from "@/components/ui/calendar"
+import { CalendarIcon } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
+import { format } from "date-fns"
 
 interface SimplePaymentSubmissionModalProps {
   isOpen: boolean;
@@ -17,49 +20,92 @@ interface SimplePaymentSubmissionModalProps {
   onSubmissionComplete: () => void;
 }
 
-export default function SimplePaymentSubmissionModal({
-  isOpen,
-  onClose,
-  paymentId,
-  referenceNumber,
+export default function SimplePaymentSubmissionModal({ 
+  isOpen, 
+  onClose, 
+  paymentId, 
+  referenceNumber, 
   amount,
-  onSubmissionComplete
+  onSubmissionComplete 
 }: SimplePaymentSubmissionModalProps) {
-  const [formData, setFormData] = useState({
-    payment_date: '',
-    amount_paid: amount.toString(),
-    transaction_id: ''
-  });
+  const [transactionId, setTransactionId] = useState('');
+  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
+  const [paymentChannel, setPaymentChannel] = useState('bank_transfer');
+  const [bankDetails, setBankDetails] = useState('');
   const [loading, setLoading] = useState(false);
+  const [date, setDate] = React.useState<Date | undefined>(new Date())
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.payment_date || !formData.amount_paid || !formData.transaction_id) {
-      toast.error('Please fill in all required fields');
+    
+    if (!transactionId.trim()) {
+      toast.error('Please enter a transaction ID');
       return;
     }
 
     setLoading(true);
     try {
+      // Update payment with submission details
       const { error } = await supabase
         .from('project_payments')
         .update({
-          payment_date: formData.payment_date,
-          transaction_id: formData.transaction_id,
           status: 'submitted',
-          submitted_at: new Date().toISOString(),
-          user_bank_details: `Amount: $${formData.amount_paid}, Transaction ID: ${formData.transaction_id}, Date: ${formData.payment_date}`
+          transaction_id: transactionId.trim(),
+          payment_date: paymentDate,
+          payment_channel: paymentChannel,
+          user_bank_details: bankDetails.trim() || null,
+          submitted_at: new Date().toISOString()
         })
         .eq('id', paymentId);
 
       if (error) throw error;
 
-      toast.success('Payment submission completed! Awaiting admin approval.');
+      // Get project and user details for admin notification
+      const { data: paymentData, error: fetchError } = await supabase
+        .from('project_payments')
+        .select(`
+          reference_number,
+          amount,
+          project_id,
+          projects!inner(
+            project_name,
+            users!inner(first_name, last_name, email)
+          )
+        `)
+        .eq('id', paymentId)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching payment data for notification:', fetchError);
+      } else {
+        // Send admin notification email
+        const adminEmails = ['contact@elismet.com']; // You can make this configurable
+        
+        const { PaymentEmailService } = await import('@/utils/paymentEmailService');
+        await PaymentEmailService.sendPaymentSubmissionNotification(adminEmails, {
+          reference_number: paymentData.reference_number,
+          project_name: paymentData.projects.project_name,
+          amount: paymentData.amount,
+          transaction_id: transactionId.trim(),
+          payment_channel: paymentChannel,
+          client_name: `${paymentData.projects.users.first_name} ${paymentData.projects.users.last_name}`,
+          bank_details: bankDetails.trim() || undefined,
+          payment_date: paymentDate
+        });
+      }
+
+      toast.success('Payment submission recorded successfully!');
       onSubmissionComplete();
       onClose();
+      
+      // Reset form
+      setTransactionId('');
+      setPaymentDate(new Date().toISOString().split('T')[0]);
+      setPaymentChannel('bank_transfer');
+      setBankDetails('');
     } catch (error) {
       console.error('Error submitting payment:', error);
-      toast.error('Failed to submit payment');
+      toast.error('Failed to submit payment details');
     } finally {
       setLoading(false);
     }
@@ -67,65 +113,107 @@ export default function SimplePaymentSubmissionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Submit Payment Confirmation</DialogTitle>
+          <DialogTitle>Submit Payment Details</DialogTitle>
         </DialogHeader>
         
-        <Card className="mb-4">
-          <CardContent className="pt-4">
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">Reference Number</p>
-              <p className="font-mono font-bold text-lg text-orange-600">{referenceNumber}</p>
-              <p className="text-sm text-muted-foreground mt-2">Expected Amount: ${amount.toFixed(2)}</p>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="referenceNumber">Reference Number</Label>
+              <Input 
+                type="text" 
+                id="referenceNumber" 
+                value={referenceNumber} 
+                readOnly 
+                disabled
+              />
             </div>
-          </CardContent>
-        </Card>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="payment_date">Date of Payment</Label>
-            <Input
-              id="payment_date"
-              type="date"
-              value={formData.payment_date}
-              onChange={(e) => setFormData(prev => ({ ...prev, payment_date: e.target.value }))}
-              required
-            />
+            
+            <div>
+              <Label htmlFor="amount">Amount</Label>
+              <Input 
+                type="text" 
+                id="amount" 
+                value={`$${amount.toFixed(2)}`} 
+                readOnly 
+                disabled
+              />
+            </div>
           </div>
 
           <div>
-            <Label htmlFor="amount_paid">Amount Paid</Label>
+            <Label htmlFor="transactionId">Transaction ID</Label>
             <Input
-              id="amount_paid"
-              type="number"
-              step="0.01"
-              value={formData.amount_paid}
-              onChange={(e) => setFormData(prev => ({ ...prev, amount_paid: e.target.value }))}
-              required
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="transaction_id">Transaction ID</Label>
-            <Input
-              id="transaction_id"
               type="text"
-              placeholder="Enter your transaction ID"
-              value={formData.transaction_id}
-              onChange={(e) => setFormData(prev => ({ ...prev, transaction_id: e.target.value }))}
+              id="transactionId"
+              placeholder="Enter transaction ID"
+              value={transactionId}
+              onChange={(e) => setTransactionId(e.target.value)}
               required
             />
           </div>
 
-          <div className="flex gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading} className="flex-1">
+          <div>
+            <Label htmlFor="paymentDate">Payment Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-[240px] justify-start text-left font-normal",
+                    !date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? format(date, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="center" side="bottom">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={setDate}
+                  disabled={(date) =>
+                    date > new Date()
+                  }
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div>
+            <Label htmlFor="paymentChannel">Payment Channel</Label>
+            <select
+              id="paymentChannel"
+              className="w-full border rounded-md py-2 px-3 focus:outline-none focus:ring focus:border-blue-500"
+              value={paymentChannel}
+              onChange={(e) => setPaymentChannel(e.target.value)}
+            >
+              <option value="bank_transfer">Bank Transfer</option>
+              <option value="credit_card">Credit Card</option>
+              <option value="paypal">PayPal</option>
+            </select>
+          </div>
+
+          <div>
+            <Label htmlFor="bankDetails">Bank Details (Optional)</Label>
+            <Input
+              type="text"
+              id="bankDetails"
+              placeholder="Enter bank details"
+              value={bankDetails}
+              onChange={(e) => setBankDetails(e.target.value)}
+            />
+          </div>
+
+          <DialogFooter>
+            <Button type="submit" disabled={loading}>
               {loading ? 'Submitting...' : 'Submit Payment'}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
