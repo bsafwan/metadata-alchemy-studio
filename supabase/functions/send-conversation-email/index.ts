@@ -55,6 +55,9 @@ serve(async (req) => {
 
     const previousMsgs = previousMessages?.slice(1) || [] // Remove the current message
 
+    // Get super admin email
+    const SUPER_ADMIN_EMAIL = Deno.env.get('SUPER_ADMIN_EMAIL') || 'bsafwanjamil677@gmail.com'
+
     // Prepare email content
     const attachmentsList = attachments.length > 0 
       ? attachments.map(att => `• ${att.name} (${att.type}): ${att.url}`).join('\n')
@@ -67,7 +70,7 @@ serve(async (req) => {
       : 'No previous messages'
 
     const emailBody = {
-      to: ['bsafwanjamil677@gmail.com'],
+      to: [SUPER_ADMIN_EMAIL],
       subject: `New Message: ${conversation.subject}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -111,6 +114,10 @@ serve(async (req) => {
             </details>
           </div>
           ` : ''}
+
+          <div style="margin: 20px 0; padding: 20px; background: #eff6ff; border-radius: 8px;">
+            <p><strong>Admin Access:</strong> <a href="${Deno.env.get('SUPABASE_URL')?.replace('supabase.co', 'lovable.app') || 'https://your-app.lovable.app'}/system-control-panel-auth-gateway-x7k9m2p8q4w1" style="color: #2563eb;">Login to Admin Panel</a></p>
+          </div>
         </div>
       `,
       text: `
@@ -145,6 +152,28 @@ ${previousMsgsList}
 
     if (!emailResponse.ok) {
       throw new Error('Failed to send email')
+    }
+
+    // Also send admin notification when it's an admin message
+    const lastMessage = previousMessages?.[0]
+    if (lastMessage?.sender_type === 'admin') {
+      try {
+        await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-admin-notification`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
+          },
+          body: JSON.stringify({
+            type: 'message_sent',
+            conversationId,
+            messageContent
+          })
+        })
+      } catch (adminNotifyError) {
+        console.error('Admin notification failed:', adminNotifyError)
+        // Don't throw here, main email was sent successfully
+      }
     }
 
     console.log('Email notification sent successfully')
