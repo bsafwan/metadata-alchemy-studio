@@ -7,7 +7,7 @@ export interface EmailData {
   subject: string;
   html?: string;
   text?: string;
-  template?: 'chat-summary' | 'quote-request' | 'escalation' | 'project-update' | 'payment-reminder' | 'admin-report' | 'pricing-notification' | 'plan-notification';
+  template?: 'chat-summary' | 'quote-request' | 'escalation' | 'project-update' | 'payment-reminder' | 'admin-report' | 'pricing-notification' | 'plan-notification' | 'payment-instructions' | 'payment-submission' | 'payment-confirmation';
   templateData?: Record<string, any>;
 }
 
@@ -56,6 +56,12 @@ export class EmailService {
         return this.generatePricingNotificationTemplate(data);
       case 'plan-notification':
         return this.generatePlanNotificationTemplate(data);
+      case 'payment-instructions':
+        return this.generatePaymentInstructionsTemplate(data);
+      case 'payment-submission':
+        return this.generatePaymentSubmissionTemplate(data);
+      case 'payment-confirmation':
+        return this.generatePaymentConfirmationTemplate(data);
       default:
         return { html: '', text: '' };
     }
@@ -194,6 +200,191 @@ Review your project plan at: ${process.env.REACT_APP_URL || 'https://your-app.co
 
 Best regards,
 The Elismet Team
+    `;
+    
+    return { html, text };
+  }
+
+  private static generatePaymentInstructionsTemplate(data: any) {
+    const { reference_number, amount, phase_name, project_name, client_name, due_date, payoneer_link } = data;
+    
+    const html = `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 650px; margin: 0 auto; background: #ffffff;">
+        <div style="background: linear-gradient(135deg, #ff8c00 0%, #ffa500 100%); padding: 30px; text-align: center; border-radius: 12px 12px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 600;">💳 Payment Invoice</h1>
+          <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">${reference_number}</p>
+        </div>
+        
+        <div style="padding: 40px 30px; background: #ffffff;">
+          <div style="background: #fff3cd; padding: 25px; border-radius: 12px; margin: 20px 0; border-left: 5px solid #ff8c00;">
+            <h2 style="color: #1a202c; margin: 0 0 15px 0; font-size: 20px;">Hello ${client_name}!</h2>
+            <p style="color: #4a5568; margin: 0; font-size: 16px; line-height: 1.6;">Your payment invoice for ${project_name} - ${phase_name} is ready.</p>
+          </div>
+          
+          <div style="background: #ffffff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 25px; margin: 25px 0;">
+            <h3 style="color: #2d3748; margin: 0 0 20px 0; font-size: 18px;">📋 Invoice Details</h3>
+            <div style="background: #f7fafc; padding: 20px; border-radius: 8px;">
+              <p style="margin: 0 0 10px 0;"><strong>Reference:</strong> ${reference_number}</p>
+              <p style="margin: 0 0 10px 0;"><strong>Amount:</strong> $${amount.toFixed(2)}</p>
+              <p style="margin: 0 0 10px 0;"><strong>Due Date:</strong> ${due_date}</p>
+              <p style="margin: 0;"><strong>Phase:</strong> ${phase_name}</p>
+            </div>
+          </div>
+          
+          <div style="background: #e3f2fd; padding: 25px; border-radius: 12px; margin: 25px 0;">
+            <h3 style="color: #1976d2; margin: 0 0 15px 0; font-size: 18px;">🏦 Payment Instructions</h3>
+            <div style="font-size: 14px; color: #2d3748;">
+              <p><strong>Bank:</strong> Citibank</p>
+              <p><strong>Routing (ABA):</strong> 031100209</p>
+              <p><strong>Account:</strong> 70586980001243422</p>
+              <p><strong>Beneficiary:</strong> MD RABIULLAH</p>
+              <p style="background: #fff3cd; padding: 10px; border-radius: 4px; margin-top: 15px;">
+                <strong>Reference Number:</strong> ${reference_number}<br>
+                <em>Please include this reference number with your payment</em>
+              </p>
+            </div>
+          </div>
+          
+          ${payoneer_link ? `
+          <div style="background: #f3e5f5; padding: 25px; border-radius: 12px; margin: 25px 0;">
+            <h3 style="color: #7b1fa2; margin: 0 0 15px 0; font-size: 18px;">💰 Alternative Payment</h3>
+            <p>You can also pay using Payoneer:</p>
+            <div style="text-align: center; margin: 15px 0;">
+              <a href="${payoneer_link}" target="_blank" 
+                 style="background: #7b1fa2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                Pay with Payoneer
+              </a>
+            </div>
+          </div>
+          ` : ''}
+        </div>
+        
+        <div style="background: #f7fafc; padding: 25px 30px; text-align: center; border-radius: 0 0 12px 12px; border-top: 1px solid #e2e8f0;">
+          <p style="color: #718096; margin: 0; font-size: 14px;">
+            After payment, please submit transaction details in your dashboard.<br>
+            <strong>Elismet Ltd</strong> • Building your digital future
+          </p>
+        </div>
+      </div>
+    `;
+    
+    const text = `
+Payment Invoice - ${reference_number}
+
+Hello ${client_name},
+
+Your payment invoice for ${project_name} - ${phase_name} is ready.
+
+Invoice Details:
+• Reference: ${reference_number}
+• Amount: $${amount.toFixed(2)}
+• Due Date: ${due_date}
+• Phase: ${phase_name}
+
+Payment Instructions:
+Bank: Citibank
+Routing (ABA): 031100209
+Account: 70586980001243422
+Beneficiary: MD RABIULLAH
+Reference: ${reference_number}
+
+${payoneer_link ? `Alternative Payment: ${payoneer_link}` : ''}
+
+After payment, please submit transaction details in your dashboard.
+
+Best regards,
+Elismet Ltd
+    `;
+    
+    return { html, text };
+  }
+
+  private static generatePaymentSubmissionTemplate(data: any) {
+    const { reference_number, project_name, phase_name, amount, transaction_id, payment_channel, client_name, bank_details } = data;
+    
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2563eb;">💰 Payment Submission Notification</h2>
+        <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h3>Payment Details</h3>
+          <p><strong>Reference:</strong> ${reference_number}</p>
+          <p><strong>Project:</strong> ${project_name}</p>
+          <p><strong>Phase:</strong> ${phase_name}</p>
+          <p><strong>Amount:</strong> $${amount.toFixed(2)}</p>
+          <p><strong>Transaction ID:</strong> ${transaction_id}</p>
+          <p><strong>Payment Channel:</strong> ${payment_channel}</p>
+          <p><strong>Client:</strong> ${client_name}</p>
+          ${bank_details ? `<p><strong>Bank Details:</strong> ${bank_details}</p>` : ''}
+        </div>
+        
+        <div style="margin: 20px 0; padding: 20px; background: #fef7cd; border-radius: 8px;">
+          <p><strong>Action Required:</strong> Please verify this payment in the admin panel.</p>
+        </div>
+      </div>
+    `;
+    
+    const text = `
+Payment Submission Notification
+
+Reference: ${reference_number}
+Project: ${project_name}
+Phase: ${phase_name}
+Amount: $${amount.toFixed(2)}
+Transaction ID: ${transaction_id}
+Payment Channel: ${payment_channel}
+Client: ${client_name}
+${bank_details ? `Bank Details: ${bank_details}` : ''}
+
+Please verify this payment in the admin panel.
+    `;
+    
+    return { html, text };
+  }
+
+  private static generatePaymentConfirmationTemplate(data: any) {
+    const { reference_number, project_name, phase_name, amount, transaction_id, client_name, admin_notes } = data;
+    
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #22c55e;">✅ Payment Confirmed</h2>
+        <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <p>Dear ${client_name},</p>
+          <p>We're pleased to confirm that your payment has been received and verified:</p>
+          <div style="margin: 15px 0;">
+            <p><strong>Reference:</strong> ${reference_number}</p>
+            <p><strong>Project:</strong> ${project_name}</p>
+            <p><strong>Phase:</strong> ${phase_name}</p>
+            <p><strong>Amount:</strong> $${amount.toFixed(2)}</p>
+            <p><strong>Transaction ID:</strong> ${transaction_id}</p>
+          </div>
+          ${admin_notes ? `<p><strong>Notes:</strong> ${admin_notes}</p>` : ''}
+        </div>
+        
+        <div style="margin: 20px 0; padding: 20px; background: #eff6ff; border-radius: 8px;">
+          <p>Thank you for your payment. Work on your project will continue as scheduled.</p>
+          <p>Best regards,<br>Elismet Ltd Team</p>
+        </div>
+      </div>
+    `;
+    
+    const text = `
+Payment Confirmed - ${reference_number}
+
+Dear ${client_name},
+
+We're pleased to confirm that your payment has been received and verified:
+
+Reference: ${reference_number}
+Project: ${project_name}
+Phase: ${phase_name}
+Amount: $${amount.toFixed(2)}
+Transaction ID: ${transaction_id}
+${admin_notes ? `Notes: ${admin_notes}` : ''}
+
+Thank you for your payment. Work on your project will continue as scheduled.
+
+Best regards,
+Elismet Ltd Team
     `;
     
     return { html, text };

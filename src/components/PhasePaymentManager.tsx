@@ -22,6 +22,12 @@ interface PhasePayment {
   paid_at: string | null;
   payment_method: string | null;
   transaction_id: string | null;
+  reference_number: string | null;
+  payoneer_link: string | null;
+  payment_channel: string | null;
+  user_bank_details: string | null;
+  admin_notes: string | null;
+  payment_instructions_sent_at: string | null;
   created_at: string;
   project_phases: {
     phase_name: string;
