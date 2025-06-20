@@ -116,27 +116,27 @@ export default function TotalPriceNegotiator({
 
     switch (action) {
       case 'new_negotiation':
-        subject = `Price Negotiation Round ${negotiation.round_number} - ${project.project_name}`;
+        subject = `Price Negotiation R${negotiation.round_number} - ${project.project_name}`;
         templateData = {
           customerName: isAdminView ? customerName : 'Admin',
           projectName: project.project_name,
           originalPrice: negotiation.original_total_price,
           proposedPrice: negotiation.proposed_total_price,
           roundNumber: negotiation.round_number,
-          message: negotiation.message || 'No additional message',
-          action: `${isAdminView ? 'Admin' : customerName} has proposed a new total price`,
-          actionRequired: 'Please review and respond to this price negotiation'
+          message: negotiation.message || 'No message',
+          action: `${isAdminView ? 'Admin' : customerName} proposed new total price`,
+          actionRequired: 'Review and respond to price negotiation'
         };
         break;
 
       case 'accepted':
-        subject = `Price Agreement Confirmed - ${project.project_name}`;
+        subject = `Price Agreed - ${project.project_name}`;
         templateData = {
           customerName: isAdminView ? customerName : 'Admin',
           projectName: project.project_name,
           finalPrice: negotiation.proposed_total_price,
-          action: 'Total project price has been agreed upon!',
-          actionRequired: 'Project phases have been updated with proportional pricing'
+          action: 'Total project price agreed!',
+          actionRequired: 'All phases updated with proportional pricing'
         };
         break;
     }
@@ -151,7 +151,7 @@ export default function TotalPriceNegotiator({
 
   const submitCounterOffer = async () => {
     if (!counterOffer || parseFloat(counterOffer) <= 0) {
-      toast.error('Please enter a valid price');
+      toast.error('Enter valid price');
       return;
     }
 
@@ -177,7 +177,7 @@ export default function TotalPriceNegotiator({
       
       await sendNegotiationEmail(data, 'new_negotiation');
       
-      toast.success('Counter offer submitted and notification sent');
+      toast.success('Counter offer submitted');
       setCounterOffer('');
       setMessage('');
       onNegotiationUpdate?.();
@@ -219,7 +219,7 @@ export default function TotalPriceNegotiator({
 
       await sendNegotiationEmail(updatedNegotiation, 'accepted');
       
-      toast.success('🎉 Price accepted! All phases updated proportionally!');
+      toast.success('🎉 Price accepted! All phases updated!');
       onNegotiationUpdate?.();
     } catch (error) {
       console.error('Error accepting price:', error);
@@ -236,43 +236,43 @@ export default function TotalPriceNegotiator({
     (!isAdminView && latestNegotiation.proposed_by === 'admin');
 
   return (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+    <Card className="mb-4">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2 text-lg">
           <TrendingUp className="w-5 h-5" />
           Total Price Negotiation
           {latestNegotiation && (
-            <Badge variant={latestNegotiation.status === 'accepted' ? 'default' : 'secondary'}>
-              {latestNegotiation.status === 'accepted' ? 'Agreed' : `Round ${latestNegotiation.round_number}`}
+            <Badge variant={latestNegotiation.status === 'accepted' ? 'default' : 'secondary'} className="text-xs">
+              {latestNegotiation.status === 'accepted' ? 'Agreed' : `R${latestNegotiation.round_number}`}
             </Badge>
           )}
         </CardTitle>
-        <CardDescription>
-          Original total: ${originalTotal.toFixed(2)} | 
-          {latestNegotiation && ` Latest offer: $${latestNegotiation.proposed_total_price.toFixed(2)}`}
+        <CardDescription className="text-xs">
+          Original: ${originalTotal.toFixed(0)}
+          {latestNegotiation && ` | Latest: $${latestNegotiation.proposed_total_price.toFixed(0)}`}
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4">
         {/* Negotiation History */}
         {negotiations.length > 0 && (
-          <div className="space-y-3">
-            <h4 className="font-medium">Negotiation History</h4>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
+          <div className="space-y-2">
+            <h4 className="font-medium text-sm">History</h4>
+            <div className="space-y-1 max-h-48 overflow-y-auto">
               {negotiations.map((negotiation) => (
-                <div key={negotiation.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                <div key={negotiation.id} className="flex items-center justify-between p-2 bg-muted/30 rounded text-sm">
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline">Round {negotiation.round_number}</Badge>
-                      <span className="font-medium">${negotiation.proposed_total_price.toFixed(2)}</span>
-                      <span className="text-sm text-muted-foreground">
+                      <Badge variant="outline" className="text-xs px-1">R{negotiation.round_number}</Badge>
+                      <span className="font-medium">${negotiation.proposed_total_price.toFixed(0)}</span>
+                      <span className="text-xs text-muted-foreground">
                         by {negotiation.proposed_by}
                       </span>
                       {negotiation.status === 'accepted' && (
-                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <CheckCircle className="w-3 h-3 text-green-500" />
                       )}
                     </div>
                     {negotiation.message && (
-                      <p className="text-sm text-muted-foreground mt-1">{negotiation.message}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{negotiation.message}</p>
                     )}
                   </div>
                   <div className="text-xs text-muted-foreground">
@@ -286,30 +286,31 @@ export default function TotalPriceNegotiator({
 
         {/* Accept Latest Offer */}
         {latestNegotiation && latestNegotiation.status === 'pending' && isMyTurn && (
-          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="p-3 bg-green-50 border border-green-200 rounded">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-green-800">
-                  Latest Offer: ${latestNegotiation.proposed_total_price.toFixed(2)}
+                <p className="font-medium text-green-800 text-sm">
+                  Latest: ${latestNegotiation.proposed_total_price.toFixed(0)}
                 </p>
-                <p className="text-sm text-green-600">
-                  Proposed by {latestNegotiation.proposed_by} in Round {latestNegotiation.round_number}
+                <p className="text-xs text-green-600">
+                  By {latestNegotiation.proposed_by} in R{latestNegotiation.round_number}
                 </p>
               </div>
               <Button 
                 onClick={() => acceptPrice(latestNegotiation.id, latestNegotiation.proposed_total_price)}
                 disabled={loading || isSending}
                 className="bg-green-600 hover:bg-green-700"
+                size="sm"
               >
                 {loading || isSending ? (
                   <>
-                    <Mail className="w-4 h-4 mr-2 animate-pulse" />
+                    <Mail className="w-3 h-3 mr-1 animate-pulse" />
                     Accepting...
                   </>
                 ) : (
                   <>
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Accept Price
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    Accept
                   </>
                 )}
               </Button>
@@ -319,55 +320,58 @@ export default function TotalPriceNegotiator({
 
         {/* Counter Offer Form */}
         {canNegotiate && (
-          <div className="space-y-4 p-4 border rounded-lg">
-            <h4 className="font-medium">Make Counter Offer</h4>
-            <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-3 p-3 border rounded">
+            <h4 className="font-medium text-sm">Make Counter Offer</h4>
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="counter-offer">Your Price ($)</Label>
+                <Label htmlFor="counter-offer" className="text-xs">Your Price ($)</Label>
                 <Input
                   id="counter-offer"
                   type="number"
-                  placeholder="Enter your price..."
+                  placeholder="Enter price..."
                   value={counterOffer}
                   onChange={(e) => setCounterOffer(e.target.value)}
                   min="0"
                   step="0.01"
+                  className="text-sm"
                 />
               </div>
               <div>
-                <Label htmlFor="savings">Savings</Label>
+                <Label htmlFor="savings" className="text-xs">Savings</Label>
                 <Input
                   id="savings"
                   type="text"
-                  value={counterOffer ? `$${(originalTotal - parseFloat(counterOffer)).toFixed(2)}` : '$0.00'}
+                  value={counterOffer ? `$${(originalTotal - parseFloat(counterOffer)).toFixed(0)}` : '$0'}
                   readOnly
-                  className="bg-muted"
+                  className="bg-muted text-sm"
                 />
               </div>
             </div>
             <div>
-              <Label htmlFor="message">Message (Optional)</Label>
+              <Label htmlFor="message" className="text-xs">Message (Optional)</Label>
               <Textarea
                 id="message"
-                placeholder="Add a note about your offer..."
+                placeholder="Add note about your offer..."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                rows={3}
+                rows={2}
+                className="text-sm"
               />
             </div>
             <Button 
               onClick={submitCounterOffer} 
               disabled={loading || !counterOffer || isSending}
               className="w-full"
+              size="sm"
             >
               {loading || isSending ? (
                 <>
-                  <Mail className="w-4 h-4 mr-2 animate-pulse" />
-                  Submitting Offer...
+                  <Mail className="w-3 h-3 mr-1 animate-pulse" />
+                  Submitting...
                 </>
               ) : (
                 <>
-                  <MessageSquare className="w-4 h-4 mr-2" />
+                  <MessageSquare className="w-3 h-3 mr-1" />
                   Submit Counter Offer
                 </>
               )}
@@ -377,15 +381,15 @@ export default function TotalPriceNegotiator({
 
         {/* Agreement Status */}
         {latestNegotiation?.status === 'accepted' && (
-          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex items-center gap-2 text-green-700">
-              <CheckCircle className="w-5 h-5" />
+          <div className="p-3 bg-green-50 border border-green-200 rounded">
+            <div className="flex items-center gap-2 text-green-700 text-sm">
+              <CheckCircle className="w-4 h-4" />
               <span className="font-semibold">
-                🎉 Price Agreement: ${latestNegotiation.proposed_total_price.toFixed(2)}
+                🎉 Agreed: ${latestNegotiation.proposed_total_price.toFixed(0)}
               </span>
             </div>
-            <p className="text-sm text-green-600 mt-1">
-              All project phases have been updated with proportional pricing
+            <p className="text-xs text-green-600 mt-1">
+              All phases updated proportionally
             </p>
           </div>
         )}
