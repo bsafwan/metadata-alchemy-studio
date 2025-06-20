@@ -74,7 +74,11 @@ export default function ProjectPlanManager({ projectId, isAdminView = false, onP
     if (!project) return;
 
     const customerName = `${project.users.first_name} ${project.users.last_name}`;
-    const recipientEmail = isAdminView ? 'bsafwanjamil677@gmail.com' : project.users.email;
+    
+    // Fix email routing - admin sends to user, user sends to admin
+    const recipientEmail = isAdminView 
+      ? project.users.email  // Admin sends to user
+      : 'bsafwanjamil677@gmail.com';  // User sends to admin
     
     let subject = '';
     let templateData = {};
@@ -87,7 +91,8 @@ export default function ProjectPlanManager({ projectId, isAdminView = false, onP
           projectName: project.project_name,
           planDetails: planData.plan_details,
           action: 'A new project plan has been created for your review',
-          actionRequired: 'Please review and confirm or provide feedback on the project plan'
+          actionRequired: 'Please review and confirm or provide feedback on the project plan',
+          projectStatus: 'Plan Review Required'
         };
         break;
 
@@ -98,7 +103,8 @@ export default function ProjectPlanManager({ projectId, isAdminView = false, onP
           projectName: project.project_name,
           planDetails: planData.plan_details,
           action: `${customerName} has confirmed the project plan`,
-          actionRequired: 'You can now proceed with the project phases and pricing'
+          actionRequired: 'You can now proceed with creating project phases and pricing',
+          projectStatus: 'Plan Confirmed - Ready for Pricing'
         };
         break;
 
@@ -109,7 +115,8 @@ export default function ProjectPlanManager({ projectId, isAdminView = false, onP
           projectName: project.project_name,
           planDetails: planData.plan_details,
           action: `${customerName} has rejected the project plan`,
-          actionRequired: 'Please revise the project plan based on client feedback'
+          actionRequired: 'Please revise the project plan based on client feedback',
+          projectStatus: 'Plan Rejected - Revision Needed'
         };
         break;
     }
@@ -313,7 +320,7 @@ export default function ProjectPlanManager({ projectId, isAdminView = false, onP
             <div className="text-center py-12">
               <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground text-lg">No project plan available yet</p>
-              <p className="text-sm text-muted-fore ground mt-2">
+              <p className="text-sm text-muted-foreground mt-2">
                 The admin will create a project plan for your review
               </p>
             </div>
