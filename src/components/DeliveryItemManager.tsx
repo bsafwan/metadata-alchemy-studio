@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +28,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Json } from '@/integrations/supabase/types';
+import { EmailService } from '@/utils/emailService';
 
 interface DeliveryItem {
   id: string;
@@ -67,11 +67,31 @@ export default function DeliveryItemManager({
     admin_notes: '',
     status: 'pending'
   });
+  const [projectData, setProjectData] = useState<any>(null);
 
   useEffect(() => {
     fetchDeliveryItems();
     initializeDeliveryItems();
+    fetchProjectData();
   }, [projectId]);
+
+  const fetchProjectData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select(`
+          project_name,
+          users!inner(first_name, last_name, email, business_name)
+        `)
+        .eq('id', projectId)
+        .single();
+
+      if (error) throw error;
+      setProjectData(data);
+    } catch (error) {
+      console.error('Error fetching project data:', error);
+    }
+  };
 
   const fetchDeliveryItems = async () => {
     try {
@@ -120,7 +140,7 @@ export default function DeliveryItemManager({
   };
 
   const updateDeliveryItem = async () => {
-    if (!editModal.item) return;
+    if (!editModal.item || !projectData) return;
 
     setLoading(true);
     try {
@@ -130,6 +150,9 @@ export default function DeliveryItemManager({
       } catch (e) {
         contentJson = {};
       }
+
+      const previousStatus = editModal.item.status;
+      const newStatus = formData.status;
 
       const { error } = await supabase
         .from('delivery_items')
@@ -145,7 +168,56 @@ export default function DeliveryItemManager({
 
       if (error) throw error;
 
-      toast.success('Delivery item updated successfully');
+      // Send email notification for status changes
+      if (isAdminView && previousStatus !== newStatus) {
+        const statusMessages = {
+          'pending': 'is being prepared',
+          'ready': 'is ready for review',
+          'delivered': 'has been delivered'
+        };
+
+        const emailSuccess = await EmailService.sendEmail({
+          to: [projectData.users.email],
+          subject: `Delivery Update: ${editModal.item.title}`,
+          template: 'delivery-update',
+          templateData: {
+            client_name: `${projectData.users.first_name} ${projectData.users.last_name}`,
+            project_name: projectData.project_name,
+            item_title: editModal.item.title,
+            item_description: editModal.item.description || 'Project deliverable',
+            status: newStatus,
+            status_message: statusMessages[newStatus as keyof typeof statusMessages] || 'has been updated',
+            admin_notes: formData.admin_notes || '',
+            update_date: new Date().toLocaleDateString()
+          }
+        });
+
+        // Also notify admins about the delivery update
+        if (newStatus === 'delivered') {
+          const adminEmails = ['admin@elismet.com']; // Replace with actual admin emails
+          await EmailService.sendEmail({
+            to: adminEmails,
+            subject: `✅ Delivery Item Completed: ${editModal.item.title}`,
+            template: 'admin-delivery-update',
+            templateData: {
+              project_name: projectData.project_name,
+              client_name: `${projectData.users.first_name} ${projectData.users.last_name}`,
+              item_title: editModal.item.title,
+              completion_date: new Date().toLocaleDateString(),
+              admin_notes: formData.admin_notes || 'No additional notes'
+            }
+          });
+        }
+
+        if (emailSuccess) {
+          toast.success('Delivery item updated and client notified');
+        } else {
+          toast.success('Delivery item updated (email notification failed)');
+        }
+      } else {
+        toast.success('Delivery item updated successfully');
+      }
+
       setEditModal({open: false, item: null});
       fetchDeliveryItems();
     } catch (error) {

@@ -8,6 +8,7 @@ import { Plus, Minus, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { PaymentEmailService } from '@/utils/paymentEmailService';
+import { EmailService } from '@/utils/emailService';
 
 interface ProjectProgressionManagerProps {
   projectId: string;
@@ -76,6 +77,9 @@ export default function ProjectProgressionManager({
 
       // Check if we're reaching 50% for the first time
       const isReaching50Percent = newPercentage >= 50 && currentProgression < 50;
+      
+      // Check if we're reaching 100% for the first time
+      const isReaching100Percent = newPercentage >= 100 && currentProgression < 100;
 
       // Update both progression and total amount
       const { error } = await supabase
@@ -93,23 +97,23 @@ export default function ProjectProgressionManager({
       
       console.log('Project updated successfully');
 
-      // If we just reached 50%, send the payment invoice email
-      if (isReaching50Percent && projectTotal > 0) {
-        console.log('50% milestone reached, sending invoice email...');
-        
-        // Get project and user details for the email
-        const { data: projectData, error: projectError } = await supabase
-          .from('projects')
-          .select(`
-            project_name,
-            users!inner(first_name, last_name, email, business_name, business_category)
-          `)
-          .eq('id', projectId)
-          .single();
+      // Get project and user details for emails
+      const { data: projectData, error: projectError } = await supabase
+        .from('projects')
+        .select(`
+          project_name,
+          users!inner(first_name, last_name, email, business_name, business_category)
+        `)
+        .eq('id', projectId)
+        .single();
 
-        if (projectError) {
-          console.error('Error fetching project data for email:', projectError);
-        } else if (projectData) {
+      if (projectError) {
+        console.error('Error fetching project data for email:', projectError);
+      } else if (projectData) {
+        // If we just reached 50%, send the payment invoice email
+        if (isReaching50Percent && projectTotal > 0) {
+          console.log('50% milestone reached, sending invoice email...');
+          
           // Get the payment record that should have been created by the trigger
           const { data: paymentData, error: paymentError } = await supabase
             .from('project_payments')
@@ -143,8 +147,86 @@ export default function ProjectProgressionManager({
             toast.warning('Payment initialized but invoice details not found');
           }
         }
-      } else {
-        toast.success(`Project progression updated to ${newPercentage}%`);
+
+        // If we just reached 100%, send project completion and delivery notifications
+        if (isReaching100Percent) {
+          console.log('100% milestone reached, sending completion and delivery emails...');
+          
+          // Send project completion notification to client
+          const completionEmailSuccess = await EmailService.sendEmail({
+            to: [projectData.users.email],
+            subject: `🎉 Project Complete: ${projectData.project_name}`,
+            template: 'project-completion',
+            templateData: {
+              client_name: `${projectData.users.first_name} ${projectData.users.last_name}`,
+              project_name: projectData.project_name,
+              completion_date: new Date().toLocaleDateString(),
+              next_steps: 'Your project deliverables are being prepared and will be available shortly.'
+            }
+          });
+
+          // Send delivery initialization notification to admins
+          const adminEmails = ['admin@elismet.com']; // Replace with actual admin emails
+          const deliveryNotificationSuccess = await EmailService.sendEmail({
+            to: adminEmails,
+            subject: `🚀 Project Ready for Delivery: ${projectData.project_name}`,
+            template: 'delivery-notification',
+            templateData: {
+              project_name: projectData.project_name,
+              client_name: `${projectData.users.first_name} ${projectData.users.last_name}`,
+              client_email: projectData.users.email,
+              completion_date: new Date().toLocaleDateString(),
+              total_amount: projectTotal,
+              action_required: 'Please prepare and deliver all project deliverables.'
+            }
+          });
+
+          // Create final payment if needed (50% remaining)
+          if (projectTotal > 0) {
+            const { data: existingFinalPayment } = await supabase
+              .from('project_payments')
+              .select('id')
+              .eq('project_id', projectId)
+              .eq('is_automatic', false)
+              .maybeSingle();
+
+            if (!existingFinalPayment) {
+              const { data: finalPayment, error: finalPaymentError } = await supabase
+                .from('project_payments')
+                .insert({
+                  project_id: projectId,
+                  amount: projectTotal * 0.5,
+                  status: 'due',
+                  due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                  is_automatic: false
+                })
+                .select('reference_number')
+                .single();
+
+              if (!finalPaymentError && finalPayment) {
+                // Send final payment invoice
+                await PaymentEmailService.sendPaymentInvoice({
+                  client_email: projectData.users.email,
+                  client_name: `${projectData.users.first_name} ${projectData.users.last_name}`,
+                  project_name: projectData.project_name,
+                  amount: projectTotal * 0.5,
+                  reference_number: finalPayment.reference_number,
+                  due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+                  client_business: projectData.users.business_name,
+                  client_industry: projectData.users.business_category
+                });
+              }
+            }
+          }
+
+          if (completionEmailSuccess && deliveryNotificationSuccess) {
+            toast.success(`Project completed! Notifications sent to client and admin team.`);
+          } else {
+            toast.warning('Project completed but some email notifications failed');
+          }
+        } else {
+          toast.success(`Project progression updated to ${newPercentage}%`);
+        }
       }
       
       onProgressionUpdate();
@@ -227,6 +309,14 @@ export default function ProjectProgressionManager({
           <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
             <p className="text-sm text-green-700">
               🎉 50% milestone reached! Invoice sent for ${(totalAmount * 0.5).toFixed(2)}
+            </p>
+          </div>
+        )}
+
+        {currentProgression >= 100 && (
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-700">
+              🚀 Project completed! Delivery notifications sent and final payment initiated.
             </p>
           </div>
         )}
