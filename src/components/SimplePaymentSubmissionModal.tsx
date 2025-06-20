@@ -50,27 +50,44 @@ export default function SimplePaymentSubmissionModal({
         status: 'submitted'
       });
 
+      // First, verify the payment exists and get current status
+      const { data: existingPayment, error: fetchError } = await supabase
+        .from('project_payments')
+        .select('id, status, reference_number')
+        .eq('id', paymentId)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching payment:', fetchError);
+        throw new Error('Payment not found');
+      }
+
+      if (!existingPayment) {
+        throw new Error('Payment record not found');
+      }
+
+      console.log('Found existing payment:', existingPayment);
+
       // Update payment with submission details
-      const { error } = await supabase
+      const { error: updateError } = await supabase
         .from('project_payments')
         .update({
           status: 'submitted',
           transaction_id: transactionId.trim(),
           payment_date: paymentDate,
-          payment_channel: 'bank_transfer',
           submitted_at: new Date().toISOString()
         })
         .eq('id', paymentId);
 
-      if (error) {
-        console.error('Database error:', error);
-        throw error;
+      if (updateError) {
+        console.error('Database update error:', updateError);
+        throw updateError;
       }
 
       console.log('Payment updated successfully');
 
       // Get project and user details for admin notification
-      const { data: paymentData, error: fetchError } = await supabase
+      const { data: paymentData, error: projectFetchError } = await supabase
         .from('project_payments')
         .select(`
           reference_number,
@@ -84,15 +101,13 @@ export default function SimplePaymentSubmissionModal({
         .eq('id', paymentId)
         .single();
 
-      if (fetchError) {
-        console.error('Error fetching payment data for notification:', fetchError);
-      } else {
+      if (projectFetchError) {
+        console.error('Error fetching project data for notification:', projectFetchError);
+      } else if (paymentData) {
         // Send admin notification email
-        const adminEmails = ['contact@elismet.com'];
-        
         try {
           const { PaymentEmailService } = await import('@/utils/paymentEmailService');
-          await PaymentEmailService.sendPaymentSubmissionNotification(adminEmails, {
+          await PaymentEmailService.sendPaymentSubmissionNotification(['contact@elismet.com'], {
             reference_number: paymentData.reference_number,
             project_name: paymentData.projects.project_name,
             amount: paymentData.amount,
@@ -115,9 +130,21 @@ export default function SimplePaymentSubmissionModal({
       // Reset form
       setTransactionId('');
       setPaymentDate(new Date().toISOString().split('T')[0]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting payment:', error);
-      toast.error('Failed to submit payment details. Please try again.');
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to submit payment details. Please try again.';
+      
+      if (error.message?.includes('not found')) {
+        errorMessage = 'Payment record not found. Please refresh and try again.';
+      } else if (error.message?.includes('constraint')) {
+        errorMessage = 'Invalid payment status. Please contact support.';
+      } else if (error.code === 'PGRST116') {
+        errorMessage = 'Payment not found. Please refresh the page.';
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -185,10 +212,10 @@ export default function SimplePaymentSubmissionModal({
           </div>
 
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <h4 className="font-semibold text-blue-800 mb-2">Payment Method</h4>
+            <h4 className="font-semibold text-blue-800 mb-2">Payment Requirements</h4>
             <p className="text-sm text-blue-700">
               <strong>Bank Transfer Only</strong><br />
-              All payments must be made via ACH or FDWIRE from your registered business account.
+              Payment must be made via ACH or FDWIRE from your registered business account.
             </p>
           </div>
 
