@@ -23,12 +23,16 @@ import {
   FileText,
   Key,
   Video,
-  Settings
+  Settings,
+  Download,
+  X
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Json } from '@/integrations/supabase/types';
 import { EmailService } from '@/utils/emailService';
+import FileUploader from '@/components/FileUploader';
+import FileDisplay from '@/components/FileDisplay';
 
 interface DeliveryItem {
   id: string;
@@ -60,6 +64,7 @@ export default function DeliveryItemManager({
   const [deliveryItems, setDeliveryItems] = useState<DeliveryItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [editModal, setEditModal] = useState<{open: boolean, item: DeliveryItem | null}>({open: false, item: null});
+  const [uploadModal, setUploadModal] = useState<{open: boolean, item: DeliveryItem | null}>({open: false, item: null});
   const [formData, setFormData] = useState({
     content: '',
     files: [] as any[],
@@ -103,7 +108,6 @@ export default function DeliveryItemManager({
 
       if (error) throw error;
       
-      // Ensure data is properly typed
       const typedData = (data || []).map(item => ({
         ...item,
         content: item.content || {},
@@ -119,14 +123,12 @@ export default function DeliveryItemManager({
 
   const initializeDeliveryItems = async () => {
     try {
-      // Check if items already exist
       const { data: existingItems } = await supabase
         .from('delivery_items')
         .select('id')
         .eq('project_id', projectId);
 
       if (!existingItems || existingItems.length === 0) {
-        // Initialize default delivery items
         const { error } = await supabase.rpc('initialize_default_delivery_items', {
           p_project_id: projectId
         });
@@ -168,7 +170,6 @@ export default function DeliveryItemManager({
 
       if (error) throw error;
 
-      // Send email notification for status changes
       if (isAdminView && previousStatus !== newStatus) {
         const statusMessages = {
           'pending': 'is being prepared',
@@ -192,9 +193,8 @@ export default function DeliveryItemManager({
           }
         });
 
-        // Also notify admins about the delivery update
         if (newStatus === 'delivered') {
-          const adminEmails = ['admin@elismet.com']; // Replace with actual admin emails
+          const adminEmails = ['admin@elismet.com'];
           await EmailService.sendEmail({
             to: adminEmails,
             subject: `✅ Delivery Item Completed: ${editModal.item.title}`,
@@ -223,6 +223,32 @@ export default function DeliveryItemManager({
     } catch (error) {
       console.error('Error updating delivery item:', error);
       toast.error('Failed to update delivery item');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFileUpload = async (files: any[]) => {
+    if (!uploadModal.item) return;
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('delivery_items')
+        .update({
+          files: files,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', uploadModal.item.id);
+
+      if (error) throw error;
+
+      toast.success('Files uploaded successfully');
+      setUploadModal({open: false, item: null});
+      fetchDeliveryItems();
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      toast.error('Failed to upload files');
     } finally {
       setLoading(false);
     }
@@ -265,6 +291,11 @@ export default function DeliveryItemManager({
     return !item.requires_full_payment || paymentCompleted;
   };
 
+  const canDownloadFiles = (item: DeliveryItem) => {
+    if (isAdminView) return true;
+    return paymentCompleted && (!item.requires_full_payment || paymentCompleted);
+  };
+
   const openEditModal = (item: DeliveryItem) => {
     setEditModal({open: true, item});
     setFormData({
@@ -276,34 +307,129 @@ export default function DeliveryItemManager({
     });
   };
 
-  // Helper function to safely render links
-  const renderLinks = (links: Json) => {
-    if (!Array.isArray(links) || links.length === 0) return null;
+  const openUploadModal = (item: DeliveryItem) => {
+    setUploadModal({open: true, item});
+  };
+
+  const renderFiles = (files: Json, item: DeliveryItem) => {
+    if (!Array.isArray(files) || files.length === 0) return null;
+    
+    const canDownload = canDownloadFiles(item);
     
     return (
-      <div className="flex flex-wrap gap-2">
-        {links.map((link: any, index: number) => (
-          <Button key={index} size="sm" variant="outline" asChild>
-            <a href={link.url} target="_blank" rel="noopener noreferrer">
-              <LinkIcon className="w-4 h-4 mr-1" />
-              {link.title || 'Link'}
-            </a>
-          </Button>
-        ))}
+      <div className="space-y-2">
+        <h4 className="font-medium text-sm flex items-center gap-2">
+          <Package className="w-4 h-4" />
+          Files ({files.length})
+          {!canDownload && <Lock className="w-4 h-4 text-amber-500" />}
+        </h4>
+        <div className="grid gap-2">
+          {files.map((file: any, index: number) => (
+            <div key={index} className={`border rounded-lg p-3 ${!canDownload ? 'opacity-50' : ''}`}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <FileText className="w-4 h-4" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate">{file.name}</p>
+                    {file.size && (
+                      <p className="text-xs text-muted-foreground">
+                        {(file.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  {canDownload ? (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => window.open(file.url, '_blank')}
+                      >
+                        <Eye className="w-4 h-4 mr-1" />
+                        View
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          const link = document.createElement('a');
+                          link.href = file.url;
+                          link.download = file.name;
+                          link.click();
+                        }}
+                      >
+                        <Download className="w-4 h-4 mr-1" />
+                        Download
+                      </Button>
+                    </>
+                  ) : (
+                    <div className="flex items-center gap-2 text-amber-600">
+                      <Lock className="w-4 h-4" />
+                      <span className="text-xs">Payment Required</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   };
 
-  // Helper function to safely render content
-  const renderContent = (content: Json) => {
+  const renderLinks = (links: Json, item: DeliveryItem) => {
+    if (!Array.isArray(links) || links.length === 0) return null;
+    
+    const canAccess = canDownloadFiles(item);
+    
+    return (
+      <div className="space-y-2">
+        <h4 className="font-medium text-sm flex items-center gap-2">
+          <LinkIcon className="w-4 h-4" />
+          Links ({links.length})
+          {!canAccess && <Lock className="w-4 h-4 text-amber-500" />}
+        </h4>
+        <div className="flex flex-wrap gap-2">
+          {links.map((link: any, index: number) => (
+            <Button 
+              key={index} 
+              size="sm" 
+              variant="outline" 
+              disabled={!canAccess}
+              onClick={() => canAccess && window.open(link.url, '_blank')}
+              className={!canAccess ? 'opacity-50' : ''}
+            >
+              <LinkIcon className="w-4 h-4 mr-1" />
+              {link.title || 'Link'}
+              {!canAccess && <Lock className="w-4 h-4 ml-1" />}
+            </Button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderContent = (content: Json, item: DeliveryItem) => {
     if (!content || typeof content !== 'object' || Object.keys(content).length === 0) return null;
+    
+    const canView = canDownloadFiles(item);
     
     return (
       <div className="text-sm">
-        <strong>Details:</strong>
-        <pre className="bg-gray-50 p-2 rounded mt-1 text-xs overflow-auto">
-          {JSON.stringify(content, null, 2)}
-        </pre>
+        <div className="flex items-center gap-2 mb-2">
+          <strong>Details:</strong>
+          {!canView && <Lock className="w-4 h-4 text-amber-500" />}
+        </div>
+        {canView ? (
+          <pre className="bg-gray-50 p-2 rounded mt-1 text-xs overflow-auto">
+            {JSON.stringify(content, null, 2)}
+          </pre>
+        ) : (
+          <div className="bg-amber-50 p-2 rounded border border-amber-200">
+            <p className="text-xs text-amber-700">Content restricted - Payment required</p>
+          </div>
+        )}
       </div>
     );
   };
@@ -367,29 +493,52 @@ export default function DeliveryItemManager({
                     {item.status}
                   </Badge>
                   {isAdminView && (
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => openEditModal(item)}
-                    >
-                      <Settings className="w-4 h-4 mr-2" />
-                      Manage
-                    </Button>
+                    <>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => openUploadModal(item)}
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        Upload
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => openEditModal(item)}
+                      >
+                        <Settings className="w-4 h-4 mr-2" />
+                        Manage
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               {canViewItem(item) ? (
-                <div className="space-y-3">
-                  {renderContent(item.content)}
-                  {renderLinks(item.links)}
+                <div className="space-y-4">
+                  {renderContent(item.content, item)}
+                  {renderFiles(item.files, item)}
+                  {renderLinks(item.links, item)}
 
                   {item.admin_notes && (
                     <div className="bg-blue-50 p-3 rounded border border-blue-200">
                       <p className="text-sm text-blue-800">
                         <strong>Admin Notes:</strong> {item.admin_notes}
                       </p>
+                    </div>
+                  )}
+
+                  {!paymentCompleted && item.requires_full_payment && !isAdminView && (
+                    <div className="bg-amber-50 p-3 rounded border border-amber-200">
+                      <div className="flex items-center gap-2">
+                        <Lock className="w-5 h-5 text-amber-600" />
+                        <div>
+                          <p className="text-sm font-medium text-amber-800">Payment Required for Full Access</p>
+                          <p className="text-xs text-amber-700">Complete all payments to download files and access links</p>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -404,6 +553,34 @@ export default function DeliveryItemManager({
           </Card>
         ))}
       </div>
+
+      {/* Upload Modal */}
+      {uploadModal.open && uploadModal.item && (
+        <Dialog open={uploadModal.open} onOpenChange={() => setUploadModal({open: false, item: null})}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Upload Files: {uploadModal.item.title}</DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <FileUploader 
+                onFilesUploaded={handleFileUpload}
+                maxFiles={10}
+                acceptedTypes={['*/*']}
+              />
+            </div>
+
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => setUploadModal({open: false, item: null})}
+              >
+                Cancel
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Edit Modal */}
       {editModal.open && editModal.item && (
