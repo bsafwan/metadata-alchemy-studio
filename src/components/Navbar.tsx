@@ -28,11 +28,19 @@ const Navbar = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+    setMobileMenuOpen(false);
+  };
+
   const navLinks = [
-    { label: "Home", href: "#home" },
-    { label: "Projects", href: "#projects" },
-    { label: "About", href: "#about" },
-    { label: "Contact", href: "#contact" },
+    { label: "Home", action: () => window.location.pathname === '/' ? scrollToSection('home') : window.location.href = '/' },
+    { label: "Projects", action: () => window.location.pathname === '/' ? scrollToSection('projects') : window.location.href = '/#projects' },
+    { label: "About", action: () => window.location.pathname === '/' ? scrollToSection('about') : window.location.href = '/#about' },
+    { label: "Contact", path: "/contact-direct" },
   ];
 
   return (
@@ -44,25 +52,36 @@ const Navbar = () => {
     >
       <div className="container mx-auto flex justify-between items-center">
         {/* Logo */}
-        <a href="#home" className="flex items-center gap-2 animate-slide-down">
+        <Link to="/" className="flex items-center gap-2 animate-slide-down">
           <img 
             src="/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png" 
             alt="Elismet LTD Logo" 
             className="h-12" 
           />
-        </a>
+        </Link>
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link, index) => (
-            <a 
-              key={link.label}
-              href={link.href}
-              className="text-foreground hover:text-elismet-blue transition-colors animated-link font-medium animate-slide-down"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              {link.label}
-            </a>
+            link.path ? (
+              <Link 
+                key={link.label}
+                to={link.path}
+                className="text-foreground hover:text-elismet-blue transition-colors animated-link font-medium animate-slide-down"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                {link.label}
+              </Link>
+            ) : (
+              <button
+                key={link.label}
+                onClick={link.action}
+                className="text-foreground hover:text-elismet-blue transition-colors animated-link font-medium animate-slide-down"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                {link.label}
+              </button>
+            )
           ))}
           {user ? (
             <Link to="/dashboard">
@@ -104,14 +123,24 @@ const Navbar = () => {
       >
         <div className="flex flex-col gap-6">
           {navLinks.map((link) => (
-            <a 
-              key={link.label}
-              href={link.href}
-              className="text-xl font-medium text-foreground hover:text-elismet-blue transition-colors"
-              onClick={toggleMenu}
-            >
-              {link.label}
-            </a>
+            link.path ? (
+              <Link 
+                key={link.label}
+                to={link.path}
+                className="text-xl font-medium text-foreground hover:text-elismet-blue transition-colors"
+                onClick={toggleMenu}
+              >
+                {link.label}
+              </Link>
+            ) : (
+              <button
+                key={link.label}
+                onClick={link.action}
+                className="text-xl font-medium text-foreground hover:text-elismet-blue transition-colors text-left"
+              >
+                {link.label}
+              </button>
+            )
           ))}
           {user ? (
             <Link to="/dashboard" onClick={toggleMenu}>
