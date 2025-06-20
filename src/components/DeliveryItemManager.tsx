@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Json } from '@/integrations/supabase/types';
 
 interface DeliveryItem {
   id: string;
@@ -35,9 +36,9 @@ interface DeliveryItem {
   item_type: string;
   title: string;
   description: string | null;
-  content: any;
-  files: any[];
-  links: any[];
+  content: Json;
+  files: Json;
+  links: Json;
   status: string;
   requires_full_payment: boolean;
   admin_notes: string | null;
@@ -180,8 +181,8 @@ export default function DeliveryItemManager({
     setEditModal({open: true, item});
     setFormData({
       content: JSON.stringify(item.content || {}, null, 2),
-      files: item.files || [],
-      links: item.links || [],
+      files: Array.isArray(item.files) ? item.files : [],
+      links: Array.isArray(item.links) ? item.links : [],
       admin_notes: item.admin_notes || '',
       status: item.status
     });
@@ -261,7 +262,7 @@ export default function DeliveryItemManager({
             <CardContent>
               {canViewItem(item) ? (
                 <div className="space-y-3">
-                  {item.content && Object.keys(item.content).length > 0 && (
+                  {item.content && typeof item.content === 'object' && Object.keys(item.content).length > 0 && (
                     <div className="text-sm">
                       <strong>Details:</strong>
                       <pre className="bg-gray-50 p-2 rounded mt-1 text-xs overflow-auto">
@@ -270,7 +271,7 @@ export default function DeliveryItemManager({
                     </div>
                   )}
                   
-                  {item.links && item.links.length > 0 && (
+                  {Array.isArray(item.links) && item.links.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {item.links.map((link: any, index: number) => (
                         <Button key={index} size="sm" variant="outline" asChild>
