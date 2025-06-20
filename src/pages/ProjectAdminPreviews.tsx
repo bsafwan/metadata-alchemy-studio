@@ -4,7 +4,6 @@ import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import PreviewManager from '@/components/PreviewManager';
-import PhasePaymentManager from '@/components/PhasePaymentManager';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 
@@ -50,14 +49,13 @@ export default function ProjectAdminPreviews() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-bold">Project Previews & Payments</h2>
+        <h2 className="text-2xl font-bold">Project Previews</h2>
         <p className="text-muted-foreground">
           Project: {project.project_name} | Client: {project.users.first_name} {project.users.last_name}
         </p>
       </div>
 
       <PreviewManager projectId={project.id} isAdminView={true} />
-      <PhasePaymentManager projectId={project.id} isAdminView={true} />
     </div>
   );
 }

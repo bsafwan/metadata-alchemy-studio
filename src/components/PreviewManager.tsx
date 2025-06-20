@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Eye, CheckCircle, XCircle, Clock, MessageSquare, Link as LinkIcon, Github, Image, FileText } from 'lucide-react';
+import { Plus, Eye, CheckCircle, XCircle, Clock, MessageSquare, Link as LinkIcon, Github, Image, FileText, Edit, Trash } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import FileUploader from './FileUploader';
@@ -54,7 +54,10 @@ export default function PreviewManager({ projectId, isAdminView = false }: Previ
   const [previews, setPreviews] = useState<Preview[]>([]);
   const [phases, setPhases] = useState<ProjectPhase[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [editingPreview, setEditingPreview] = useState<Preview | null>(null);
   const [loading, setLoading] = useState(false);
+  const [rejectionFeedback, setRejectionFeedback] = useState('');
+  const [showRejectionDialog, setShowRejectionDialog] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     phase_id: '',
     title: '',
@@ -143,23 +146,37 @@ export default function PreviewManager({ projectId, isAdminView = false }: Previ
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('previews')
-        .insert([{
-          project_id: projectId,
-          phase_id: formData.phase_id,
-          title: formData.title,
-          description: formData.description,
-          preview_files: formData.preview_files.filter(file => file.url),
-          uploaded_files: formData.uploaded_files || []
-        }]);
+      const previewData = {
+        project_id: projectId,
+        phase_id: formData.phase_id,
+        title: formData.title,
+        description: formData.description,
+        preview_files: formData.preview_files.filter(file => file.url),
+        uploaded_files: formData.uploaded_files || [],
+        status: 'pending'
+      };
+
+      if (editingPreview) {
+        const { error } = await supabase
+          .from('previews')
+          .update(previewData)
+          .eq('id', editingPreview.id);
+        
+        if (error) throw error;
+        toast.success('Preview updated');
+      } else {
+        const { error } = await supabase
+          .from('previews')
+          .insert([previewData]);
+        
+        if (error) throw error;
+        toast.success('Preview created');
+      }
       
-      if (error) throw error;
-      toast.success('Preview created');
       resetForm();
     } catch (error) {
-      console.error('Error creating preview:', error);
-      toast.error('Failed to create preview');
+      console.error('Error saving preview:', error);
+      toast.error('Failed to save preview');
     } finally {
       setLoading(false);
     }
@@ -174,6 +191,36 @@ export default function PreviewManager({ projectId, isAdminView = false }: Previ
       uploaded_files: []
     });
     setShowForm(false);
+    setEditingPreview(null);
+  };
+
+  const handleEdit = (preview: Preview) => {
+    setFormData({
+      phase_id: preview.phase_id,
+      title: preview.title,
+      description: preview.description || '',
+      preview_files: preview.preview_files.length > 0 ? preview.preview_files : [{ type: 'link', url: '', description: '' }],
+      uploaded_files: preview.uploaded_files || []
+    });
+    setEditingPreview(preview);
+    setShowForm(true);
+  };
+
+  const handleDelete = async (previewId: string) => {
+    if (!confirm('Are you sure you want to delete this preview?')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('previews')
+        .delete()
+        .eq('id', previewId);
+      
+      if (error) throw error;
+      toast.success('Preview deleted');
+    } catch (error) {
+      console.error('Error deleting preview:', error);
+      toast.error('Failed to delete preview');
+    }
   };
 
   const handleFilesUploaded = (files: any[]) => {
@@ -217,10 +264,20 @@ export default function PreviewManager({ projectId, isAdminView = false }: Previ
       
       if (error) throw error;
       toast.success(`Preview ${status}`);
+      setShowRejectionDialog(null);
+      setRejectionFeedback('');
     } catch (error) {
       console.error('Error updating preview:', error);
       toast.error('Failed to update preview');
     }
+  };
+
+  const handleRejectWithFeedback = (previewId: string) => {
+    if (!rejectionFeedback.trim()) {
+      toast.error('Please provide feedback for rejection');
+      return;
+    }
+    handleApproval(previewId, 'rejected', rejectionFeedback);
   };
 
   const getStatusColor = (status: string) => {
@@ -257,7 +314,7 @@ export default function PreviewManager({ projectId, isAdminView = false }: Previ
       {showForm && (
         <Card>
           <CardHeader>
-            <CardTitle>Create Preview</CardTitle>
+            <CardTitle>{editingPreview ? 'Edit Preview' : 'Create Preview'}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -355,13 +412,48 @@ export default function PreviewManager({ projectId, isAdminView = false }: Previ
 
               <div className="flex gap-2">
                 <Button type="submit" disabled={loading}>
-                  {loading ? 'Creating...' : 'Create Preview'}
+                  {loading ? 'Saving...' : (editingPreview ? 'Update Preview' : 'Create Preview')}
                 </Button>
                 <Button type="button" variant="outline" onClick={resetForm}>
                   Cancel
                 </Button>
               </div>
             </form>
+          </CardContent>
+        </Card>
+      )}
+
+      {showRejectionDialog && (
+        <Card className="border-orange-200 bg-orange-50">
+          <CardHeader>
+            <CardTitle className="text-orange-800">Reject Preview</CardTitle>
+            <CardDescription>Please provide feedback for the rejection</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Textarea
+              placeholder="Describe the issues or required changes..."
+              value={rejectionFeedback}
+              onChange={(e) => setRejectionFeedback(e.target.value)}
+              rows={4}
+              className="mb-4"
+            />
+            <div className="flex gap-2">
+              <Button
+                onClick={() => handleRejectWithFeedback(showRejectionDialog)}
+                variant="destructive"
+              >
+                Reject with Feedback
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowRejectionDialog(null);
+                  setRejectionFeedback('');
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -382,9 +474,29 @@ export default function PreviewManager({ projectId, isAdminView = false }: Previ
                     Phase {preview.project_phases.phase_order}: {preview.project_phases.phase_name}
                   </CardDescription>
                 </div>
-                {preview.status === 'approved' && (
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                )}
+                <div className="flex items-center gap-2">
+                  {preview.status === 'approved' && (
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                  )}
+                  {isAdminView && (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEdit(preview)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDelete(preview.id)}
+                      >
+                        <Trash className="w-4 h-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -441,10 +553,7 @@ export default function PreviewManager({ projectId, isAdminView = false }: Previ
                       <Button
                         size="sm"
                         variant="destructive"
-                        onClick={() => {
-                          const feedback = prompt('Feedback (optional):');
-                          handleApproval(preview.id, 'rejected', feedback || undefined);
-                        }}
+                        onClick={() => setShowRejectionDialog(preview.id)}
                       >
                         <XCircle className="w-4 h-4 mr-1" />
                         Reject
@@ -455,8 +564,14 @@ export default function PreviewManager({ projectId, isAdminView = false }: Previ
               </div>
 
               {preview.user_feedback && (
-                <div className="mt-3 p-2 bg-orange-50 border border-orange-200 rounded text-sm">
-                  <strong>Feedback:</strong> {preview.user_feedback}
+                <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded text-sm">
+                  <div className="flex items-start gap-2">
+                    <MessageSquare className="w-4 h-4 text-orange-600 mt-0.5" />
+                    <div>
+                      <strong className="text-orange-800">Rejection Feedback:</strong>
+                      <p className="text-orange-700 mt-1">{preview.user_feedback}</p>
+                    </div>
+                  </div>
                 </div>
               )}
             </CardContent>

@@ -3,7 +3,6 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import PreviewManager from '@/components/PreviewManager';
-import PhasePaymentManager from '@/components/PhasePaymentManager';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -50,7 +49,6 @@ export default function Previews() {
   return (
     <div className="space-y-8">
       <PreviewManager projectId={project.id} isAdminView={false} />
-      <PhasePaymentManager projectId={project.id} isAdminView={false} />
     </div>
   );
 }

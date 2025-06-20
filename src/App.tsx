@@ -22,7 +22,6 @@ import LiveChat from "./pages/LiveChat";
 import DashboardLayout from "./components/DashboardLayout";
 import DashboardHome from "./pages/DashboardHome";
 import Conversations from "./pages/Conversations";
-import Demos from "./pages/Demos";
 import Previews from "./pages/Previews";
 import PaymentsAndDues from "./pages/PaymentsAndDues";
 import Status from "./pages/Status";
@@ -96,7 +95,6 @@ const App = () => (
                 <Route index element={<DashboardHome />} />
                 <Route path="conversations" element={<Conversations />} />
                 <Route path="pricing-phases" element={<ProjectPricingPhases />} />
-                <Route path="demos" element={<Demos />} />
                 <Route path="previews" element={<Previews />} />
                 <Route path="payments" element={<PaymentsAndDues />} />
                 <Route path="status" element={<Status />} />
