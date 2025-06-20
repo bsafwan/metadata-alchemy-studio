@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -151,11 +150,16 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
         const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
         const filePath = `${conversationId}/${fileName}`;
 
+        console.log('Uploading file:', fileName, 'to path:', filePath);
+
         const { error: uploadError } = await supabase.storage
           .from('conversation-files')
           .upload(filePath, file);
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error('Upload error:', uploadError);
+          throw uploadError;
+        }
 
         const { data: { publicUrl } } = supabase.storage
           .from('conversation-files')
@@ -169,7 +173,7 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
       }
     } catch (error) {
       console.error('File upload error:', error);
-      toast.error('Failed to upload files');
+      toast.error('Failed to upload files: ' + (error as Error).message);
       throw error;
     } finally {
       setUploading(false);
@@ -211,20 +215,28 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
         .update({ updated_at: new Date().toISOString() })
         .eq('id', conversationId);
 
+      // Get current session for proper auth
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('No active session');
+      }
+
       // Send email notification
       try {
-        await fetch(`https://gemhywggtdryovqmalqh.supabase.co/functions/v1/send-conversation-email`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlbWh5d2dndGRyeW92cW1hbHFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzNjQ4MzEsImV4cCI6MjA2NTk0MDgzMX0.PjNg5nqMq7qdPdw-PWNj-b0NtRYxgx9zpJSFdtL8Gig`
-          },
-          body: JSON.stringify({
+        console.log('Sending email notification...');
+        const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-conversation-email', {
+          body: {
             conversationId,
             messageContent: newMessage.trim() || '(File attachment)',
             attachments
-          })
+          }
         });
+
+        if (emailError) {
+          console.error('Email function error:', emailError);
+        } else {
+          console.log('Email sent successfully:', emailResult);
+        }
       } catch (emailError) {
         console.error('Email notification failed:', emailError);
         // Don't fail the whole operation if email fails
@@ -238,7 +250,7 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
       toast.success('Message sent!');
     } catch (error) {
       console.error('Error sending message:', error);
-      toast.error('Failed to send message');
+      toast.error('Failed to send message: ' + (error as Error).message);
     } finally {
       setLoading(false);
     }
