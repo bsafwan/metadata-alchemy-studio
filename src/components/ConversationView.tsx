@@ -64,8 +64,17 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
           filter: `conversation_id=eq.${conversationId}`
         },
         (payload) => {
-          const newMsg = payload.new as Message;
-          setMessages(prev => [...prev, newMsg]);
+          const newMsg = payload.new as any;
+          const formattedMessage: Message = {
+            id: newMsg.id,
+            sender_type: newMsg.sender_type as 'user' | 'admin',
+            sender_name: newMsg.sender_name,
+            sender_email: newMsg.sender_email,
+            message_content: newMsg.message_content,
+            attachments: newMsg.attachments || [],
+            created_at: newMsg.created_at
+          };
+          setMessages(prev => [...prev, formattedMessage]);
         }
       )
       .subscribe();
@@ -110,7 +119,18 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
       return;
     }
 
-    setMessages(data || []);
+    // Cast the data to our Message interface
+    const formattedMessages: Message[] = (data || []).map(msg => ({
+      id: msg.id,
+      sender_type: msg.sender_type as 'user' | 'admin',
+      sender_name: msg.sender_name,
+      sender_email: msg.sender_email,
+      message_content: msg.message_content,
+      attachments: msg.attachments || [],
+      created_at: msg.created_at
+    }));
+
+    setMessages(formattedMessages);
   };
 
   const uploadFiles = async (): Promise<Array<{name: string; url: string; type: string}>> => {
