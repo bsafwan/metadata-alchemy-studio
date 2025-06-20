@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -101,7 +100,7 @@ export default function PreviewManager({ projectId, isAdminView = false }: Previ
       const transformedData = (data || []).map(preview => ({
         ...preview,
         preview_files: Array.isArray(preview.preview_files) 
-          ? preview.preview_files as PreviewFile[]
+          ? (preview.preview_files as unknown as PreviewFile[])
           : []
       }));
       
