@@ -11,13 +11,19 @@ import { Plus, Eye, CheckCircle, XCircle, Clock, MessageSquare, Link as LinkIcon
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+interface PreviewFile {
+  type: string;
+  url: string;
+  description: string;
+}
+
 interface Preview {
   id: string;
   project_id: string;
   phase_id: string;
   title: string;
   description: string | null;
-  preview_files: any[];
+  preview_files: PreviewFile[];
   status: string;
   user_feedback: string | null;
   approved_at: string | null;
@@ -90,7 +96,16 @@ export default function PreviewManager({ projectId, isAdminView = false }: Previ
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPreviews(data || []);
+      
+      // Transform the data to ensure preview_files is properly typed
+      const transformedData = (data || []).map(preview => ({
+        ...preview,
+        preview_files: Array.isArray(preview.preview_files) 
+          ? preview.preview_files as PreviewFile[]
+          : []
+      }));
+      
+      setPreviews(transformedData);
     } catch (error) {
       console.error('Error fetching previews:', error);
     }
@@ -357,7 +372,7 @@ export default function PreviewManager({ projectId, isAdminView = false }: Previ
               {preview.preview_files.length > 0 && (
                 <div className="space-y-2 mb-4">
                   <h4 className="font-medium text-sm">Files & Links:</h4>
-                  {preview.preview_files.map((file: any, index: number) => (
+                  {preview.preview_files.map((file: PreviewFile, index: number) => (
                     <div key={index} className="flex items-center gap-2 p-2 bg-muted/30 rounded">
                       {getFileTypeIcon(file.type)}
                       <a

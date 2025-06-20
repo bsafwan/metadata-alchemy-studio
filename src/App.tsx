@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,7 +22,6 @@ import LiveChat from "./pages/LiveChat";
 import DashboardLayout from "./components/DashboardLayout";
 import DashboardHome from "./pages/DashboardHome";
 import Conversations from "./pages/Conversations";
-import ProjectOverview from "./pages/ProjectOverview";
 import Demos from "./pages/Demos";
 import Previews from "./pages/Previews";
 import PaymentsAndDues from "./pages/PaymentsAndDues";
@@ -40,6 +40,8 @@ import ProjectAdminLayout from "./components/ProjectAdminLayout";
 import ProjectAdminOverview from "./pages/ProjectAdminOverview";
 import ProjectAdminMessages from "./pages/ProjectAdminMessages";
 import ProjectAdminDemos from "./pages/ProjectAdminDemos";
+import ProjectAdminDemosNew from "./pages/ProjectAdminDemosNew";
+import ProjectAdminPreviews from "./pages/ProjectAdminPreviews";
 import ProjectAdminPayments from "./pages/ProjectAdminPayments";
 import ProjectAdminStatus from "./pages/ProjectAdminStatus";
 import ProjectAdminDelivery from "./pages/ProjectAdminDelivery";
