@@ -65,7 +65,7 @@ export default function ProjectAdminMessages() {
 
   console.log('Current projectId:', projectId);
 
-  // Debug query to see all conversations
+  // First query all conversations to understand the data structure
   const { data: allConversations } = useQuery({
     queryKey: ['all-conversations-debug'],
     queryFn: async () => {
@@ -83,11 +83,14 @@ export default function ProjectAdminMessages() {
     }
   });
 
+  // Query conversations for this project - first try exact match, then fallback to user-based search
   const { data: conversations, isLoading } = useQuery({
     queryKey: ['project-conversations', projectId],
     queryFn: async () => {
       console.log('Fetching conversations for project:', projectId);
-      const { data, error } = await supabase
+      
+      // First try to find by exact project_id match
+      let { data, error } = await supabase
         .from('conversations')
         .select(`
           *,
@@ -100,7 +103,68 @@ export default function ProjectAdminMessages() {
         console.error('Error fetching conversations:', error);
         throw error;
       }
-      console.log('Project conversations:', data);
+
+      console.log('Direct project conversations:', data);
+
+      // If no direct matches, try to find conversations for users who have this project
+      if (!data || data.length === 0) {
+        console.log('No direct project conversations found, trying user-based search...');
+        
+        // Get the project owner first
+        const { data: projectData, error: projectError } = await supabase
+          .from('projects')
+          .select('user_id')
+          .eq('id', projectId)
+          .single();
+
+        if (projectError) {
+          console.error('Error fetching project:', projectError);
+          return [];
+        }
+
+        // Now get conversations for this user that might need project association
+        const { data: userConversations, error: userError } = await supabase
+          .from('conversations')
+          .select(`
+            *,
+            users!inner(first_name, last_name, email, business_name)
+          `)
+          .eq('user_id', projectData.user_id)
+          .order('updated_at', { ascending: false });
+
+        if (userError) {
+          console.error('Error fetching user conversations:', userError);
+          return [];
+        }
+
+        console.log('User conversations found:', userConversations);
+        
+        // Update conversations to have the correct project_id
+        if (userConversations && userConversations.length > 0) {
+          console.log('Updating conversations with project_id...');
+          
+          for (const conv of userConversations) {
+            if (!conv.project_id) {
+              const { error: updateError } = await supabase
+                .from('conversations')
+                .update({ project_id: projectId })
+                .eq('id', conv.id);
+              
+              if (updateError) {
+                console.error('Error updating conversation project_id:', updateError);
+              } else {
+                console.log(`Updated conversation ${conv.id} with project_id ${projectId}`);
+              }
+            }
+          }
+          
+          // Refresh the data after updates
+          queryClient.invalidateQueries({ queryKey: ['project-conversations'] });
+        }
+
+        return userConversations || [];
+      }
+      
       return data as Conversation[];
     },
     enabled: !!projectId

@@ -30,13 +30,14 @@ serve(async (req) => {
 
     const { conversationId, messageContent, attachments = [] }: EmailPayload = await req.json()
 
-    // Get conversation details
+    // Get conversation details with the latest message to determine sender
     const { data: conversation, error: convError } = await supabaseClient
       .from('conversations')
       .select(`
         *,
         users!inner(*),
-        projects(*)
+        projects(*),
+        conversation_messages(sender_type, created_at)
       `)
       .eq('id', conversationId)
       .single()
@@ -45,99 +46,176 @@ serve(async (req) => {
       throw new Error('Conversation not found')
     }
 
-    // Get previous messages (last 5)
+    // Get the latest message to determine who sent it
+    const { data: latestMessage, error: msgError } = await supabaseClient
+      .from('conversation_messages')
+      .select('sender_type')
+      .eq('conversation_id', conversationId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (msgError) {
+      throw new Error('Could not determine message sender')
+    }
+
+    // Get previous messages (last 5 excluding current)
     const { data: previousMessages } = await supabaseClient
       .from('conversation_messages')
       .select('*')
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: false })
-      .limit(6) // Get 6 to exclude the current message
+      .limit(6)
 
-    const previousMsgs = previousMessages?.slice(1) || [] // Remove the current message
+    const previousMsgs = previousMessages?.slice(1) || []
 
-    // Get super admin email
-    const SUPER_ADMIN_EMAIL = Deno.env.get('SUPER_ADMIN_EMAIL') || 'bsafwanjamil677@gmail.com'
+    // Determine recipient based on who sent the message
+    let recipientEmail = ''
+    let emailSubject = ''
+    
+    if (latestMessage.sender_type === 'admin') {
+      // Admin sent message -> send to project owner
+      recipientEmail = conversation.users.email
+      emailSubject = `New Message from Support: ${conversation.subject}`
+    } else {
+      // User sent message -> send to super admin
+      recipientEmail = Deno.env.get('SUPER_ADMIN_EMAIL') || 'bsafwanjamil677@gmail.com'
+      emailSubject = `New Message: ${conversation.subject}`
+    }
 
-    // Prepare email content
-    const attachmentsList = attachments.length > 0 
-      ? attachments.map(att => `• ${att.name} (${att.type}): ${att.url}`).join('\n')
-      : 'No attachments'
+    console.log(`Sending email to: ${recipientEmail} (sender was: ${latestMessage.sender_type})`)
 
-    const previousMsgsList = previousMsgs.length > 0
-      ? previousMsgs.reverse().map(msg => 
-          `${new Date(msg.created_at).toLocaleString()} - ${msg.sender_name} (${msg.sender_type}):\n${msg.message_content}`
-        ).join('\n\n---\n\n')
-      : 'No previous messages'
+    // Prepare email content based on recipient
+    let emailBody
+    
+    if (latestMessage.sender_type === 'admin') {
+      // Email to project owner
+      emailBody = {
+        to: [recipientEmail],
+        subject: emailSubject,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">New Message from Support</h2>
+            
+            <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3>Conversation: ${conversation.subject}</h3>
+              <p><strong>Project:</strong> ${conversation.projects?.project_name || 'No Project'}</p>
+            </div>
 
-    const emailBody = {
-      to: [SUPER_ADMIN_EMAIL],
-      subject: `New Message: ${conversation.subject}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #2563eb;">New Conversation Message</h2>
-          
-          <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3>Conversation Details</h3>
-            <p><strong>Client Name:</strong> ${conversation.users.first_name} ${conversation.users.last_name}</p>
-            <p><strong>Project Name:</strong> ${conversation.projects?.project_name || 'No Project'}</p>
-            <p><strong>Email:</strong> ${conversation.users.email}</p>
-            <p><strong>Conversation ID:</strong> ${conversation.id}</p>
-            <p><strong>Subject:</strong> ${conversation.subject}</p>
-          </div>
+            <div style="margin: 20px 0;">
+              <h3>New Message</h3>
+              <div style="background: #ffffff; border: 1px solid #e5e7eb; padding: 15px; border-radius: 6px;">
+                <p style="margin: 0; white-space: pre-wrap;">${messageContent}</p>
+              </div>
+            </div>
 
-          <div style="margin: 20px 0;">
-            <h3>New Message</h3>
-            <div style="background: #ffffff; border: 1px solid #e5e7eb; padding: 15px; border-radius: 6px;">
-              <p style="margin: 0; white-space: pre-wrap;">${messageContent}</p>
+            ${attachments.length > 0 ? `
+            <div style="margin: 20px 0;">
+              <h3>Attachments</h3>
+              ${attachments.map(att => `
+                <div style="margin: 10px 0; padding: 10px; background: #f3f4f6; border-radius: 4px;">
+                  <strong>${att.name}</strong> (${att.type})<br>
+                  <a href="${att.url}" target="_blank" style="color: #2563eb;">Download</a>
+                </div>
+              `).join('')}
+            </div>
+            ` : ''}
+
+            <div style="margin: 20px 0; padding: 20px; background: #eff6ff; border-radius: 8px;">
+              <p>You can reply to this conversation by logging into your project dashboard.</p>
+              <p><a href="${Deno.env.get('SUPABASE_URL')?.replace('supabase.co', 'lovable.app') || 'https://your-app.lovable.app'}" style="color: #2563eb;">Access Your Dashboard</a></p>
             </div>
           </div>
+        `,
+        text: `
+New Message from Support
 
-          ${attachments.length > 0 ? `
-          <div style="margin: 20px 0;">
-            <h3>Attachments</h3>
-            ${attachments.map(att => `
-              <div style="margin: 10px 0; padding: 10px; background: #f3f4f6; border-radius: 4px;">
-                <strong>${att.name}</strong> (${att.type})<br>
-                <a href="${att.url}" target="_blank" style="color: #2563eb;">Download</a>
+Conversation: ${conversation.subject}
+Project: ${conversation.projects?.project_name || 'No Project'}
+
+Message: ${messageContent}
+
+${attachments.length > 0 ? `Attachments: ${attachments.map(att => att.name).join(', ')}` : ''}
+
+You can reply by logging into your project dashboard.
+        `
+      }
+    } else {
+      // Email to super admin
+      const previousMsgsList = previousMsgs.length > 0
+        ? previousMsgs.reverse().map(msg => 
+            `${new Date(msg.created_at).toLocaleString()} - ${msg.sender_name} (${msg.sender_type}):\n${msg.message_content}`
+          ).join('\n\n---\n\n')
+        : 'No previous messages'
+
+      emailBody = {
+        to: [recipientEmail],
+        subject: emailSubject,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">New Customer Message</h2>
+            
+            <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3>Customer Details</h3>
+              <p><strong>Name:</strong> ${conversation.users.first_name} ${conversation.users.last_name}</p>
+              <p><strong>Email:</strong> ${conversation.users.email}</p>
+              <p><strong>Business:</strong> ${conversation.users.business_name}</p>
+              <p><strong>Project:</strong> ${conversation.projects?.project_name || 'No Project'}</p>
+              <p><strong>Conversation:</strong> ${conversation.subject}</p>
+            </div>
+
+            <div style="margin: 20px 0;">
+              <h3>New Message</h3>
+              <div style="background: #ffffff; border: 1px solid #e5e7eb; padding: 15px; border-radius: 6px;">
+                <p style="margin: 0; white-space: pre-wrap;">${messageContent}</p>
               </div>
-            `).join('')}
-          </div>
-          ` : ''}
+            </div>
 
-          ${previousMsgs.length > 0 ? `
-          <div style="margin: 20px 0;">
-            <details>
-              <summary style="cursor: pointer; font-weight: bold; margin-bottom: 10px;">Previous Messages (${previousMsgs.length})</summary>
-              <div style="background: #f9fafb; padding: 15px; border-radius: 6px; max-height: 300px; overflow-y: auto;">
-                <pre style="white-space: pre-wrap; font-family: Arial, sans-serif; font-size: 14px; margin: 0;">${previousMsgsList}</pre>
-              </div>
-            </details>
-          </div>
-          ` : ''}
+            ${attachments.length > 0 ? `
+            <div style="margin: 20px 0;">
+              <h3>Attachments</h3>
+              ${attachments.map(att => `
+                <div style="margin: 10px 0; padding: 10px; background: #f3f4f6; border-radius: 4px;">
+                  <strong>${att.name}</strong> (${att.type})<br>
+                  <a href="${att.url}" target="_blank" style="color: #2563eb;">Download</a>
+                </div>
+              `).join('')}
+            </div>
+            ` : ''}
 
-          <div style="margin: 20px 0; padding: 20px; background: #eff6ff; border-radius: 8px;">
-            <p><strong>Admin Access:</strong> <a href="${Deno.env.get('SUPABASE_URL')?.replace('supabase.co', 'lovable.app') || 'https://your-app.lovable.app'}/system-control-panel-auth-gateway-x7k9m2p8q4w1" style="color: #2563eb;">Login to Admin Panel</a></p>
-          </div>
-        </div>
-      `,
-      text: `
-New Conversation Message
+            ${previousMsgs.length > 0 ? `
+            <div style="margin: 20px 0;">
+              <details>
+                <summary style="cursor: pointer; font-weight: bold; margin-bottom: 10px;">Previous Messages (${previousMsgs.length})</summary>
+                <div style="background: #f9fafb; padding: 15px; border-radius: 6px; max-height: 300px; overflow-y: auto;">
+                  <pre style="white-space: pre-wrap; font-family: Arial, sans-serif; font-size: 14px; margin: 0;">${previousMsgsList}</pre>
+                </div>
+              </details>
+            </div>
+            ` : ''}
 
-Client Name: ${conversation.users.first_name} ${conversation.users.last_name}
-Project Name: ${conversation.projects?.project_name || 'No Project'}
+            <div style="margin: 20px 0; padding: 20px; background: #eff6ff; border-radius: 8px;">
+              <p><strong>Admin Access:</strong> <a href="${Deno.env.get('SUPABASE_URL')?.replace('supabase.co', 'lovable.app') || 'https://your-app.lovable.app'}/system-control-panel-auth-gateway-x7k9m2p8q4w1" style="color: #2563eb;">Login to Admin Panel</a></p>
+            </div>
+          </div>
+        `,
+        text: `
+New Customer Message
+
+Customer: ${conversation.users.first_name} ${conversation.users.last_name}
 Email: ${conversation.users.email}
-Conversation ID: ${conversation.id}
-Subject: ${conversation.subject}
+Business: ${conversation.users.business_name}
+Project: ${conversation.projects?.project_name || 'No Project'}
+Conversation: ${conversation.subject}
 
-New Message:
-${messageContent}
+Message: ${messageContent}
 
-Attachments:
-${attachmentsList}
+${attachments.length > 0 ? `Attachments: ${attachments.map(att => att.name).join(', ')}` : ''}
 
 Previous Messages:
 ${previousMsgsList}
-      `
+        `
+      }
     }
 
     // Send email using Zoho Mail function
@@ -152,28 +230,6 @@ ${previousMsgsList}
 
     if (!emailResponse.ok) {
       throw new Error('Failed to send email')
-    }
-
-    // Also send admin notification when it's an admin message
-    const lastMessage = previousMessages?.[0]
-    if (lastMessage?.sender_type === 'admin') {
-      try {
-        await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-admin-notification`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
-          },
-          body: JSON.stringify({
-            type: 'message_sent',
-            conversationId,
-            messageContent
-          })
-        })
-      } catch (adminNotifyError) {
-        console.error('Admin notification failed:', adminNotifyError)
-        // Don't throw here, main email was sent successfully
-      }
     }
 
     console.log('Email notification sent successfully')
