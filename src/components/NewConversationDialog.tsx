@@ -20,7 +20,6 @@ const NewConversationDialog = ({ onConversationCreated }: NewConversationDialogP
   const [message, setMessage] = useState('');
   const [files, setFiles] = useState<FileList | null>(null);
   const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -28,28 +27,24 @@ const NewConversationDialog = ({ onConversationCreated }: NewConversationDialogP
     if (!files || files.length === 0) return [];
 
     const uploadedFiles = [];
-    setUploading(true);
 
     try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+        // Simple naming: timestamp_originalname
+        const timestamp = Date.now();
+        const fileName = `${timestamp}_${file.name}`;
         const filePath = `${conversationId}/${fileName}`;
 
-        console.log('Uploading file:', fileName, 'to path:', filePath);
+        console.log('Uploading file:', fileName);
 
-        // Since we don't use Supabase Auth, we'll upload directly without RLS
         const { error: uploadError } = await supabase.storage
           .from('conversation-files')
-          .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: false
-          });
+          .upload(filePath, file);
 
         if (uploadError) {
           console.error('Upload error:', uploadError);
-          throw new Error(`Failed to upload ${file.name}: ${uploadError.message}`);
+          throw new Error(`Failed to upload ${file.name}`);
         }
 
         const { data: { publicUrl } } = supabase.storage
@@ -64,10 +59,8 @@ const NewConversationDialog = ({ onConversationCreated }: NewConversationDialogP
       }
     } catch (error) {
       console.error('File upload error:', error);
-      toast.error('Failed to upload files: ' + (error as Error).message);
+      toast.error('Failed to upload files');
       throw error;
-    } finally {
-      setUploading(false);
     }
 
     return uploadedFiles;
@@ -96,12 +89,11 @@ const NewConversationDialog = ({ onConversationCreated }: NewConversationDialogP
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || (!subject.trim() || (!message.trim() && (!files || files.length === 0)))) return;
-
-    // Prevent double submission
-    if (loading || uploading) return;
+    if (loading) return; // Prevent double submission
 
     console.log('Creating conversation for user:', user.id);
     setLoading(true);
+    
     try {
       // Create conversation
       const { data: conversation, error: convError } = await supabase
@@ -115,12 +107,12 @@ const NewConversationDialog = ({ onConversationCreated }: NewConversationDialogP
 
       if (convError) {
         console.error('Conversation creation error:', convError);
-        throw convError;
+        throw new Error('Failed to create conversation');
       }
 
       console.log('Conversation created:', conversation);
 
-      // Upload files first
+      // Upload files
       const attachments = await uploadFiles(conversation.id);
 
       // Add first message
@@ -137,25 +129,18 @@ const NewConversationDialog = ({ onConversationCreated }: NewConversationDialogP
 
       if (msgError) {
         console.error('Message creation error:', msgError);
-        throw msgError;
+        throw new Error('Failed to send message');
       }
 
       // Send email notification
       try {
-        console.log('Sending email notification...');
-        const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-conversation-email', {
+        await supabase.functions.invoke('send-conversation-email', {
           body: {
             conversationId: conversation.id,
             messageContent: message.trim() || '(File attachment)',
             attachments
           }
         });
-
-        if (emailError) {
-          console.error('Email function error:', emailError);
-        } else {
-          console.log('Email sent successfully:', emailResult);
-        }
       } catch (emailError) {
         console.error('Email notification failed:', emailError);
         // Don't fail the whole operation if email fails
@@ -172,7 +157,7 @@ const NewConversationDialog = ({ onConversationCreated }: NewConversationDialogP
       onConversationCreated();
     } catch (error) {
       console.error('Error creating conversation:', error);
-      toast.error('Failed to start conversation: ' + (error as Error).message);
+      toast.error((error as Error).message);
     } finally {
       setLoading(false);
     }
@@ -273,10 +258,10 @@ const NewConversationDialog = ({ onConversationCreated }: NewConversationDialogP
 
           <Button 
             type="submit" 
-            disabled={loading || uploading || (!subject.trim() || (!message.trim() && (!files || files.length === 0)))} 
+            disabled={loading || (!subject.trim() || (!message.trim() && (!files || files.length === 0)))} 
             className="w-full h-14 text-lg"
           >
-            {loading || uploading ? (
+            {loading ? (
               'Sending...'
             ) : (
               <>

@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -44,7 +43,6 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
   const [newMessage, setNewMessage] = useState('');
   const [files, setFiles] = useState<FileList | null>(null);
   const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -143,28 +141,24 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
     if (!files || files.length === 0) return [];
 
     const uploadedFiles = [];
-    setUploading(true);
 
     try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+        // Simple naming: timestamp_originalname
+        const timestamp = Date.now();
+        const fileName = `${timestamp}_${file.name}`;
         const filePath = `${conversationId}/${fileName}`;
 
-        console.log('Uploading file:', fileName, 'to path:', filePath);
+        console.log('Uploading file:', fileName);
 
-        // Since we don't use Supabase Auth, we'll upload directly without RLS
         const { error: uploadError } = await supabase.storage
           .from('conversation-files')
-          .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: false
-          });
+          .upload(filePath, file);
 
         if (uploadError) {
           console.error('Upload error:', uploadError);
-          throw new Error(`Failed to upload ${file.name}: ${uploadError.message}`);
+          throw new Error(`Failed to upload ${file.name}`);
         }
 
         const { data: { publicUrl } } = supabase.storage
@@ -179,10 +173,8 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
       }
     } catch (error) {
       console.error('File upload error:', error);
-      toast.error('Failed to upload files: ' + (error as Error).message);
+      toast.error('Failed to upload files');
       throw error;
-    } finally {
-      setUploading(false);
     }
 
     return uploadedFiles;
@@ -191,14 +183,13 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || (!newMessage.trim() && (!files || files.length === 0))) return;
-
-    // Prevent double submission
-    if (loading || uploading) return;
+    if (loading) return; // Prevent double submission
 
     console.log('Sending message for user:', user.id);
     setLoading(true);
+    
     try {
-      // Upload files first
+      // Upload files
       const attachments = await uploadFiles();
 
       // Add message
@@ -215,7 +206,7 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
 
       if (msgError) {
         console.error('Message creation error:', msgError);
-        throw msgError;
+        throw new Error('Failed to send message');
       }
 
       // Update conversation timestamp
@@ -226,20 +217,13 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
 
       // Send email notification
       try {
-        console.log('Sending email notification...');
-        const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-conversation-email', {
+        await supabase.functions.invoke('send-conversation-email', {
           body: {
             conversationId,
             messageContent: newMessage.trim() || '(File attachment)',
             attachments
           }
         });
-
-        if (emailError) {
-          console.error('Email function error:', emailError);
-        } else {
-          console.log('Email sent successfully:', emailResult);
-        }
       } catch (emailError) {
         console.error('Email notification failed:', emailError);
         // Don't fail the whole operation if email fails
@@ -253,7 +237,7 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
       toast.success('Message sent!');
     } catch (error) {
       console.error('Error sending message:', error);
-      toast.error('Failed to send message: ' + (error as Error).message);
+      toast.error((error as Error).message);
     } finally {
       setLoading(false);
     }
@@ -413,11 +397,11 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
                 </Button>
                 <Button 
                   type="submit" 
-                  disabled={loading || uploading || (!newMessage.trim() && (!files || files.length === 0))}
+                  disabled={loading || (!newMessage.trim() && (!files || files.length === 0))}
                   size="sm"
                   className="h-10 w-10"
                 >
-                  {loading || uploading ? '...' : <Send className="w-4 h-4" />}
+                  {loading ? '...' : <Send className="w-4 h-4" />}
                 </Button>
               </div>
             </div>
