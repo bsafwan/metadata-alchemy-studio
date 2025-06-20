@@ -40,10 +40,21 @@ export default function ProjectSetup() {
       return;
     }
 
-    if (user.has_completed_initial_setup) {
-      navigate('/dashboard');
-      return;
-    }
+    // Check if user has completed setup by looking at their projects
+    const checkUserSetup = async () => {
+      const { data: projects } = await supabase
+        .from('projects')
+        .select('id')
+        .eq('user_id', user.id)
+        .limit(1);
+
+      if (projects && projects.length > 0) {
+        navigate('/dashboard');
+        return;
+      }
+    };
+
+    checkUserSetup();
   }, [user, navigate]);
 
   const handleFeatureToggle = (feature: string) => {
@@ -128,7 +139,7 @@ Our team will review your project requirements and get back to you shortly with 
         // Don't fail the whole operation if email fails
       }
 
-      // Mark user setup as complete
+      // Mark user setup as complete by updating user table
       const { error: userError } = await supabase
         .from('users')
         .update({ has_completed_initial_setup: true })

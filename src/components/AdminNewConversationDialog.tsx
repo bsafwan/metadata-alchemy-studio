@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -19,6 +18,7 @@ interface Project {
   id: string;
   project_name: string;
   status: string;
+  user_id: string;
   users: {
     first_name: string;
     last_name: string;
@@ -57,6 +57,7 @@ const AdminNewConversationDialog = ({ onConversationCreated, preSelectedProjectI
           id,
           project_name,
           status,
+          user_id,
           users!inner(first_name, last_name, email, business_name)
         `)
         .eq('is_active', true)
@@ -148,7 +149,7 @@ const AdminNewConversationDialog = ({ onConversationCreated, preSelectedProjectI
       const { data: conversation, error: convError } = await supabase
         .from('conversations')
         .insert({
-          user_id: selectedProject.users.id,
+          user_id: selectedProject.user_id,
           project_id: selectedProjectId,
           subject: subject.trim()
         })

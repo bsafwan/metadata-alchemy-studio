@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -49,7 +48,7 @@ export default function Conversations() {
         .from('conversations')
         .select(`
           *,
-          projects!inner(id, project_name),
+          projects!conversations_project_id_fkey(id, project_name),
           conversation_messages (
             message_content,
             sender_name,

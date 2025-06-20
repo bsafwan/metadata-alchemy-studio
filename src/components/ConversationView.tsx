@@ -35,9 +35,10 @@ interface Conversation {
 interface ConversationViewProps {
   conversationId: string;
   onBack: () => void;
+  isAdminView?: boolean;
 }
 
-const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => {
+const ConversationView = ({ conversationId, onBack, isAdminView = false }: ConversationViewProps) => {
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -253,13 +254,17 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
     try {
       const attachments = await uploadFiles();
 
+      const senderType =  isAdminView ? 'admin' : 'user';
+      const senderName = isAdminView ? 'Elismet Support Team' : `${user.first_name} ${user.last_name}`;
+      const senderEmail = isAdminView ? 'support@elismet.com' : user.email;
+
       const { error: msgError } = await supabase
         .from('conversation_messages')
         .insert({
           conversation_id: conversationId,
-          sender_type: 'user',
-          sender_name: `${user.first_name} ${user.last_name}`,
-          sender_email: user.email,
+          sender_type: senderType,
+          sender_name: senderName,
+          sender_email: senderEmail,
           message_content: newMessage.trim() || '(File attachment)',
           attachments: attachments
         });
