@@ -1,63 +1,61 @@
 
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { DollarSign, AlertCircle, CheckCircle } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import PhasePaymentManager from '@/components/PhasePaymentManager';
+import { Card, CardContent } from '@/components/ui/card';
+import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function PaymentsAndDues() {
-  const payments = [
-    { project: 'Website Redesign', amount: 1200, status: 'Paid', date: 'Nov 15' },
-    { project: 'Mobile App', amount: 800, status: 'Pending', date: 'Nov 20' },
-    { project: 'Brand Identity', amount: 600, status: 'Overdue', date: 'Nov 10' },
-    { project: 'Logo Design', amount: 400, status: 'Paid', date: 'Oct 28' },
-  ];
+  const { user } = useAuth();
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Paid': return 'default';
-      case 'Pending': return 'secondary';
-      case 'Overdue': return 'destructive';
-      default: return 'default';
-    }
-  };
+  const { data: project, isLoading } = useQuery({
+    queryKey: ['user-project', user?.id],
+    queryFn: async () => {
+      if (!user?.id) throw new Error('User not authenticated');
+      
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id
+  });
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'Paid': return <CheckCircle className="w-4 h-4" />;
-      case 'Pending': return <DollarSign className="w-4 h-4" />;
-      case 'Overdue': return <AlertCircle className="w-4 h-4" />;
-      default: return <DollarSign className="w-4 h-4" />;
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!project) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center">
+          <p className="text-muted-foreground">No active project found</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div>
         <h2 className="text-2xl font-bold">Payments & Dues</h2>
-        <Badge variant="outline">$3,000 Total</Badge>
+        <p className="text-muted-foreground">
+          View and manage your project phase payments
+        </p>
       </div>
-
-      <div className="grid gap-4">
-        {payments.map((payment, index) => (
-          <Card key={index}>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-base">{payment.project}</CardTitle>
-                  <CardDescription>Due {payment.date}</CardDescription>
-                </div>
-                <div className="text-right">
-                  <div className="text-lg font-semibold mb-1">${payment.amount}</div>
-                  <Badge variant={getStatusColor(payment.status)} className="gap-1">
-                    {getStatusIcon(payment.status)}
-                    {payment.status}
-                  </Badge>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-        ))}
-      </div>
+      
+      <PhasePaymentManager projectId={project.id} isAdminView={false} />
     </div>
   );
 }

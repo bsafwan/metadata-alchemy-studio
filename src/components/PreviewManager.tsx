@@ -9,11 +9,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Eye, CheckCircle, XCircle, Clock, MessageSquare, Link as LinkIcon, Github, Image, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import FileUploader from './FileUploader';
+import FileDisplay from './FileDisplay';
 
 interface PreviewFile {
   type: string;
   url: string;
   description: string;
+  name?: string;
+  size?: number;
 }
 
 interface Preview {
@@ -31,6 +35,7 @@ interface Preview {
     phase_name: string;
     phase_order: number;
   };
+  uploaded_files: any[];
 }
 
 interface ProjectPhase {
@@ -54,7 +59,8 @@ export default function PreviewManager({ projectId, isAdminView = false }: Previ
     phase_id: '',
     title: '',
     description: '',
-    preview_files: [{ type: 'link', url: '', description: '' }]
+    preview_files: [{ type: 'link', url: '', description: '' }],
+    uploaded_files: []
   });
 
   useEffect(() => {
@@ -141,7 +147,8 @@ export default function PreviewManager({ projectId, isAdminView = false }: Previ
           phase_id: formData.phase_id,
           title: formData.title,
           description: formData.description,
-          preview_files: formData.preview_files.filter(file => file.url)
+          preview_files: formData.preview_files.filter(file => file.url),
+          uploaded_files: formData.uploaded_files || []
         }]);
       
       if (error) throw error;
@@ -160,9 +167,14 @@ export default function PreviewManager({ projectId, isAdminView = false }: Previ
       phase_id: '',
       title: '',
       description: '',
-      preview_files: [{ type: 'link', url: '', description: '' }]
+      preview_files: [{ type: 'link', url: '', description: '' }],
+      uploaded_files: []
     });
     setShowForm(false);
+  };
+
+  const handleFilesUploaded = (files: any[]) => {
+    setFormData({ ...formData, uploaded_files: files });
   };
 
   const addPreviewFile = () => {
@@ -329,6 +341,15 @@ export default function PreviewManager({ projectId, isAdminView = false }: Previ
                 ))}
               </div>
 
+              <div>
+                <Label>Upload Files</Label>
+                <FileUploader
+                  onFilesUploaded={handleFilesUploaded}
+                  maxFiles={10}
+                  acceptedTypes={['image/*', 'video/*', '.pdf', '.doc', '.docx', '.ppt', '.pptx', '.zip', '.txt']}
+                />
+              </div>
+
               <div className="flex gap-2">
                 <Button type="submit" disabled={loading}>
                   {loading ? 'Creating...' : 'Create Preview'}
@@ -384,6 +405,12 @@ export default function PreviewManager({ projectId, isAdminView = false }: Previ
                       </a>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {preview.uploaded_files && preview.uploaded_files.length > 0 && (
+                <div className="mb-4">
+                  <FileDisplay files={preview.uploaded_files} />
                 </div>
               )}
 
