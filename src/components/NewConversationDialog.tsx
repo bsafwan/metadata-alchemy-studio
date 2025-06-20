@@ -39,14 +39,6 @@ const NewConversationDialog = ({ onConversationCreated }: NewConversationDialogP
 
         console.log('Uploading file:', fileName, 'to path:', filePath);
 
-        // Get current session for authenticated requests
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError || !session) {
-          console.error('Session error:', sessionError);
-          throw new Error('Authentication required for file upload');
-        }
-
         const { error: uploadError } = await supabase.storage
           .from('conversation-files')
           .upload(filePath, file);
@@ -104,14 +96,6 @@ const NewConversationDialog = ({ onConversationCreated }: NewConversationDialogP
     console.log('Creating conversation for user:', user.id);
     setLoading(true);
     try {
-      // Get current session for authenticated requests
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !session) {
-        console.error('Session error:', sessionError);
-        throw new Error('Authentication required');
-      }
-
       // Create conversation
       const { data: conversation, error: convError } = await supabase
         .from('conversations')
