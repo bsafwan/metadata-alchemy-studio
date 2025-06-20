@@ -28,9 +28,44 @@ export default function ProjectProgressionManager({
     
     setLoading(true);
     try {
+      // First, ensure the total project amount is set
+      let projectTotal = totalAmount;
+      
+      if (!projectTotal || projectTotal === 0) {
+        // Get the total from agreed negotiations
+        const { data: negotiation } = await supabase
+          .from('total_price_negotiations')
+          .select('proposed_total_price')
+          .eq('project_id', projectId)
+          .eq('status', 'accepted')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (negotiation) {
+          projectTotal = negotiation.proposed_total_price;
+        } else {
+          // Fallback: calculate from project phases
+          const { data: phases } = await supabase
+            .from('project_phases')
+            .select('final_agreed_price, admin_proposed_price')
+            .eq('project_id', projectId);
+
+          if (phases && phases.length > 0) {
+            projectTotal = phases.reduce((sum, phase) => 
+              sum + (phase.final_agreed_price || phase.admin_proposed_price || 0), 0
+            );
+          }
+        }
+      }
+
+      // Update both progression and total amount
       const { error } = await supabase
         .from('projects')
-        .update({ progression_percentage: newPercentage })
+        .update({ 
+          progression_percentage: newPercentage,
+          total_project_amount: projectTotal
+        })
         .eq('id', projectId);
 
       if (error) throw error;

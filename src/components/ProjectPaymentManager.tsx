@@ -39,9 +39,9 @@ export default function ProjectPaymentManager({ projectId, isAdminView = false }
     fetchPayments();
     fetchProjectData();
     
-    // Real-time subscription
-    const channel = supabase
-      .channel('project-payments')
+    // Real-time subscription for payments
+    const paymentsChannel = supabase
+      .channel('project-payments-updates')
       .on(
         'postgres_changes',
         {
@@ -51,13 +51,37 @@ export default function ProjectPaymentManager({ projectId, isAdminView = false }
           filter: `project_id=eq.${projectId}`
         },
         () => {
+          console.log('Payment update detected, refreshing...');
           fetchPayments();
         }
       )
       .subscribe();
 
+    // Real-time subscription for project updates (to detect progression changes)
+    const projectChannel = supabase
+      .channel('project-progression-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'projects',
+          filter: `id=eq.${projectId}`
+        },
+        (payload) => {
+          console.log('Project update detected:', payload);
+          // Refresh payments when project progression changes
+          setTimeout(() => {
+            fetchPayments();
+            fetchProjectData();
+          }, 1000); // Small delay to ensure trigger has executed
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(paymentsChannel);
+      supabase.removeChannel(projectChannel);
     };
   }, [projectId]);
 
@@ -222,6 +246,11 @@ export default function ProjectPaymentManager({ projectId, isAdminView = false }
                 <div>
                   <CardTitle className="text-lg">
                     50% Milestone Payment
+                    {payment.is_automatic && (
+                      <Badge variant="outline" className="ml-2 text-xs">
+                        Auto-generated
+                      </Badge>
+                    )}
                   </CardTitle>
                   <CardDescription>
                     Amount: ${payment.amount.toFixed(2)}

@@ -202,6 +202,17 @@ export default function TotalPriceNegotiator({
 
       if (updateError) throw updateError;
 
+      // Update project total amount - this will trigger the payment creation if needed
+      const { error: projectError } = await supabase
+        .from('projects')
+        .update({ 
+          total_project_amount: price,
+          status: 'active'
+        })
+        .eq('id', projectId);
+
+      if (projectError) throw projectError;
+
       // Update phase prices using the database function
       const { error: functionError } = await supabase
         .rpc('update_phase_prices_from_total', {
@@ -210,12 +221,6 @@ export default function TotalPriceNegotiator({
         });
 
       if (functionError) throw functionError;
-
-      // Update project status
-      await supabase
-        .from('projects')
-        .update({ status: 'active' })
-        .eq('id', projectId);
 
       await sendNegotiationEmail(updatedNegotiation, 'accepted');
       
