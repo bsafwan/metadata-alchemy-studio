@@ -30,34 +30,46 @@ serve(async (req) => {
 
     const { conversationId, messageContent, attachments = [] }: EmailPayload = await req.json()
 
-    // Get conversation details with the latest message to determine sender
+    console.log(`Processing email for conversation: ${conversationId}`)
+
+    // Get conversation details with proper foreign key reference
     const { data: conversation, error: convError } = await supabaseClient
       .from('conversations')
       .select(`
         *,
-        users!inner(*),
-        projects(*),
-        conversation_messages(sender_type, created_at)
+        users!conversations_user_id_fkey(*),
+        projects!conversations_project_id_fkey(*)
       `)
       .eq('id', conversationId)
       .single()
 
-    if (convError || !conversation) {
+    if (convError) {
+      console.error('Conversation query error:', convError)
+      throw new Error(`Failed to fetch conversation: ${convError.message}`)
+    }
+
+    if (!conversation) {
+      console.error('No conversation found with ID:', conversationId)
       throw new Error('Conversation not found')
     }
+
+    console.log(`Found conversation: ${conversation.subject}`)
 
     // Get the latest message to determine who sent it
     const { data: latestMessage, error: msgError } = await supabaseClient
       .from('conversation_messages')
-      .select('sender_type')
+      .select('sender_type, sender_name')
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: false })
       .limit(1)
       .single()
 
     if (msgError) {
-      throw new Error('Could not determine message sender')
+      console.error('Latest message query error:', msgError)
+      throw new Error(`Could not determine message sender: ${msgError.message}`)
     }
+
+    console.log(`Latest message sender: ${latestMessage.sender_type}`)
 
     // Get previous messages (last 5 excluding current)
     const { data: previousMessages } = await supabaseClient
@@ -229,7 +241,9 @@ ${previousMsgsList}
     })
 
     if (!emailResponse.ok) {
-      throw new Error('Failed to send email')
+      const errorText = await emailResponse.text()
+      console.error('Email sending failed:', errorText)
+      throw new Error(`Failed to send email: ${errorText}`)
     }
 
     console.log('Email notification sent successfully')
