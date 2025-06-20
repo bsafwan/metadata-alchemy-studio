@@ -9,10 +9,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { hashPassword, createUserSession } from '@/utils/auth';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -24,33 +28,57 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // Simple authentication logic (replace with actual authentication)
-      // For now, we'll use localStorage to simulate login
+      const passwordHash = await hashPassword(formData.password);
+
+      // Find user in database
+      const { data: userData, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', formData.email)
+        .eq('password_hash', passwordHash)
+        .single();
+
+      if (error || !userData) {
+        toast({
+          title: "Login Failed",
+          description: "Invalid email or password. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!userData.is_verified) {
+        toast({
+          title: "Account Not Verified",
+          description: "Please verify your email address first.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Create session
+      await createUserSession(userData.id);
       
-      console.log('Login attempt:', formData);
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Store login state
-      localStorage.setItem('user', JSON.stringify({
-        email: formData.email,
-        isLoggedIn: true,
-        loginTime: new Date().toISOString()
-      }));
+      // Set user in context
+      login(userData);
 
       toast({
         title: "Login Successful",
         description: "Welcome back! Redirecting to your dashboard...",
       });
 
-      // Navigate to dashboard
-      navigate('/dashboard');
+      // Check if user has completed project setup
+      const hasProject = localStorage.getItem('user_project_created');
+      if (!hasProject) {
+        navigate('/project-setup');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (error) {
       console.error('Login error:', error);
       toast({
         title: "Login Failed",
-        description: "Invalid email or password. Please try again.",
+        description: "Something went wrong. Please try again.",
         variant: "destructive"
       });
     } finally {

@@ -4,6 +4,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Author from "./pages/Author";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -11,7 +13,7 @@ import TermsOfService from "./pages/TermsOfService";
 import GetStarted from "./pages/GetStarted";
 import Onboard from "./pages/Onboard";
 import VerifyOTP from "./pages/VerifyOTP";
-import CRMAssessment from "./pages/CRMAssessment";
+import ProjectSetup from "./pages/ProjectSetup";
 import Login from "./pages/Login";
 import ContactDirect from "./pages/ContactDirect";
 import LiveChat from "./pages/LiveChat";
@@ -50,56 +52,66 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/author" element={<Author />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/terms-of-service" element={<TermsOfService />} />
-          <Route path="/get-started" element={<GetStarted />} />
-          <Route path="/onboard" element={<Onboard />} />
-          <Route path="/verify-otp" element={<VerifyOTP />} />
-          <Route path="/crm-assessment" element={<CRMAssessment />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/contact-direct" element={<ContactDirect />} />
-          <Route path="/live-chat" element={<LiveChat />} />
-          
-          {/* Client Dashboard Routes */}
-          <Route path="/dashboard" element={<DashboardLayout />}>
-            <Route index element={<DashboardHome />} />
-            <Route path="conversations" element={<Conversations />} />
-            <Route path="project-overview" element={<ProjectOverview />} />
-            <Route path="demos" element={<DemosAndPreviews />} />
-            <Route path="payments" element={<PaymentsAndDues />} />
-            <Route path="status" element={<Status />} />
-            <Route path="delivery" element={<DeliveryManagement />} />
-            <Route path="support" element={<SupportTickets />} />
-          </Route>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/author" element={<Author />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
+            <Route path="/get-started" element={<GetStarted />} />
+            <Route path="/onboard" element={<Onboard />} />
+            <Route path="/verify-otp" element={<VerifyOTP />} />
+            <Route path="/project-setup" element={
+              <ProtectedRoute>
+                <ProjectSetup />
+              </ProtectedRoute>
+            } />
+            <Route path="/login" element={<Login />} />
+            <Route path="/contact-direct" element={<ContactDirect />} />
+            <Route path="/live-chat" element={<LiveChat />} />
+            
+            {/* Client Dashboard Routes */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute requireProject={true}>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }>
+              <Route index element={<DashboardHome />} />
+              <Route path="conversations" element={<Conversations />} />
+              <Route path="project-overview" element={<ProjectOverview />} />
+              <Route path="demos" element={<DemosAndPreviews />} />
+              <Route path="payments" element={<PaymentsAndDues />} />
+              <Route path="status" element={<Status />} />
+              <Route path="delivery" element={<DeliveryManagement />} />
+              <Route path="support" element={<SupportTickets />} />
+            </Route>
 
-          {/* Admin Dashboard Routes */}
-          <Route path="/admin" element={<AdminDashboardLayout />}>
-            <Route index element={<AdminDashboardHome />} />
-            <Route path="clients" element={<AdminClients />} />
-            <Route path="projects" element={<AdminProjects />} />
-            <Route path="status" element={<AdminStatus />} />
-            <Route path="payments" element={<AdminPayments />} />
-            <Route path="messages" element={<AdminMessages />} />
-            <Route path="settings" element={<AdminSettings />} />
-          </Route>
+            {/* Admin Dashboard Routes */}
+            <Route path="/admin" element={<AdminDashboardLayout />}>
+              <Route index element={<AdminDashboardHome />} />
+              <Route path="clients" element={<AdminClients />} />
+              <Route path="projects" element={<AdminProjects />} />
+              <Route path="status" element={<AdminStatus />} />
+              <Route path="payments" element={<AdminPayments />} />
+              <Route path="messages" element={<AdminMessages />} />
+              <Route path="settings" element={<AdminSettings />} />
+            </Route>
 
-          {/* Project-specific Admin Routes */}
-          <Route path="/admin/project/:projectId" element={<ProjectAdminLayout />}>
-            <Route index element={<ProjectAdminOverview />} />
-            <Route path="messages" element={<ProjectAdminMessages />} />
-            <Route path="demos" element={<ProjectAdminDemos />} />
-            <Route path="payments" element={<ProjectAdminPayments />} />
-            <Route path="status" element={<ProjectAdminStatus />} />
-            <Route path="delivery" element={<ProjectAdminDelivery />} />
-            <Route path="support" element={<ProjectAdminSupport />} />
-          </Route>
+            {/* Project-specific Admin Routes */}
+            <Route path="/admin/project/:projectId" element={<ProjectAdminLayout />}>
+              <Route index element={<ProjectAdminOverview />} />
+              <Route path="messages" element={<ProjectAdminMessages />} />
+              <Route path="demos" element={<ProjectAdminDemos />} />
+              <Route path="payments" element={<ProjectAdminPayments />} />
+              <Route path="status" element={<ProjectAdminStatus />} />
+              <Route path="delivery" element={<ProjectAdminDelivery />} />
+              <Route path="support" element={<ProjectAdminSupport />} />
+            </Route>
 
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

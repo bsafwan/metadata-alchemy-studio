@@ -3,17 +3,21 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import { ArrowLeft, Mail, Shield } from 'lucide-react';
+import { ArrowLeft, Shield } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useToast } from '@/components/ui/use-toast';
 import { EmailService } from '@/utils/emailService';
+import { supabase } from '@/integrations/supabase/client';
+import { hashPassword, createUserSession } from '@/utils/auth';
+import { useAuth } from '@/contexts/AuthContext';
 
 const VerifyOTP = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { login } = useAuth();
   const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
@@ -28,7 +32,6 @@ const VerifyOTP = () => {
       return;
     }
     
-    // Generate and send OTP
     sendOTP();
   }, [registrationData, navigate]);
 
@@ -46,7 +49,7 @@ const VerifyOTP = () => {
   const sendOTP = async () => {
     const newOTP = generateOTP();
     setGeneratedOTP(newOTP);
-    console.log('Generated OTP:', newOTP); // For testing purposes
+    console.log('Generated OTP:', newOTP);
 
     try {
       const emailSent = await EmailService.sendEmail({
@@ -119,19 +122,48 @@ const VerifyOTP = () => {
     setIsLoading(true);
 
     try {
-      // Here we would normally register the user in the database
-      // For now, we'll just navigate to the CRM needs assessment
+      // Hash the password
+      const passwordHash = await hashPassword(registrationData.password);
+
+      // Create user in database
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .insert({
+          first_name: registrationData.firstName,
+          last_name: registrationData.lastName,
+          email: registrationData.email,
+          business_name: registrationData.businessName,
+          business_category: registrationData.businessCategory,
+          password_hash: passwordHash,
+          is_verified: true
+        })
+        .select()
+        .single();
+
+      if (userError) {
+        if (userError.code === '23505') { // Unique constraint violation
+          toast({
+            title: "Account Exists",
+            description: "An account with this email already exists.",
+            variant: "destructive"
+          });
+          return;
+        }
+        throw userError;
+      }
+
+      // Create session
+      await createUserSession(userData.id);
       
+      // Set user in context
+      login(userData);
+
       toast({
         title: "Email Verified!",
-        description: "Your email has been successfully verified.",
+        description: "Your account has been created successfully.",
       });
 
-      navigate('/crm-assessment', { 
-        state: { 
-          registrationData: registrationData 
-        } 
-      });
+      navigate('/project-setup');
     } catch (error) {
       console.error('Verification error:', error);
       toast({

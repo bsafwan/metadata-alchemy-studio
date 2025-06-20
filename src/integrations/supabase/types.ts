@@ -60,6 +60,172 @@ export type Database = {
         }
         Relationships: []
       }
+      messages: {
+        Row: {
+          content: string
+          id: string
+          message_type: string
+          project_id: string | null
+          recipient_email: string
+          sender_email: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          id?: string
+          message_type: string
+          project_id?: string | null
+          recipient_email: string
+          sender_email: string
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          id?: string
+          message_type?: string
+          project_id?: string | null
+          recipient_email?: string
+          sender_email?: string
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          business_goals: string | null
+          created_at: string
+          current_challenges: string | null
+          custom_requirements: string | null
+          id: string
+          project_name: string
+          selected_features: string[]
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          business_goals?: string | null
+          created_at?: string
+          current_challenges?: string | null
+          custom_requirements?: string | null
+          id?: string
+          project_name: string
+          selected_features?: string[]
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          business_goals?: string | null
+          created_at?: string
+          current_challenges?: string | null
+          custom_requirements?: string | null
+          id?: string
+          project_name?: string
+          selected_features?: string[]
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_sessions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          session_token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          session_token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          session_token?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          business_category: string
+          business_name: string
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          is_verified: boolean
+          last_name: string
+          password_hash: string
+          updated_at: string
+        }
+        Insert: {
+          business_category: string
+          business_name: string
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          is_verified?: boolean
+          last_name: string
+          password_hash: string
+          updated_at?: string
+        }
+        Update: {
+          business_category?: string
+          business_name?: string
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          is_verified?: boolean
+          last_name?: string
+          password_hash?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
