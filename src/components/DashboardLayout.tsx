@@ -20,7 +20,8 @@ import {
   CreditCard, 
   Activity, 
   Truck, 
-  HeadphonesIcon 
+  HeadphonesIcon,
+  User
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -33,6 +34,7 @@ const sidebarItems = [
   { title: 'Status', icon: Activity, url: '/dashboard/status' },
   { title: 'Delivery Management', icon: Truck, url: '/dashboard/delivery' },
   { title: 'Support Tickets', icon: HeadphonesIcon, url: '/dashboard/support' },
+  { title: 'Account', icon: User, url: '/account' },
 ];
 
 export default function DashboardLayout() {

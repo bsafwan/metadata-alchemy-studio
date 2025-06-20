@@ -90,6 +90,12 @@ const ProjectSetup = () => {
 
       if (projectError) throw projectError;
 
+      // Mark user as having completed initial setup
+      await supabase
+        .from('users')
+        .update({ has_completed_initial_setup: true })
+        .eq('id', user!.id);
+
       // Create initial message for admin
       const messageContent = `New Project Request from ${user!.first_name} ${user!.last_name}
 
@@ -154,9 +160,8 @@ ${businessGoals || 'None specified'}`;
         text: messageContent
       });
 
-      // Mark project as created
-      localStorage.setItem('user_project_created', 'true');
-      localStorage.setItem('project_id', projectData.id);
+      // Set selected project
+      localStorage.setItem('selected_project_id', projectData.id);
 
       toast({
         title: "Project Created!",

@@ -115,6 +115,7 @@ export type Database = {
           current_challenges: string | null
           custom_requirements: string | null
           id: string
+          is_active: boolean
           project_name: string
           selected_features: string[]
           status: string
@@ -127,6 +128,7 @@ export type Database = {
           current_challenges?: string | null
           custom_requirements?: string | null
           id?: string
+          is_active?: boolean
           project_name: string
           selected_features?: string[]
           status?: string
@@ -139,6 +141,7 @@ export type Database = {
           current_challenges?: string | null
           custom_requirements?: string | null
           id?: string
+          is_active?: boolean
           project_name?: string
           selected_features?: string[]
           status?: string
@@ -194,6 +197,7 @@ export type Database = {
           created_at: string
           email: string
           first_name: string
+          has_completed_initial_setup: boolean
           id: string
           is_verified: boolean
           last_name: string
@@ -206,6 +210,7 @@ export type Database = {
           created_at?: string
           email: string
           first_name: string
+          has_completed_initial_setup?: boolean
           id?: string
           is_verified?: boolean
           last_name: string
@@ -218,6 +223,7 @@ export type Database = {
           created_at?: string
           email?: string
           first_name?: string
+          has_completed_initial_setup?: boolean
           id?: string
           is_verified?: boolean
           last_name?: string

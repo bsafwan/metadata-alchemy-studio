@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -43,6 +42,7 @@ import ProjectAdminStatus from "./pages/ProjectAdminStatus";
 import ProjectAdminDelivery from "./pages/ProjectAdminDelivery";
 import ProjectAdminSupport from "./pages/ProjectAdminSupport";
 import NotFound from "./pages/NotFound";
+import Account from "./pages/Account";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +64,11 @@ const App = () => (
             <Route path="/project-setup" element={
               <ProtectedRoute>
                 <ProjectSetup />
+              </ProtectedRoute>
+            } />
+            <Route path="/account" element={
+              <ProtectedRoute>
+                <Account />
               </ProtectedRoute>
             } />
             <Route path="/login" element={<Login />} />
