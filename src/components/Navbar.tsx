@@ -3,10 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
+import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -61,12 +64,25 @@ const Navbar = () => {
               {link.label}
             </a>
           ))}
-          <Button 
-            className="bg-elismet-blue hover:bg-elismet-lightBlue text-white animate-slide-down"
-            style={{ animationDelay: `${navLinks.length * 0.1}s` }}
-          >
-            Get Started
-          </Button>
+          {user ? (
+            <Link to="/dashboard">
+              <Button 
+                className="bg-elismet-blue hover:bg-elismet-lightBlue text-white animate-slide-down"
+                style={{ animationDelay: `${navLinks.length * 0.1}s` }}
+              >
+                Dashboard
+              </Button>
+            </Link>
+          ) : (
+            <Link to="/get-started">
+              <Button 
+                className="bg-elismet-blue hover:bg-elismet-lightBlue text-white animate-slide-down"
+                style={{ animationDelay: `${navLinks.length * 0.1}s` }}
+              >
+                Get Started
+              </Button>
+            </Link>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -97,9 +113,19 @@ const Navbar = () => {
               {link.label}
             </a>
           ))}
-          <Button className="bg-elismet-blue hover:bg-elismet-lightBlue text-white w-full mt-4">
-            Get Started
-          </Button>
+          {user ? (
+            <Link to="/dashboard" onClick={toggleMenu}>
+              <Button className="bg-elismet-blue hover:bg-elismet-lightBlue text-white w-full mt-4">
+                Dashboard
+              </Button>
+            </Link>
+          ) : (
+            <Link to="/get-started" onClick={toggleMenu}>
+              <Button className="bg-elismet-blue hover:bg-elismet-lightBlue text-white w-full mt-4">
+                Get Started
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </nav>

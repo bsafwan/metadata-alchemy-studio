@@ -3,11 +3,12 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Settings, User, Building2, Mail, Calendar } from 'lucide-react';
+import { Plus, Settings, User, Building2, Mail, Calendar, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { logout } from '@/utils/auth';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -21,7 +22,7 @@ interface Project {
 
 const Account = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const { toast } = useToast();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,6 +64,26 @@ const Account = () => {
     navigate('/project-setup');
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setUser(null);
+      localStorage.removeItem('selected_project_id');
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+      });
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast({
+        title: "Logout Failed",
+        description: "There was an error logging out. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
@@ -83,6 +104,22 @@ const Account = () => {
       
       <div className="container mx-auto px-6 py-16">
         <div className="max-w-4xl mx-auto">
+          {/* Header with Logout */}
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Account Management</h1>
+              <p className="text-gray-600 mt-2">Manage your account and projects</p>
+            </div>
+            <Button 
+              onClick={handleLogout}
+              variant="outline"
+              className="flex items-center text-red-600 border-red-200 hover:bg-red-50"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
+          </div>
+
           {/* User Info Section */}
           <Card className="mb-8">
             <CardHeader>
@@ -164,7 +201,7 @@ const Account = () => {
                           <h3 className="font-semibold text-lg">{project.project_name}</h3>
                           <div className="flex items-center gap-2 mt-2">
                             <Badge className={getStatusColor(project.status)}>
-                              {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
+                              {project.status.charAt(0).toUpperCase() + project.status.slice(1).replace('_', ' ')}
                             </Badge>
                             <span className="text-sm text-gray-500 flex items-center">
                               <Calendar className="w-3 h-3 mr-1" />

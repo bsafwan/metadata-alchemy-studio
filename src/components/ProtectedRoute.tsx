@@ -16,6 +16,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireProjec
   const [projectsLoading, setProjectsLoading] = useState(true);
   const [userProjects, setUserProjects] = useState<any[]>([]);
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
+  const [hasCompletedInitialSetup, setHasCompletedInitialSetup] = useState(false);
 
   useEffect(() => {
     if (user && requireProject) {
@@ -27,6 +28,18 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireProjec
 
   const checkUserProjects = async () => {
     try {
+      // Check user's setup status
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('has_completed_initial_setup')
+        .eq('id', user!.id)
+        .single();
+
+      if (userError) throw userError;
+
+      setHasCompletedInitialSetup(userData.has_completed_initial_setup);
+
+      // Get user's projects
       const { data, error } = await supabase
         .from('projects')
         .select('*')
@@ -37,16 +50,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireProjec
 
       setUserProjects(data || []);
       
-      // Check if user has completed initial setup
+      // Handle project selection
       if (data && data.length > 0) {
-        // Update user's initial setup status if not already done
-        await supabase
-          .from('users')
-          .update({ has_completed_initial_setup: true })
-          .eq('id', user!.id);
-
-        // Check for selected project
         const savedProjectId = localStorage.getItem('selected_project_id');
+        
+        // Check if saved project exists and belongs to user
         if (savedProjectId && data.some(p => p.id === savedProjectId)) {
           setSelectedProject(savedProjectId);
         } else if (data.length === 1) {
@@ -54,6 +62,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireProjec
           setSelectedProject(data[0].id);
           localStorage.setItem('selected_project_id', data[0].id);
         }
+        // If multiple projects and no valid selection, user will see selector
       }
     } catch (error) {
       console.error('Error checking projects:', error);
@@ -64,6 +73,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireProjec
 
   const handleProjectSelected = (projectId: string) => {
     setSelectedProject(projectId);
+    localStorage.setItem('selected_project_id', projectId);
   };
 
   if (loading || projectsLoading) {
@@ -79,14 +89,19 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireProjec
   }
 
   if (requireProject) {
-    // If no projects exist, redirect to project setup
-    if (userProjects.length === 0) {
+    // If user hasn't completed initial setup AND has no projects, redirect to setup
+    if (!hasCompletedInitialSetup && userProjects.length === 0) {
       return <Navigate to="/project-setup" replace />;
+    }
+
+    // If user has no projects but has completed setup, they can create more from account page
+    if (userProjects.length === 0) {
+      return <Navigate to="/account" replace />;
     }
 
     // If multiple projects but none selected, show selector
     if (userProjects.length > 1 && !selectedProject) {
-      return <ProjectSelector onProjectSelected={handleProjectSelected} />;
+      return <ProjectSelector projects={userProjects} onProjectSelected={handleProjectSelected} />;
     }
   }
 
