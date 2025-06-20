@@ -28,36 +28,50 @@ export default function ProjectProgressionManager({
     
     setLoading(true);
     try {
+      console.log('Updating progression to:', newPercentage, 'for project:', projectId);
+      
       // First, ensure the total project amount is set
       let projectTotal = totalAmount;
       
       if (!projectTotal || projectTotal === 0) {
+        console.log('Total amount is 0, fetching from negotiations...');
+        
         // Get the total from agreed negotiations
-        const { data: negotiation } = await supabase
+        const { data: negotiation, error: negError } = await supabase
           .from('total_price_negotiations')
           .select('proposed_total_price')
           .eq('project_id', projectId)
           .eq('status', 'accepted')
           .order('created_at', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
-        if (negotiation) {
+        if (negError) {
+          console.error('Error fetching negotiations:', negError);
+        } else if (negotiation) {
           projectTotal = negotiation.proposed_total_price;
+          console.log('Found negotiated total:', projectTotal);
         } else {
+          console.log('No accepted negotiations found, calculating from phases...');
+          
           // Fallback: calculate from project phases
-          const { data: phases } = await supabase
+          const { data: phases, error: phaseError } = await supabase
             .from('project_phases')
             .select('final_agreed_price, admin_proposed_price')
             .eq('project_id', projectId);
 
-          if (phases && phases.length > 0) {
+          if (phaseError) {
+            console.error('Error fetching phases:', phaseError);
+          } else if (phases && phases.length > 0) {
             projectTotal = phases.reduce((sum, phase) => 
               sum + (phase.final_agreed_price || phase.admin_proposed_price || 0), 0
             );
+            console.log('Calculated total from phases:', projectTotal);
           }
         }
       }
+
+      console.log('Final project total:', projectTotal);
 
       // Update both progression and total amount
       const { error } = await supabase
@@ -68,8 +82,12 @@ export default function ProjectProgressionManager({
         })
         .eq('id', projectId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating project:', error);
+        throw error;
+      }
       
+      console.log('Project updated successfully');
       toast.success(`Project progression updated to ${newPercentage}%`);
       onProgressionUpdate();
     } catch (error) {
@@ -147,7 +165,7 @@ export default function ProjectProgressionManager({
           </Button>
         </div>
 
-        {currentProgression >= 50 && (
+        {currentProgression >= 50 && totalAmount > 0 && (
           <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
             <p className="text-sm text-green-700">
               🎉 Automatic 50% payment initialized for ${(totalAmount * 0.5).toFixed(2)}
