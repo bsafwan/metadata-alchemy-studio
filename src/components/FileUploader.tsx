@@ -32,19 +32,33 @@ export default function FileUploader({
 
   const uploadFile = async (file: File): Promise<UploadedFile | null> => {
     try {
+      console.log('Starting upload for file:', file.name);
+      
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `uploads/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('project-files')
-        .upload(filePath, file);
+      console.log('Uploading to path:', filePath);
 
-      if (uploadError) throw uploadError;
+      const { data, error: uploadError } = await supabase.storage
+        .from('project-files')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
+
+      console.log('Upload successful:', data);
 
       const { data: { publicUrl } } = supabase.storage
         .from('project-files')
         .getPublicUrl(filePath);
+
+      console.log('Public URL:', publicUrl);
 
       return {
         name: file.name,
@@ -54,7 +68,7 @@ export default function FileUploader({
       };
     } catch (error) {
       console.error('Error uploading file:', error);
-      toast.error(`Failed to upload ${file.name}`);
+      toast.error(`Failed to upload ${file.name}: ${error.message || 'Unknown error'}`);
       return null;
     }
   };
@@ -75,6 +89,8 @@ export default function FileUploader({
 
     for (let i = 0; i < totalFiles; i++) {
       const file = files[i];
+      console.log(`Uploading file ${i + 1}/${totalFiles}:`, file.name);
+      
       const uploadedFile = await uploadFile(file);
       
       if (uploadedFile) {
@@ -92,6 +108,8 @@ export default function FileUploader({
 
     if (newFiles.length > 0) {
       toast.success(`${newFiles.length} file(s) uploaded successfully`);
+    } else {
+      toast.error('No files were uploaded successfully');
     }
   }, [uploadedFiles, maxFiles, onFilesUploaded]);
 
