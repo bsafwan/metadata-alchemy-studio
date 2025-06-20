@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -29,9 +29,30 @@ export default function ProjectPlanManager({ projectId, isAdminView = false, onP
   const [project, setProject] = useState<any>(null);
   const { sendEmail, isSending } = useZohoMail();
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchProjectPlan();
     fetchProject();
+    
+    // Real-time subscription for project plans
+    const channel = supabase
+      .channel('project-plans')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'project_plans',
+          filter: `project_id=eq.${projectId}`
+        },
+        () => {
+          fetchProjectPlan();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [projectId]);
 
   const fetchProject = async () => {
@@ -74,14 +95,19 @@ export default function ProjectPlanManager({ projectId, isAdminView = false, onP
     if (!project) return;
 
     const customerName = `${project.users.first_name} ${project.users.last_name}`;
-    
-    // Fix email routing - admin sends to user, user sends to admin
     const recipientEmail = isAdminView 
-      ? project.users.email  // Admin sends to user
-      : 'bsafwanjamil677@gmail.com';  // User sends to admin
+      ? project.users.email 
+      : 'bsafwanjamil677@gmail.com';
     
     let subject = '';
     let templateData = {};
+
+    const planTable = {
+      projectName: project.project_name,
+      planDetails: planData.plan_details,
+      status: planData.status,
+      createdAt: new Date(planData.created_at).toLocaleDateString()
+    };
 
     switch (action) {
       case 'new_plan':
@@ -89,10 +115,9 @@ export default function ProjectPlanManager({ projectId, isAdminView = false, onP
         templateData = {
           customerName,
           projectName: project.project_name,
-          planDetails: planData.plan_details,
-          action: 'A new project plan has been created for your review',
-          actionRequired: 'Please review and confirm or provide feedback on the project plan',
-          projectStatus: 'Plan Review Required'
+          planTable,
+          action: 'A comprehensive project plan has been created for your review',
+          actionRequired: 'Please review and confirm or provide feedback on the project plan'
         };
         break;
 
@@ -101,22 +126,20 @@ export default function ProjectPlanManager({ projectId, isAdminView = false, onP
         templateData = {
           customerName: 'Admin',
           projectName: project.project_name,
-          planDetails: planData.plan_details,
+          planTable,
           action: `${customerName} has confirmed the project plan`,
-          actionRequired: 'You can now proceed with creating project phases and pricing',
-          projectStatus: 'Plan Confirmed - Ready for Pricing'
+          actionRequired: 'You can now proceed with creating project phases and pricing'
         };
         break;
 
       case 'rejected':
-        subject = `Project Plan Rejected - ${project.project_name}`;
+        subject = `Project Plan Needs Revision - ${project.project_name}`;
         templateData = {
           customerName: 'Admin',
           projectName: project.project_name,
-          planDetails: planData.plan_details,
-          action: `${customerName} has rejected the project plan`,
-          actionRequired: 'Please revise the project plan based on client feedback',
-          projectStatus: 'Plan Rejected - Revision Needed'
+          planTable,
+          action: `${customerName} has requested revisions to the project plan`,
+          actionRequired: 'Please revise the project plan based on client feedback'
         };
         break;
     }
@@ -146,11 +169,9 @@ export default function ProjectPlanManager({ projectId, isAdminView = false, onP
 
       if (error) throw error;
       
-      // Send email notification to user
       await sendPlanNotificationEmail(data, 'new_plan');
       
       toast.success('Project plan saved and user notified via email');
-      fetchProjectPlan();
       onPlanUpdate?.();
     } catch (error) {
       console.error('Error saving plan:', error);
@@ -174,11 +195,9 @@ export default function ProjectPlanManager({ projectId, isAdminView = false, onP
 
       if (error) throw error;
       
-      // Send email notification to admin
       await sendPlanNotificationEmail(data, status);
       
       toast.success(`Plan ${status} and admin notified via email`);
-      fetchProjectPlan();
       onPlanUpdate?.();
     } catch (error) {
       console.error('Error updating plan status:', error);
@@ -219,8 +238,8 @@ export default function ProjectPlanManager({ projectId, isAdminView = false, onP
         </CardTitle>
         <CardDescription>
           {isAdminView 
-            ? 'Create and manage the project overview plan with email notifications' 
-            : 'Review and confirm the project plan details'
+            ? 'Create and manage the project overview plan with real-time updates' 
+            : 'Review and confirm the project plan details - updates in real-time'
           }
         </CardDescription>
       </CardHeader>
@@ -250,7 +269,7 @@ export default function ProjectPlanManager({ projectId, isAdminView = false, onP
               </Button>
               {!plan && (
                 <p className="text-sm text-muted-foreground">
-                  User will receive an email notification when you save the plan
+                  User will receive real-time updates and email notification
                 </p>
               )}
             </div>
@@ -294,12 +313,12 @@ export default function ProjectPlanManager({ projectId, isAdminView = false, onP
                     {loading || isSending ? (
                       <>
                         <Mail className="w-4 h-4 mr-2 animate-pulse" />
-                        Rejecting...
+                        Requesting Changes...
                       </>
                     ) : (
                       <>
                         <XCircle className="w-4 h-4 mr-2" />
-                        Reject Plan
+                        Request Changes
                       </>
                     )}
                   </Button>
@@ -310,8 +329,8 @@ export default function ProjectPlanManager({ projectId, isAdminView = false, onP
                 <div className="bg-muted/50 p-4 rounded-lg">
                   <p className="text-sm text-muted-foreground">
                     {plan.status === 'confirmed' 
-                      ? '✅ Plan confirmed! Admin has been notified via email.' 
-                      : '❌ Plan rejected. Admin has been notified via email to revise.'}
+                      ? '✅ Plan confirmed! Admin has been notified and can proceed with pricing.' 
+                      : '📝 Changes requested. Admin has been notified to revise the plan.'}
                   </p>
                 </div>
               )}
@@ -321,7 +340,7 @@ export default function ProjectPlanManager({ projectId, isAdminView = false, onP
               <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground text-lg">No project plan available yet</p>
               <p className="text-sm text-muted-foreground mt-2">
-                The admin will create a project plan for your review
+                The admin will create a project plan for your review. You'll see updates in real-time.
               </p>
             </div>
           )

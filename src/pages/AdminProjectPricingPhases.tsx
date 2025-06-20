@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,7 +11,7 @@ import { Loader2 } from 'lucide-react';
 export default function AdminProjectPricingPhases() {
   const { projectId } = useParams();
 
-  const { data: project, isLoading } = useQuery({
+  const { data: project, isLoading, refetch } = useQuery({
     queryKey: ['admin-project', projectId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -29,8 +29,33 @@ export default function AdminProjectPricingPhases() {
     enabled: !!projectId
   });
 
+  // Real-time subscription for project updates
+  useEffect(() => {
+    if (!projectId) return;
+
+    const channel = supabase
+      .channel('admin-project-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'projects',
+          filter: `id=eq.${projectId}`
+        },
+        () => {
+          refetch();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [projectId, refetch]);
+
   const refetchData = () => {
-    // This would trigger a refetch of any dependent data
+    refetch();
   };
 
   if (isLoading) {
@@ -58,6 +83,10 @@ export default function AdminProjectPricingPhases() {
         <p className="text-muted-foreground">
           Project: {project.project_name} | Client: {project.users.first_name} {project.users.last_name}
         </p>
+        <div className="flex items-center gap-2 mt-1">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span className="text-xs text-green-600">Real-time updates enabled</span>
+        </div>
       </div>
 
       <ProjectPlanManager 

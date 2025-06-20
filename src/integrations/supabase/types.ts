@@ -245,6 +245,8 @@ export type Database = {
           created_at: string
           final_agreed_price: number | null
           id: string
+          is_percentage_locked: boolean | null
+          original_percentage: number | null
           phase_name: string
           phase_order: number
           project_id: string
@@ -257,6 +259,8 @@ export type Database = {
           created_at?: string
           final_agreed_price?: number | null
           id?: string
+          is_percentage_locked?: boolean | null
+          original_percentage?: number | null
           phase_name: string
           phase_order?: number
           project_id: string
@@ -269,6 +273,8 @@ export type Database = {
           created_at?: string
           final_agreed_price?: number | null
           id?: string
+          is_percentage_locked?: boolean | null
+          original_percentage?: number | null
           phase_name?: string
           phase_order?: number
           project_id?: string
@@ -371,6 +377,50 @@ export type Database = {
           },
         ]
       }
+      total_price_negotiations: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          original_total_price: number
+          project_id: string
+          proposed_by: string
+          proposed_total_price: number
+          round_number: number
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          original_total_price: number
+          project_id: string
+          proposed_by: string
+          proposed_total_price: number
+          round_number?: number
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          original_total_price?: number
+          project_id?: string
+          proposed_by?: string
+          proposed_total_price?: number
+          round_number?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "total_price_negotiations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_sessions: {
         Row: {
           created_at: string
@@ -450,7 +500,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      update_phase_prices_from_total: {
+        Args: { p_project_id: string; p_new_total: number }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
