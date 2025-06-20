@@ -39,6 +39,14 @@ const NewConversationDialog = ({ onConversationCreated }: NewConversationDialogP
 
         console.log('Uploading file:', fileName, 'to path:', filePath);
 
+        // Get current session for authenticated requests
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !session) {
+          console.error('Session error:', sessionError);
+          throw new Error('Authentication required for file upload');
+        }
+
         const { error: uploadError } = await supabase.storage
           .from('conversation-files')
           .upload(filePath, file);
@@ -96,6 +104,14 @@ const NewConversationDialog = ({ onConversationCreated }: NewConversationDialogP
     console.log('Creating conversation for user:', user.id);
     setLoading(true);
     try {
+      // Get current session for authenticated requests
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        console.error('Session error:', sessionError);
+        throw new Error('Authentication required');
+      }
+
       // Create conversation
       const { data: conversation, error: convError } = await supabase
         .from('conversations')
@@ -133,12 +149,6 @@ const NewConversationDialog = ({ onConversationCreated }: NewConversationDialogP
         throw msgError;
       }
 
-      // Get current session for proper auth
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error('No active session');
-      }
-
       // Send email notification
       try {
         console.log('Sending email notification...');
@@ -174,17 +184,6 @@ const NewConversationDialog = ({ onConversationCreated }: NewConversationDialogP
       toast.error('Failed to start conversation: ' + (error as Error).message);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const removeFile = (index: number) => {
-    if (files && fileInputRef.current) {
-      const dt = new DataTransfer();
-      const fileArray = Array.from(files);
-      fileArray.splice(index, 1);
-      fileArray.forEach(file => dt.items.add(file));
-      fileInputRef.current.files = dt.files;
-      setFiles(dt.files);
     }
   };
 
