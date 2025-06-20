@@ -50,7 +50,7 @@ export default function ProjectProgressionManager({
         if (negError) {
           console.error('Error fetching negotiations:', negError);
         } else if (negotiation) {
-          projectTotal = negoti​ation.proposed_total_price;
+          projectTotal = negotiation.proposed_total_price;
           console.log('Found negotiated total:', projectTotal);
         } else {
           console.log('No accepted negotiations found, calculating from phases...');
