@@ -42,7 +42,7 @@ export default function SimplePaymentSubmissionModal({
     setLoading(true);
     try {
       const { error } = await supabase
-        .from('phase_payments')
+        .from('project_payments')
         .update({
           payment_date: formData.payment_date,
           transaction_id: formData.transaction_id,

@@ -246,93 +246,6 @@ export type Database = {
           },
         ]
       }
-      phase_payments: {
-        Row: {
-          admin_notes: string | null
-          amount: number
-          created_at: string
-          due_date: string | null
-          id: string
-          invoice_pdf_path: string | null
-          is_automatic: boolean | null
-          paid_at: string | null
-          payment_channel: string | null
-          payment_date: string | null
-          payment_instructions_sent_at: string | null
-          payment_method: string | null
-          payoneer_link: string | null
-          phase_id: string
-          project_id: string
-          reference_number: string | null
-          status: string
-          submitted_at: string | null
-          transaction_id: string | null
-          updated_at: string
-          user_bank_details: string | null
-        }
-        Insert: {
-          admin_notes?: string | null
-          amount: number
-          created_at?: string
-          due_date?: string | null
-          id?: string
-          invoice_pdf_path?: string | null
-          is_automatic?: boolean | null
-          paid_at?: string | null
-          payment_channel?: string | null
-          payment_date?: string | null
-          payment_instructions_sent_at?: string | null
-          payment_method?: string | null
-          payoneer_link?: string | null
-          phase_id: string
-          project_id: string
-          reference_number?: string | null
-          status?: string
-          submitted_at?: string | null
-          transaction_id?: string | null
-          updated_at?: string
-          user_bank_details?: string | null
-        }
-        Update: {
-          admin_notes?: string | null
-          amount?: number
-          created_at?: string
-          due_date?: string | null
-          id?: string
-          invoice_pdf_path?: string | null
-          is_automatic?: boolean | null
-          paid_at?: string | null
-          payment_channel?: string | null
-          payment_date?: string | null
-          payment_instructions_sent_at?: string | null
-          payment_method?: string | null
-          payoneer_link?: string | null
-          phase_id?: string
-          project_id?: string
-          reference_number?: string | null
-          status?: string
-          submitted_at?: string | null
-          transaction_id?: string | null
-          updated_at?: string
-          user_bank_details?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "phase_payments_phase_id_fkey"
-            columns: ["phase_id"]
-            isOneToOne: true
-            referencedRelation: "project_phases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "phase_payments_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       previews: {
         Row: {
           approved_at: string | null
@@ -430,6 +343,83 @@ export type Database = {
             columns: ["phase_id"]
             isOneToOne: false
             referencedRelation: "project_phases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_payments: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          created_at: string
+          due_date: string | null
+          id: string
+          invoice_pdf_path: string | null
+          is_automatic: boolean | null
+          paid_at: string | null
+          payment_channel: string | null
+          payment_date: string | null
+          payment_instructions_sent_at: string | null
+          payment_method: string | null
+          payoneer_link: string | null
+          project_id: string
+          reference_number: string | null
+          status: string
+          submitted_at: string | null
+          transaction_id: string | null
+          updated_at: string
+          user_bank_details: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          invoice_pdf_path?: string | null
+          is_automatic?: boolean | null
+          paid_at?: string | null
+          payment_channel?: string | null
+          payment_date?: string | null
+          payment_instructions_sent_at?: string | null
+          payment_method?: string | null
+          payoneer_link?: string | null
+          project_id: string
+          reference_number?: string | null
+          status?: string
+          submitted_at?: string | null
+          transaction_id?: string | null
+          updated_at?: string
+          user_bank_details?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          invoice_pdf_path?: string | null
+          is_automatic?: boolean | null
+          paid_at?: string | null
+          payment_channel?: string | null
+          payment_date?: string | null
+          payment_instructions_sent_at?: string | null
+          payment_method?: string | null
+          payoneer_link?: string | null
+          project_id?: string
+          reference_number?: string | null
+          status?: string
+          submitted_at?: string | null
+          transaction_id?: string | null
+          updated_at?: string
+          user_bank_details?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "phase_payments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]

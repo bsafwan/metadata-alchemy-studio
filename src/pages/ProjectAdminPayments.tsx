@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import PhasePaymentManager from '@/components/PhasePaymentManager';
+import ProjectPaymentManager from '@/components/ProjectPaymentManager';
 
 export default function ProjectAdminPayments() {
   const { projectId } = useParams();
@@ -23,7 +23,7 @@ export default function ProjectAdminPayments() {
         </p>
       </div>
       
-      <PhasePaymentManager projectId={projectId} isAdminView={true} />
+      <ProjectPaymentManager projectId={projectId} isAdminView={true} />
     </div>
   );
 }
