@@ -22,7 +22,7 @@ interface Project {
 
 const Account = () => {
   const navigate = useNavigate();
-  const { user, setUser } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,7 +67,6 @@ const Account = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      setUser(null);
       localStorage.removeItem('selected_project_id');
       toast({
         title: "Logged Out",
