@@ -2,50 +2,13 @@
 import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
-import ProjectCard from '@/components/ProjectCard';
-import AnimatedText from '@/components/AnimatedText';
-import AnimatedCounter from '@/components/AnimatedCounter';
 import ScrollToTopButton from '@/components/ScrollToTop';
-import { Calendar, Image, MessageCircle, Search, Settings, Send, Star, UserRound, BookOpen, ArrowRight } from 'lucide-react';
+import { ArrowRight, CheckCircle, Users, Zap, Shield, Globe, Star, MessageCircle, Mail, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
-  const projectsData = [
-    {
-      title: "MetaCad",
-      description: "An advanced ads copy builder and subscription-based software that helps businesses create compelling ad copies optimized for conversion.",
-      status: "upcoming" as const,
-      tags: ["AI", "Subscription"],
-      imageUrl: "https://images.unsplash.com/photo-1581276879432-15e50529f34b?q=80&w=2070&auto=format&fit=crop",
-    },
-    {
-      title: "Hook Generator Pro",
-      description: "Generate engaging titles, meta descriptions, SEO content, and first paragraphs that hook your audience and improve conversion rates.",
-      status: "upcoming" as const,
-      tags: ["AI", "Content"],
-      imageUrl: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=2070&auto=format&fit=crop",
-    },
-    {
-      title: "Chemix.online",
-      description: "An established chemistry blog that's already earning through Google AdSense and chemistry sponsorships. Soon to be enhanced with AI capabilities.",
-      status: "established" as const,
-      tags: ["Blog", "AI Integration"],
-      imageUrl: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=2070&auto=format&fit=crop",
-    },
-    {
-      title: "Free Visuals Pro",
-      description: "A nearly completed freemium image transformation tool that offers both free and subscription-based premium features.",
-      status: "upcoming" as const,
-      tags: ["Visual", "Freemium"],
-      imageUrl: "https://images.unsplash.com/photo-1611162616475-46b635cb6868?q=80&w=2074&auto=format&fit=crop",
-    },
-  ];
-
-  const statsData = [
-    { value: 4, label: "Software Projects", icon: <Settings className="w-6 h-6 text-elismet-blue" /> },
-    { value: 15, label: "Team Members", suffix: "+", icon: <UserRound className="w-6 h-6 text-elismet-blue" /> },
-    { value: 24, label: "Support Hours", suffix: "/7", icon: <Calendar className="w-6 h-6 text-elismet-blue" /> },
-  ];
+  const { user } = useAuth();
 
   // Add scroll reveal effect
   useEffect(() => {
@@ -63,86 +26,113 @@ const Index = () => {
     };
     
     window.addEventListener('scroll', handleScroll);
-    handleScroll(); // Check initially
+    handleScroll();
     
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const features = [
+    {
+      icon: <Zap className="w-8 h-8 text-elismet-orange" />,
+      title: "Lightning Fast Development",
+      description: "Get your software built in weeks, not months. Our streamlined process delivers results quickly."
+    },
+    {
+      icon: <Shield className="w-8 h-8 text-elismet-blue" />,
+      title: "Enterprise Security",
+      description: "Bank-grade security built into every application. Your data and users are always protected."
+    },
+    {
+      icon: <Globe className="w-8 h-8 text-elismet-lightBlue" />,
+      title: "Global Scale",
+      description: "Built to handle millions of users worldwide. Scalable architecture from day one."
+    }
+  ];
+
+  const projects = [
+    {
+      title: "MetaCad",
+      description: "AI-powered ads copy builder with subscription management",
+      status: "Coming Soon",
+      image: "https://images.unsplash.com/photo-1581276879432-15e50529f34b?q=80&w=800&auto=format&fit=crop"
+    },
+    {
+      title: "Hook Generator Pro",
+      description: "Generate engaging content that converts visitors to customers",
+      status: "Coming Soon", 
+      image: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=800&auto=format&fit=crop"
+    },
+    {
+      title: "Chemix.online",
+      description: "Established chemistry platform with AI integration",
+      status: "Live",
+      image: "https://images.unsplash.com/photo-1532094349884-543bc11234d?q=80&w=800&auto=format&fit=crop"
+    }
+  ];
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
       <Navbar />
       <ScrollToTopButton />
 
       {/* Hero Section */}
-      <section id="home" className="relative pt-24 pb-20 md:pt-32 md:pb-32 overflow-hidden">
-        <div className="absolute inset-0 mesh-gradient hero-mask -z-10"></div>
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="text-center lg:text-left">
-              <AnimatedText 
-                text="Welcome to Elismet LTD" 
-                className="text-lg font-semibold text-elismet-orange mb-2"
-                animation="fade-in"
-              />
-              <AnimatedText
-                text="We Build Innovative Software Solutions" 
-                className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 text-balance text-shadow"
-                delay={0.1}
-                animation="slide-up"
-              />
-              <AnimatedText
-                text="Transforming ideas into powerful subscription-based software products that drive results and create value." 
-                className="text-lg text-white/90 mb-8"
-                delay={0.2}
-                animation="slide-up"
-              />
-              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center lg:justify-start" style={{ animationDelay: '0.3s' }}>
-                <Button 
-                  size="lg" 
-                  className="bg-white text-elismet-blue hover:bg-slate-100 animate-zoom-in shadow-lg hover:shadow-xl transition-all"
-                >
-                  <Link to="/#projects">Explore Projects</Link>
+      <section className="relative pt-32 pb-20 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-elismet-blue/5 to-elismet-lightBlue/5"></div>
+        <div className="container mx-auto px-6 relative">
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-8 leading-tight">
+              Build Software That 
+              <span className="block text-elismet-blue">Actually Works</span>
+            </h1>
+            <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
+              We create subscription-based software solutions that drive real results for businesses worldwide. From concept to launch in record time.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+              {user ? (
+                <Link to="/dashboard">
+                  <Button size="lg" className="bg-elismet-blue hover:bg-elismet-lightBlue text-white px-8 py-4 text-lg">
+                    Go to Dashboard
+                    <ArrowRight className="ml-2 w-5 h-5" />
+                  </Button>
+                </Link>
+              ) : (
+                <Link to="/get-started">
+                  <Button size="lg" className="bg-elismet-blue hover:bg-elismet-lightBlue text-white px-8 py-4 text-lg">
+                    Get Started Today
+                    <ArrowRight className="ml-2 w-5 h-5" />
+                  </Button>
+                </Link>
+              )}
+              <Link to="#projects">
+                <Button size="lg" variant="outline" className="border-2 border-elismet-blue text-elismet-blue hover:bg-elismet-blue hover:text-white px-8 py-4 text-lg">
+                  View Our Work
                 </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="border-white text-white hover:bg-white/10 animate-zoom-in"
-                >
-                  <Link to="/#contact">Contact Us</Link>
-                </Button>
-              </div>
-            </div>
-            <div className="hidden lg:block relative">
-              <div className="absolute inset-0 bg-gradient-radial from-white/20 to-transparent rounded-full blur-2xl"></div>
-              <img
-                src="/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png"
-                alt="Elismet LTD"
-                className="w-full max-w-lg mx-auto relative z-10"
-              />
+              </Link>
             </div>
           </div>
         </div>
-        <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-background to-transparent"></div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-16 bg-white">
+      {/* Features Section */}
+      <section className="py-24 bg-gray-50">
         <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {statsData.map((stat, index) => (
-              <div 
-                key={stat.label} 
-                className="text-center p-6 rounded-lg shadow-sm border border-slate-100 hover:shadow-md transition-shadow transform hover:-translate-y-1 hover:bg-slate-50 duration-300 scroll-reveal"
-                style={{ animationDelay: `${index * 0.1}s`, transitionDelay: `${index * 0.1}s` }}
-              >
-                <div className="flex justify-center mb-4 bg-white/80 w-16 h-16 mx-auto rounded-full shadow-inner flex items-center justify-center">{stat.icon}</div>
-                <AnimatedCounter
-                  end={stat.value}
-                  suffix={stat.suffix || ''}
-                  className="text-4xl font-bold text-elismet-blue mb-2"
-                  startOnView={true}
-                />
-                <p className="text-sm text-muted-foreground">{stat.label}</p>
+          <div className="max-w-3xl mx-auto text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              Why Choose Elismet?
+            </h2>
+            <p className="text-xl text-gray-600">
+              We combine cutting-edge technology with proven business strategies to deliver software that exceeds expectations.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-12 max-w-6xl mx-auto">
+            {features.map((feature, index) => (
+              <div key={feature.title} className="text-center scroll-reveal" style={{ animationDelay: `${index * 0.2}s` }}>
+                <div className="bg-white w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                  {feature.icon}
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">{feature.title}</h3>
+                <p className="text-gray-600 text-lg leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -150,138 +140,135 @@ const Index = () => {
       </section>
 
       {/* Projects Section */}
-      <section id="projects" className="py-20 bg-slate-50 overflow-hidden">
+      <section id="projects" className="py-24">
         <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto text-center mb-12">
-            <AnimatedText
-              text="Our Innovative Projects"
-              className="text-3xl md:text-4xl font-bold mb-4 gradient-text"
-              animation="slide-up"
-            />
-            <AnimatedText
-              text="We're building the next generation of software solutions to help businesses thrive in the digital era."
-              className="text-muted-foreground"
-              delay={0.1}
-              animation="fade-in"
-            />
-          </div>
-          
-          <div className="space-y-12">
-            {projectsData.map((project, index) => (
-              <ProjectCard
-                key={project.title}
-                {...project}
-                direction={index % 2 === 0 ? 'left' : 'right'}
-                index={index}
-              />
-            ))}
+          <div className="max-w-3xl mx-auto text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              Our Latest Projects
+            </h2>
+            <p className="text-xl text-gray-600">
+              Real software solutions that are changing how businesses operate and grow.
+            </p>
           </div>
 
-          <div className="mt-16 text-center">
-            <Button 
-              size="lg" 
-              className="bg-elismet-blue text-white hover:bg-elismet-lightBlue animate-pulse-glow group"
-            >
-              View All Projects
-              <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
-            </Button>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+            {projects.map((project, index) => (
+              <div key={project.title} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 scroll-reveal" style={{ animationDelay: `${index * 0.1}s` }}>
+                <img src={project.image} alt={project.title} className="w-full h-48 object-cover" />
+                <div className="p-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-2xl font-bold text-gray-900">{project.title}</h3>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      project.status === 'Live' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-elismet-blue/10 text-elismet-blue'
+                    }`}>
+                      {project.status}
+                    </span>
+                  </div>
+                  <p className="text-gray-600 leading-relaxed">{project.description}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* About Section */}
-      <section id="about" className="py-20 overflow-hidden">
+      {/* Stats Section */}
+      <section className="py-24 bg-elismet-blue text-white">
         <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 scroll-reveal">
-              <AnimatedText
-                text="We are preparing for the next big thing"
-                className="text-3xl md:text-4xl font-bold mb-6 gradient-text"
-                animation="slide-up"
-              />
-              <AnimatedText
-                text="At Elismet LTD, we specialize in building subscription-based software solutions that help businesses automate processes, improve efficiency, and drive growth."
-                className="text-muted-foreground mb-6"
-                delay={0.1}
-                animation="fade-in"
-              />
-              <AnimatedText
-                text="Our team of expert developers, designers, and marketers work together to create software that not only solves problems but also delivers an exceptional user experience."
-                className="text-muted-foreground mb-6"
-                delay={0.2}
-                animation="fade-in"
-              />
-              <Link to="/author">
-                <Button 
-                  className="bg-elismet-blue hover:bg-elismet-lightBlue text-white animate-zoom-in group" 
-                  style={{ animationDelay: '0.3s' }}
-                >
-                  <UserRound className="mr-2 group-hover:rotate-12 transition-transform" />
-                  Meet Our Team
+          <div className="grid md:grid-cols-4 gap-12 max-w-5xl mx-auto text-center">
+            <div className="scroll-reveal">
+              <div className="text-5xl font-bold mb-4">4+</div>
+              <div className="text-xl opacity-90">Active Projects</div>
+            </div>
+            <div className="scroll-reveal" style={{ animationDelay: '0.1s' }}>
+              <div className="text-5xl font-bold mb-4">15+</div>
+              <div className="text-xl opacity-90">Team Members</div>
+            </div>
+            <div className="scroll-reveal" style={{ animationDelay: '0.2s' }}>
+              <div className="text-5xl font-bold mb-4">24/7</div>
+              <div className="text-xl opacity-90">Support Available</div>
+            </div>
+            <div className="scroll-reveal" style={{ animationDelay: '0.3s' }}>
+              <div className="text-5xl font-bold mb-4">100%</div>
+              <div className="text-xl opacity-90">Client Satisfaction</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-24">
+        <div className="container mx-auto px-6">
+          <div className="max-w-4xl mx-auto text-center bg-gradient-to-br from-elismet-blue to-elismet-lightBlue rounded-3xl p-16 text-white">
+            <h2 className="text-4xl md:text-5xl font-bold mb-8">
+              Ready to Build Something Amazing?
+            </h2>
+            <p className="text-xl mb-12 opacity-90 max-w-2xl mx-auto">
+              Join hundreds of businesses who trust Elismet to deliver software that drives real results. Let's discuss your project today.
+            </p>
+            {user ? (
+              <Link to="/dashboard">
+                <Button size="lg" className="bg-white text-elismet-blue hover:bg-gray-100 px-8 py-4 text-lg font-semibold">
+                  Access Dashboard
+                  <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
-            </div>
-            <div className="order-1 lg:order-2 animate-float scroll-reveal">
-              <div className="relative">
-                <div className="absolute -inset-4 bg-gradient-to-br from-elismet-lightBlue/30 to-elismet-orange/30 rounded-xl blur-xl animate-pulse"></div>
-                <img 
-                  src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop" 
-                  alt="Elismet Team" 
-                  className="w-full h-auto rounded-lg shadow-xl relative z-10"
-                />
-              </div>
-            </div>
+            ) : (
+              <Link to="/get-started">
+                <Button size="lg" className="bg-white text-elismet-blue hover:bg-gray-100 px-8 py-4 text-lg font-semibold">
+                  Start Your Project
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-20 bg-gradient-hero overflow-hidden">
+      <section className="py-24 bg-gray-50">
         <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto text-center mb-12">
-            <AnimatedText
-              text="Get In Touch"
-              className="text-3xl md:text-4xl font-bold mb-4 text-black"
-              animation="zoom-in"
-            />
-            <AnimatedText
-              text="Have questions about our projects or services? Reach out to us today."
-              className="text-black/90"
-              delay={0.1}
-              animation="fade-in"
-            />
+          <div className="max-w-3xl mx-auto text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              Get In Touch
+            </h2>
+            <p className="text-xl text-gray-600">
+              Have questions? We're here to help you succeed.
+            </p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <div className="bg-white/10 backdrop-blur-md p-6 rounded-lg border border-white/20 text-center transform transition-transform duration-300 hover:scale-105 hover:bg-white/15 scroll-reveal">
-              <div className="bg-white/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Send className="w-8 h-8" />
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="bg-white p-8 rounded-2xl shadow-lg text-center hover:shadow-xl transition-shadow scroll-reveal">
+              <div className="bg-elismet-blue/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Mail className="w-8 h-8 text-elismet-blue" />
               </div>
-              <h3 className="text-xl font-semibold mb-3 text-black">Email</h3>
-              <p className="text-black/80 mb-2">Contact our support team</p>
-              <a href="mailto:contact@elismet.com" className="text-black hover:text-elismet-orange transition-colors font-medium underline">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Email Us</h3>
+              <p className="text-gray-600 mb-4">Get support from our team</p>
+              <a href="mailto:contact@elismet.com" className="text-elismet-blue hover:text-elismet-lightBlue font-medium">
                 contact@elismet.com
               </a>
             </div>
-            
-            <div className="bg-white/10 backdrop-blur-md p-6 rounded-lg border border-white/20 text-center transform transition-transform duration-300 hover:scale-105 hover:bg-white/15 scroll-reveal" style={{ transitionDelay: '0.1s' }}>
-              <div className="bg-white/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MessageCircle className="w-8 h-8" />
+
+            <div className="bg-white p-8 rounded-2xl shadow-lg text-center hover:shadow-xl transition-shadow scroll-reveal" style={{ animationDelay: '0.1s' }}>
+              <div className="bg-elismet-orange/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Phone className="w-8 h-8 text-elismet-orange" />
               </div>
-              <h3 className="text-xl font-semibold mb-3 text-black">Phone</h3>
-              <p className="text-black/80 mb-2">UK Office</p>
-              <a href="tel:+447380480139" className="text-black hover:text-elismet-orange transition-colors font-medium underline">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">UK Office</h3>
+              <p className="text-gray-600 mb-4">Call us directly</p>
+              <a href="tel:+447380480139" className="text-elismet-blue hover:text-elismet-lightBlue font-medium">
                 +44 7380 480139
               </a>
             </div>
-            
-            <div className="bg-white/10 backdrop-blur-md p-6 rounded-lg border border-white/20 text-center md:col-span-2 lg:col-span-1 transform transition-transform duration-300 hover:scale-105 hover:bg-white/15 scroll-reveal" style={{ transitionDelay: '0.2s' }}>
-              <div className="bg-white/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MessageCircle className="w-8 h-8" />
+
+            <div className="bg-white p-8 rounded-2xl shadow-lg text-center hover:shadow-xl transition-shadow scroll-reveal" style={{ animationDelay: '0.2s' }}>
+              <div className="bg-elismet-lightBlue/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Phone className="w-8 h-8 text-elismet-lightBlue" />
               </div>
-              <h3 className="text-xl font-semibold mb-3 text-black">Phone</h3>
-              <p className="text-black/80 mb-2">Bangladesh Office</p>
-              <a href="tel:+8801326764715" className="text-black hover:text-elismet-orange transition-colors font-medium underline">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Bangladesh Office</h3>
+              <p className="text-gray-600 mb-4">Regional support</p>
+              <a href="tel:+8801326764715" className="text-elismet-blue hover:text-elismet-lightBlue font-medium">
                 +88 01326 764715
               </a>
             </div>
@@ -290,34 +277,42 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-white py-12">
+      <footer className="bg-gray-900 text-white py-16">
         <div className="container mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between items-center mb-8">
-            <div className="mb-6 md:mb-0">
+          <div className="grid md:grid-cols-4 gap-12 mb-12">
+            <div className="col-span-2">
               <img 
                 src="/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png" 
                 alt="Elismet LTD" 
-                className="h-12 mx-auto md:mx-0" 
+                className="h-12 mb-6" 
               />
-            </div>
-            <div className="flex flex-wrap gap-x-8 gap-y-4 justify-center md:justify-end">
-              <Link to="/#home" className="hover:text-elismet-lightBlue transition-colors">Home</Link>
-              <Link to="/#projects" className="hover:text-elismet-lightBlue transition-colors">Projects</Link>
-              <Link to="/#about" className="hover:text-elismet-lightBlue transition-colors">About</Link>
-              <Link to="/#contact" className="hover:text-elismet-lightBlue transition-colors">Contact</Link>
-              <Link to="/author" className="hover:text-elismet-lightBlue transition-colors">Team</Link>
-            </div>
-          </div>
-          <div className="border-t border-slate-800 pt-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <p className="text-slate-400 text-center md:text-left">
-                &copy; {new Date().getFullYear()} Elismet LTD. All rights reserved.
+              <p className="text-gray-400 text-lg leading-relaxed max-w-md">
+                Building the future of software, one solution at a time. Trusted by businesses worldwide.
               </p>
-              <div className="flex gap-6 justify-center md:justify-end">
-                <Link to="/privacy-policy" className="text-slate-400 hover:text-elismet-lightBlue transition-colors">Privacy Policy</Link>
-                <Link to="/terms-of-service" className="text-slate-400 hover:text-elismet-lightBlue transition-colors">Terms of Service</Link>
+            </div>
+            
+            <div>
+              <h4 className="text-xl font-bold mb-6">Company</h4>
+              <div className="space-y-4">
+                <Link to="/author" className="block text-gray-400 hover:text-white transition-colors">About Us</Link>
+                <Link to="#projects" className="block text-gray-400 hover:text-white transition-colors">Projects</Link>
+                <Link to="/contact-direct" className="block text-gray-400 hover:text-white transition-colors">Contact</Link>
               </div>
             </div>
+            
+            <div>
+              <h4 className="text-xl font-bold mb-6">Legal</h4>
+              <div className="space-y-4">
+                <Link to="/privacy-policy" className="block text-gray-400 hover:text-white transition-colors">Privacy Policy</Link>
+                <Link to="/terms-of-service" className="block text-gray-400 hover:text-white transition-colors">Terms of Service</Link>
+              </div>
+            </div>
+          </div>
+          
+          <div className="border-t border-gray-800 pt-8 text-center">
+            <p className="text-gray-400">
+              &copy; {new Date().getFullYear()} Elismet LTD. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>
