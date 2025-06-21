@@ -24,14 +24,11 @@ import DashboardHome from "./pages/DashboardHome";
 import Conversations from "./pages/Conversations";
 import Previews from "./pages/Previews";
 import PaymentsAndDues from "./pages/PaymentsAndDues";
-import Status from "./pages/Status";
 import DeliveryManagement from "./pages/DeliveryManagement";
-import SupportTickets from "./pages/SupportTickets";
 import AdminDashboardLayout from "./components/AdminDashboardLayout";
 import AdminDashboardHome from "./pages/AdminDashboardHome";
 import AdminClients from "./pages/AdminClients";
 import AdminProjects from "./pages/AdminProjects";
-import AdminStatus from "./pages/AdminStatus";
 import AdminPayments from "./pages/AdminPayments";
 import AdminMessages from "./pages/AdminMessages";
 import AdminSettings from "./pages/AdminSettings";
@@ -42,9 +39,7 @@ import ProjectAdminDemos from "./pages/ProjectAdminDemos";
 import ProjectAdminDemosNew from "./pages/ProjectAdminDemosNew";
 import ProjectAdminPreviews from "./pages/ProjectAdminPreviews";
 import ProjectAdminPayments from "./pages/ProjectAdminPayments";
-import ProjectAdminStatus from "./pages/ProjectAdminStatus";
 import ProjectAdminDelivery from "./pages/ProjectAdminDelivery";
-import ProjectAdminSupport from "./pages/ProjectAdminSupport";
 import SuperAdminLogin from "./pages/SuperAdminLogin";
 import NotFound from "./pages/NotFound";
 import Account from "./pages/Account";
@@ -97,9 +92,7 @@ const App = () => (
                 <Route path="pricing-phases" element={<ProjectPricingPhases />} />
                 <Route path="previews" element={<Previews />} />
                 <Route path="payments" element={<PaymentsAndDues />} />
-                <Route path="status" element={<Status />} />
                 <Route path="delivery" element={<DeliveryManagement />} />
-                <Route path="support" element={<SupportTickets />} />
               </Route>
 
               {/* Super Admin Protected Routes */}
@@ -111,7 +104,6 @@ const App = () => (
                 <Route index element={<AdminDashboardHome />} />
                 <Route path="clients" element={<AdminClients />} />
                 <Route path="projects" element={<AdminProjects />} />
-                <Route path="status" element={<AdminStatus />} />
                 <Route path="payments" element={<AdminPayments />} />
                 <Route path="messages" element={<AdminMessages />} />
                 <Route path="settings" element={<AdminSettings />} />
@@ -129,9 +121,7 @@ const App = () => (
                 <Route path="demos" element={<ProjectAdminDemosNew />} />
                 <Route path="previews" element={<ProjectAdminPreviews />} />
                 <Route path="payments" element={<ProjectAdminPayments />} />
-                <Route path="status" element={<ProjectAdminStatus />} />
                 <Route path="delivery" element={<ProjectAdminDelivery />} />
-                <Route path="support" element={<ProjectAdminSupport />} />
               </Route>
 
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

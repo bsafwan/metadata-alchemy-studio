@@ -16,9 +16,7 @@ import {
   Shield, 
   Users, 
   FolderKanban, 
-  BarChart3, 
   Settings, 
-  Activity, 
   CreditCard, 
   MessageSquare,
   LogOut
@@ -32,7 +30,6 @@ const adminSidebarItems = [
   { title: 'Admin Overview', icon: Shield, url: '/admin' },
   { title: 'All Projects', icon: FolderKanban, url: '/admin/projects' },
   { title: 'Manage Clients', icon: Users, url: '/admin/clients' },
-  { title: 'System Status', icon: Activity, url: '/admin/status' },
   { title: 'Payments', icon: CreditCard, url: '/admin/payments' },
   { title: 'Messages', icon: MessageSquare, url: '/admin/messages' },
   { title: 'Admin Settings', icon: Settings, url: '/admin/settings' },

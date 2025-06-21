@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { 
@@ -16,9 +17,7 @@ import {
   MessageSquare, 
   Eye,
   CreditCard, 
-  Activity, 
   Truck, 
-  HeadphonesIcon,
   Calculator
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -30,9 +29,7 @@ const sidebarItems = [
   { title: 'Pricing & Phases', icon: Calculator, url: '/dashboard/pricing-phases' },
   { title: 'Previews', icon: Eye, url: '/dashboard/previews' },
   { title: 'Payments & Dues', icon: CreditCard, url: '/dashboard/payments' },
-  { title: 'Status', icon: Activity, url: '/dashboard/status' },
   { title: 'Delivery', icon: Truck, url: '/dashboard/delivery' },
-  { title: 'Support Tickets', icon: HeadphonesIcon, url: '/dashboard/support' },
 ];
 
 export default function DashboardLayout() {

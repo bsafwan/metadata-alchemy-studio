@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Outlet, useLocation, useParams } from 'react-router-dom';
 import { 
@@ -16,9 +17,7 @@ import {
   MessageSquare, 
   Eye,
   CreditCard, 
-  Activity, 
   Truck, 
-  HeadphonesIcon,
   Calculator,
   ArrowLeft
 } from 'lucide-react';
@@ -35,9 +34,7 @@ export default function ProjectAdminLayout() {
     { title: 'Pricing & Phases', icon: Calculator, url: `/admin/project/${projectId}/pricing-phases` },
     { title: 'Previews', icon: Eye, url: `/admin/project/${projectId}/previews` },
     { title: 'Payments', icon: CreditCard, url: `/admin/project/${projectId}/payments` },
-    { title: 'Status', icon: Activity, url: `/admin/project/${projectId}/status` },
     { title: 'Delivery', icon: Truck, url: `/admin/project/${projectId}/delivery` },
-    { title: 'Support', icon: HeadphonesIcon, url: `/admin/project/${projectId}/support` },
   ];
 
   return (
