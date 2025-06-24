@@ -54,19 +54,19 @@ const ReviewBoost = () => {
             
             <h1 className="text-6xl md:text-8xl font-bold text-gray-900 mb-8 leading-tight scroll-reveal">
               Get More
-              <span className="block text-yellow-500">⭐⭐⭐⭐⭐</span>
-              <span className="block text-elismet-blue">Reviews</span>
+              <span className="block text-elismet-blue">Google Reviews</span>
+              <span className="block text-elismet-orange">Attract New Customers</span>
             </h1>
             
-            <p className="text-3xl md:text-4xl text-gray-700 mb-16 max-w-4xl mx-auto leading-relaxed scroll-reveal font-semibold">
-              Turn every customer into a 5-star review
+            <p className="text-2xl md:text-3xl text-gray-700 mb-16 max-w-4xl mx-auto leading-relaxed scroll-reveal font-semibold">
+              Turn every customer into a 5-star Google review automatically
             </p>
 
             {/* Problem Statement */}
             <div className="bg-red-50 border-2 border-red-200 rounded-3xl p-12 mb-16 scroll-reveal">
               <h3 className="text-3xl font-bold text-red-700 mb-6">The Problem Is Real</h3>
               <div className="grid md:grid-cols-2 gap-8 text-xl text-red-600">
-                <div>❌ No reviews = 47x less customers</div>
+                <div>❌ No reviews = 47x fewer customers</div>
                 <div>❌ Competitors get chosen instead</div>
               </div>
             </div>
