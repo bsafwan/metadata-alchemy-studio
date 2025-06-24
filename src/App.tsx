@@ -61,6 +61,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/multi-channel-support" element={<MultiChannelSupport />} />
+              <Route path="/ai-customer-onboarding" element={<AICustomerOnboarding />} />
               <Route path="/author" element={<Author />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />
@@ -123,7 +124,7 @@ const App = () => (
                 <Route path="pricing-phases" element={<AdminProjectPricingPhases />} />
                 <Route path="demos" element={<ProjectAdminDemosNew />} />
                 <Route path="previews" element={<ProjectAdminPreviews />} />
-                <Route path="payments" element={<ProjectAdminPayments />} />
+                <Route path="payments" element={<ProjectAdminPayments />} />featu
                 <Route path="delivery" element={<ProjectAdminDelivery />} />
               </Route>
 
