@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, MessageSquare, Mail, Phone, Facebook, Instagram, Twitter, MessageCircle, Zap, Users, CheckCircle, Clock, TrendingUp } from 'lucide-react';
@@ -94,15 +93,15 @@ const MultiChannelSupport = () => {
               Never miss another customer again. All your communication channels unified in one intelligent hub.
             </p>
 
-            {/* Live System Preview with Real Image */}
+            {/* Live System Preview with New Image */}
             <div className="mb-16 scroll-reveal">
               <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-4xl mx-auto border border-gray-100">
                 <div className="mb-6">
                   <h3 className="text-xl font-semibold text-gray-800 mb-4">Live Dashboard Preview</h3>
                   <div className="bg-gray-50 rounded-2xl p-6 mb-6">
                     <img 
-                      src="/lovable-uploads/1a14858e-4552-4232-a4f6-a9a31042b5ec.png" 
-                      alt="Multi-Channel Dashboard Preview" 
+                      src="/lovable-uploads/d8c67d8e-ae8d-4543-9375-f8ea78f91278.png" 
+                      alt="Multi-Channel Communication Hub Dashboard" 
                       className="w-full h-auto rounded-xl shadow-lg"
                     />
                   </div>
