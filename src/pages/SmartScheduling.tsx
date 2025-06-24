@@ -239,7 +239,7 @@ const SmartScheduling = () => {
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-6 h-6" />
                 <span>Conflict Detection</span>
-              </div>
+              </div>  
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-6 h-6" />
                 <span>Setup Included</span>
