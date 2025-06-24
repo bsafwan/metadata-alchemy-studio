@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Phone, Mail, MessageSquare, Bell, Target, TrendingUp, Users, CheckCircle, Zap, Clock, DollarSign } from 'lucide-react';
@@ -101,49 +100,53 @@ const AutomatedFollowUps = () => {
         </div>
       </section>
 
-      {/* Multi-Channel Approach */}
+      {/* Multi-Channel Examples */}
       <section className="py-20 bg-gradient-to-r from-gray-800 to-gray-900 relative">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-900/10 to-pink-900/10"></div>
         <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-6xl mx-auto text-center">
             <h2 className="text-6xl font-black mb-16 scroll-reveal">
               <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-                Multi-Channel
+                How We Reach
               </span>
               <br />
-              <span className="text-white">Automation</span>
+              <span className="text-white">Your Lost Customers</span>
             </h2>
             
-            <div className="grid md:grid-cols-5 gap-8 mb-16">
+            <div className="grid md:grid-cols-2 gap-12 mb-16">
               <div className="scroll-reveal bg-gradient-to-br from-blue-600/20 to-blue-800/20 p-8 rounded-3xl border border-blue-500/30 backdrop-blur-sm hover:scale-105 transition-all">
-                <Mail className="w-16 h-16 text-blue-400 mx-auto mb-4 float-animation" />
-                <h3 className="text-xl font-bold text-white mb-2">Email</h3>
-                <p className="text-gray-300 text-sm">Personalized campaigns</p>
+                <Mail className="w-16 h-16 text-blue-400 mx-auto mb-6 float-animation" />
+                <div className="text-2xl font-bold text-white mb-4">Email Follow-up</div>
+                <div className="text-gray-300 text-lg mb-4">"Hi Sarah, it's been 3 months since your last cleaning. Ready to schedule your next deep clean?"</div>
+                <div className="text-blue-400 font-bold text-xl">43% open rate, 18% conversion</div>
               </div>
               
               <div className="scroll-reveal bg-gradient-to-br from-green-600/20 to-green-800/20 p-8 rounded-3xl border border-green-500/30 backdrop-blur-sm hover:scale-105 transition-all">
-                <Phone className="w-16 h-16 text-green-400 mx-auto mb-4 float-animation" />
-                <h3 className="text-xl font-bold text-white mb-2">Phone</h3>
-                <p className="text-gray-300 text-sm">Auto-dialing system</p>
+                <Phone className="w-16 h-16 text-green-400 mx-auto mb-6 float-animation" />
+                <div className="text-2xl font-bold text-white mb-4">Personal Call</div>
+                <div className="text-gray-300 text-lg mb-4">"Mr. Johnson, your HVAC is due for seasonal maintenance. Any issues we should know about?"</div>
+                <div className="text-green-400 font-bold text-xl">71% answer rate, 52% booking</div>
               </div>
               
               <div className="scroll-reveal bg-gradient-to-br from-purple-600/20 to-purple-800/20 p-8 rounded-3xl border border-purple-500/30 backdrop-blur-sm hover:scale-105 transition-all">
-                <MessageSquare className="w-16 h-16 text-purple-400 mx-auto mb-4 float-animation" />
-                <h3 className="text-xl font-bold text-white mb-2">WhatsApp</h3>
-                <p className="text-gray-300 text-sm">Direct messaging</p>
+                <MessageSquare className="w-16 h-16 text-purple-400 mx-auto mb-6 float-animation" />
+                <div className="text-2xl font-bold text-white mb-4">WhatsApp Reminder</div>
+                <div className="text-gray-300 text-lg mb-4">"Hi! Time for your monthly lawn care. Same time next week works? 🌱"</div>
+                <div className="text-purple-400 font-bold text-xl">89% read rate, 34% response</div>
               </div>
               
               <div className="scroll-reveal bg-gradient-to-br from-pink-600/20 to-pink-800/20 p-8 rounded-3xl border border-pink-500/30 backdrop-blur-sm hover:scale-105 transition-all">
-                <Target className="w-16 h-16 text-pink-400 mx-auto mb-4 float-animation" />
-                <h3 className="text-xl font-bold text-white mb-2">Social DMs</h3>
-                <p className="text-gray-300 text-sm">Instagram, Facebook</p>
+                <Target className="w-16 h-16 text-pink-400 mx-auto mb-6 float-animation" />
+                <div className="text-2xl font-bold text-white mb-4">Social Media DM</div>
+                <div className="text-gray-300 text-lg mb-4">"Saw your post about spring cleaning! We're offering 20% off this month 😊"</div>
+                <div className="text-pink-400 font-bold text-xl">67% seen rate, 28% engagement</div>
               </div>
-              
-              <div className="scroll-reveal bg-gradient-to-br from-orange-600/20 to-orange-800/20 p-8 rounded-3xl border border-orange-500/30 backdrop-blur-sm hover:scale-105 transition-all">
-                <Bell className="w-16 h-16 text-orange-400 mx-auto mb-4 float-animation" />
-                <h3 className="text-xl font-bold text-white mb-2">Push</h3>
-                <p className="text-gray-300 text-sm">Instant notifications</p>
-              </div>
+            </div>
+
+            <div className="scroll-reveal bg-gradient-to-r from-orange-600/20 to-red-600/20 border border-orange-500/30 rounded-3xl p-12 backdrop-blur-sm">
+              <div className="text-4xl font-black text-orange-400 mb-4">The Result?</div>
+              <div className="text-2xl text-gray-300 mb-4">Instead of losing 79% of customers forever...</div>
+              <div className="text-6xl font-black text-white">71% Come Back</div>
             </div>
           </div>
         </div>
