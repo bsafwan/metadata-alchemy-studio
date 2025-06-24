@@ -55,6 +55,20 @@ const MultiChannelSupport = () => {
 
   return (
     <div className="min-h-screen bg-white overflow-hidden">
+      {/* Navigation */}
+      <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-sm z-50 border-b border-gray-100">
+        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+          <Link to="/" className="text-2xl font-bold text-elismet-blue">
+            Elismet
+          </Link>
+          <Link to="/contact-direct">
+            <Button className="bg-elismet-orange hover:bg-elismet-orange/90 text-white px-6 py-2 rounded-xl">
+              Contact Us for Demo
+            </Button>
+          </Link>
+        </div>
+      </nav>
+
       {/* Hero Section */}
       <section className="relative pt-20 pb-32">
         <div className="absolute inset-0 bg-gradient-to-br from-elismet-blue/10 via-elismet-lightBlue/5 to-white"></div>
@@ -80,9 +94,19 @@ const MultiChannelSupport = () => {
               Never miss another customer again. All your communication channels unified in one intelligent hub.
             </p>
 
-            {/* Channel Preview */}
+            {/* Live System Preview with Real Image */}
             <div className="mb-16 scroll-reveal">
               <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-4xl mx-auto border border-gray-100">
+                <div className="mb-6">
+                  <h3 className="text-xl font-semibold text-gray-800 mb-4">Live Dashboard Preview</h3>
+                  <div className="bg-gray-50 rounded-2xl p-6 mb-6">
+                    <img 
+                      src="/lovable-uploads/1a14858e-4552-4232-a4f6-a9a31042b5ec.png" 
+                      alt="Multi-Channel Dashboard Preview" 
+                      className="w-full h-auto rounded-xl shadow-lg"
+                    />
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                   {channels.map((channel, index) => (
                     <div key={channel.name} className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-all cursor-pointer" style={{animationDelay: `${index * 0.1}s`}}>
@@ -99,17 +123,17 @@ const MultiChannelSupport = () => {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center scroll-reveal">
-              <Link to="/get-started">
-                <Button size="lg" className="bg-elismet-blue hover:bg-elismet-lightBlue text-white px-12 py-6 text-xl rounded-2xl shadow-lg hover:shadow-xl transition-all">
-                  Start Free Trial
-                  <ArrowRight className="ml-3 w-6 h-6" />
+            <div className="scroll-reveal">
+              <Link to="/contact-direct">
+                <Button size="lg" className="bg-elismet-orange hover:bg-elismet-orange/90 text-white px-16 py-8 text-2xl rounded-2xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105">
+                  Contact Us for Demo
+                  <ArrowRight className="ml-4 w-8 h-8" />
                 </Button>
               </Link>
-              <div className="text-gray-500">
-                <span className="text-sm">✓ Setup in 5 minutes</span>
-                <span className="mx-2">•</span>
-                <span className="text-sm">✓ No credit card required</span>
+              <div className="text-gray-500 mt-6">
+                <span className="text-lg">✓ Free consultation</span>
+                <span className="mx-3">•</span>
+                <span className="text-lg">✓ Custom solution design</span>
               </div>
             </div>
           </div>
@@ -213,16 +237,11 @@ const MultiChannelSupport = () => {
               Join 10,000+ businesses who never miss a customer message
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center scroll-reveal">
-              <Link to="/get-started">
-                <Button size="lg" className="bg-elismet-orange hover:bg-elismet-orange/90 text-white px-12 py-6 text-xl rounded-2xl shadow-lg hover:shadow-xl transition-all">
-                  Get Started Free
-                  <ArrowRight className="ml-3 w-6 h-6" />
-                </Button>
-              </Link>
+            <div className="scroll-reveal">
               <Link to="/contact-direct">
-                <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white hover:text-gray-900 px-12 py-6 text-xl rounded-2xl">
-                  Book Demo
+                <Button size="lg" className="bg-elismet-orange hover:bg-elismet-orange/90 text-white px-16 py-8 text-2xl rounded-2xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105">
+                  Contact Us for Demo
+                  <ArrowRight className="ml-4 w-8 h-8" />
                 </Button>
               </Link>
             </div>
@@ -230,15 +249,15 @@ const MultiChannelSupport = () => {
             <div className="mt-12 flex items-center justify-center gap-8 text-gray-400">
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-400" />
-                <span>Free 14-day trial</span>
+                <span>Free consultation</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-400" />
-                <span>Setup in 5 minutes</span>
+                <span>Custom solution design</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-400" />
-                <span>Cancel anytime</span>
+                <span>Setup support included</span>
               </div>
             </div>
           </div>
