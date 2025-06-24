@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +13,7 @@ import MultiChannelSupport from "./pages/MultiChannelSupport";
 import AICustomerOnboarding from "./pages/AICustomerOnboarding";
 import ReviewBoost from "./pages/ReviewBoost";
 import SmartScheduling from "./pages/SmartScheduling";
+import AutomatedFollowUps from "./pages/AutomatedFollowUps";
 import Author from "./pages/Author";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -65,6 +67,7 @@ const App = () => (
               <Route path="/ai-customer-onboarding" element={<AICustomerOnboarding />} />
               <Route path="/review-boost" element={<ReviewBoost />} />
               <Route path="/smart-scheduling" element={<SmartScheduling />} />
+              <Route path="/automated-follow-ups" element={<AutomatedFollowUps />} />
               <Route path="/author" element={<Author />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />
