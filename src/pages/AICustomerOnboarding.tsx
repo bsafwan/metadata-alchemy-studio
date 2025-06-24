@@ -72,50 +72,50 @@ const AICustomerOnboarding = () => {
           <div className="max-w-6xl mx-auto text-center">
             <div className="mb-8 scroll-reveal">
               <span className="px-6 py-3 bg-gradient-to-r from-elismet-blue to-purple-600 text-white rounded-full text-sm font-bold uppercase tracking-wide">
-                🤖 AI Revolution
+                🤖 STOP LOSING CUSTOMERS
               </span>
             </div>
             
             <h1 className="text-6xl md:text-8xl font-bold text-gray-900 mb-8 leading-tight scroll-reveal">
-              Stop Losing Customers.
+              From Excel Sheets to
               <span className="block bg-gradient-to-r from-elismet-blue via-purple-600 to-elismet-lightBlue bg-clip-text text-transparent">
-                Start Growing.
+                AI-Powered Growth
               </span>
             </h1>
             
-            <p className="text-2xl md:text-3xl text-gray-700 mb-12 max-w-4xl mx-auto leading-relaxed scroll-reveal font-medium">
-              AI-powered customer onboarding that converts 3x more leads
+            <p className="text-3xl md:text-4xl text-gray-700 mb-12 max-w-4xl mx-auto leading-relaxed scroll-reveal font-bold">
+              Get 3X more customers with AI automation
             </p>
 
             {/* Live Dashboard Preview */}
             <div className="mb-12 scroll-reveal">
               <div className="bg-white rounded-3xl shadow-2xl p-4 max-w-5xl mx-auto border border-gray-200">
                 <div className="bg-gradient-to-r from-elismet-blue to-purple-600 rounded-t-2xl p-6 mb-6">
-                  <h3 className="text-2xl font-bold text-white mb-2">Live AI Dashboard</h3>
-                  <p className="text-white/90">Real customer data, real results</p>
+                  <h3 className="text-2xl font-bold text-white mb-2">Your New AI Dashboard</h3>
+                  <p className="text-white/90 font-semibold">Real customers, Real results, Real time</p>
                 </div>
                 
                 {/* Dashboard Stats Preview */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className="bg-blue-50 p-4 rounded-xl text-center">
                     <div className="text-3xl font-bold text-elismet-blue">626</div>
-                    <div className="text-sm text-gray-600">Total Customers</div>
-                    <div className="text-xs text-green-600 font-semibold">+12% this month</div>
+                    <div className="text-sm text-gray-600 font-semibold">Active Customers</div>
+                    <div className="text-xs text-green-600 font-bold">+300% Growth</div>
                   </div>
                   <div className="bg-green-50 p-4 rounded-xl text-center">
                     <div className="text-3xl font-bold text-green-600">519</div>
-                    <div className="text-sm text-gray-600">Completed</div>
-                    <div className="text-xs text-green-600 font-semibold">82.9% success</div>
+                    <div className="text-sm text-gray-600 font-semibold">Auto-Converted</div>
+                    <div className="text-xs text-green-600 font-bold">AI Success Rate</div>
                   </div>
                   <div className="bg-blue-50 p-4 rounded-xl text-center">
-                    <div className="text-3xl font-bold text-blue-600">71</div>
-                    <div className="text-sm text-gray-600">In Progress</div>
-                    <div className="text-xs text-blue-600 font-semibold">Active now</div>
+                    <div className="text-3xl font-bold text-blue-600">$2.4M</div>
+                    <div className="text-sm text-gray-600 font-semibold">Revenue Generated</div>
+                    <div className="text-xs text-blue-600 font-bold">This Quarter</div>
                   </div>
-                  <div className="bg-orange-50 p-4 rounded-xl text-center">
-                    <div className="text-3xl font-bold text-orange-600">36</div>
-                    <div className="text-sm text-gray-600">Pending</div>
-                    <div className="text-xs text-orange-600 font-semibold">Need attention</div>
+                  <div className="bg-purple-50 p-4 rounded-xl text-center">
+                    <div className="text-3xl font-bold text-purple-600">24/7</div>
+                    <div className="text-sm text-gray-600 font-semibold">AI Working</div>
+                    <div className="text-xs text-purple-600 font-bold">Never Sleeps</div>
                   </div>
                 </div>
 
@@ -123,7 +123,7 @@ const AICustomerOnboarding = () => {
                 <div className="bg-gray-50 rounded-2xl p-6">
                   <img 
                     src="/lovable-uploads/4a98bb7b-4550-4bf0-8136-60316572323b.png" 
-                    alt="AI Customer Database Dashboard" 
+                    alt="AI Customer Management System" 
                     className="w-full h-auto rounded-xl shadow-lg"
                   />
                 </div>
@@ -132,31 +132,31 @@ const AICustomerOnboarding = () => {
 
             <div className="scroll-reveal">
               <Link to="/contact-direct">
-                <Button size="lg" className="bg-gradient-to-r from-elismet-blue to-purple-600 hover:from-elismet-blue/90 hover:to-purple-600/90 text-white px-16 py-8 text-2xl rounded-2xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 font-bold">
-                  Contact Us to Setup Free
-                  <ArrowRight className="ml-4 w-8 h-8" />
+                <Button size="lg" className="bg-gradient-to-r from-elismet-orange to-red-600 hover:from-elismet-orange/90 hover:to-red-600/90 text-white px-20 py-10 text-3xl rounded-2xl shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105 font-bold border-4 border-white">
+                  GET THIS FOR FREE NOW
+                  <ArrowRight className="ml-6 w-10 h-10" />
                 </Button>
               </Link>
-              <div className="text-gray-600 mt-6 text-lg">
-                <span className="font-semibold">✓ Free setup & consultation</span>
-                <span className="mx-4">•</span>
-                <span className="font-semibold">✓ AI implementation included</span>
+              <div className="text-gray-800 mt-8 text-xl font-bold">
+                <span className="text-green-600">✓ COMPLETELY FREE SETUP</span>
+                <span className="mx-6 text-gray-400">•</span>
+                <span className="text-green-600">✓ AI DOES EVERYTHING</span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Before vs After Section */}
+      {/* Problem vs Solution Section */}
       <section className="py-20 bg-gray-900 text-white">
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-5xl md:text-6xl font-bold mb-6 scroll-reveal">
-                Before vs After
+                STOP This Nightmare
               </h2>
-              <p className="text-2xl text-gray-300 scroll-reveal">
-                See the transformation
+              <p className="text-2xl text-red-400 scroll-reveal font-bold">
+                Your current system is KILLING your business
               </p>
             </div>
 
@@ -167,14 +167,14 @@ const AICustomerOnboarding = () => {
                     {item.icon}
                   </div>
                   
-                  <div className="bg-red-900/30 border border-red-500/30 p-6 rounded-2xl mb-6">
-                    <div className="text-lg font-bold text-red-300 mb-2">❌ Before</div>
-                    <p className="text-red-200">{item.before}</p>
+                  <div className="bg-red-900/50 border border-red-500 p-8 rounded-2xl mb-6">
+                    <div className="text-2xl font-bold text-red-300 mb-4">❌ Your Problem</div>
+                    <p className="text-red-200 text-lg font-semibold">{item.before}</p>
                   </div>
                   
-                  <div className="bg-green-900/30 border border-green-500/30 p-6 rounded-2xl">
-                    <div className="text-lg font-bold text-green-300 mb-2">✅ After</div>
-                    <p className="text-green-200 font-semibold">{item.after}</p>
+                  <div className="bg-green-900/50 border border-green-500 p-8 rounded-2xl">
+                    <div className="text-2xl font-bold text-green-300 mb-4">✅ AI Solution</div>
+                    <p className="text-green-200 font-bold text-lg">{item.after}</p>
                   </div>
                 </div>
               ))}
@@ -188,47 +188,50 @@ const AICustomerOnboarding = () => {
         <div className="container mx-auto px-6">
           <div className="max-w-5xl mx-auto text-center">
             <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-16 scroll-reveal">
-              The Numbers Don't Lie
+              PROVEN RESULTS
             </h2>
             
             <div className="grid md:grid-cols-3 gap-12 mb-16">
               <div className="scroll-reveal">
-                <div className="text-7xl font-bold bg-gradient-to-r from-elismet-blue to-purple-600 bg-clip-text text-transparent mb-4">3x</div>
-                <div className="text-xl text-gray-600 font-semibold">More Customer Conversions</div>
+                <div className="text-8xl font-bold bg-gradient-to-r from-elismet-blue to-purple-600 bg-clip-text text-transparent mb-4">3X</div>
+                <div className="text-2xl text-gray-800 font-bold">MORE CUSTOMERS</div>
+                <div className="text-lg text-gray-600 font-semibold">Guaranteed Results</div>
               </div>
               <div className="scroll-reveal" style={{animationDelay: '0.1s'}}>
-                <div className="text-7xl font-bold bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent mb-4">90%</div>
-                <div className="text-xl text-gray-600 font-semibold">Less Manual Work</div>
+                <div className="text-8xl font-bold bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent mb-4">90%</div>
+                <div className="text-2xl text-gray-800 font-bold">LESS WORK</div>
+                <div className="text-lg text-gray-600 font-semibold">AI Does Everything</div>
               </div>
               <div className="scroll-reveal" style={{animationDelay: '0.2s'}}>
-                <div className="text-7xl font-bold bg-gradient-to-r from-elismet-orange to-red-500 bg-clip-text text-transparent mb-4">24/7</div>
-                <div className="text-xl text-gray-600 font-semibold">AI-Powered Automation</div>
+                <div className="text-8xl font-bold bg-gradient-to-r from-elismet-orange to-red-500 bg-clip-text text-transparent mb-4">24/7</div>
+                <div className="text-2xl text-gray-800 font-bold">AI WORKING</div>
+                <div className="text-lg text-gray-600 font-semibold">Never Stops</div>
               </div>
             </div>
 
             {/* AI Power Showcase */}
             <div className="bg-gradient-to-br from-elismet-blue via-purple-600 to-elismet-lightBlue rounded-3xl p-12 text-white scroll-reveal">
               <div className="flex items-center justify-center mb-8">
-                <Bot className="w-16 h-16 text-white mr-4" />
-                <h3 className="text-4xl font-bold">AI Does Everything</h3>
+                <Bot className="w-20 h-20 text-white mr-6" />
+                <h3 className="text-5xl font-bold">AI RUNS YOUR BUSINESS</h3>
               </div>
               
               <div className="grid md:grid-cols-2 gap-8 text-left">
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
-                  <h4 className="text-xl font-bold mb-4">✅ Automated Lead Scoring</h4>
-                  <p className="text-white/90">AI identifies your best prospects instantly</p>
+                <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-8">
+                  <h4 className="text-2xl font-bold mb-4">🎯 FINDS BEST CUSTOMERS</h4>
+                  <p className="text-white/90 text-lg font-semibold">AI identifies high-value prospects instantly</p>
                 </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
-                  <h4 className="text-xl font-bold mb-4">✅ Smart Follow-ups</h4>
-                  <p className="text-white/90">Never lose a customer to poor timing</p>
+                <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-8">
+                  <h4 className="text-2xl font-bold mb-4">⚡ CONVERTS AUTOMATICALLY</h4>
+                  <p className="text-white/90 text-lg font-semibold">Perfect timing, every time</p>
                 </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
-                  <h4 className="text-xl font-bold mb-4">✅ Predictive Analytics</h4>
-                  <p className="text-white/90">See future revenue before it happens</p>
+                <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-8">
+                  <h4 className="text-2xl font-bold mb-4">📈 PREDICTS REVENUE</h4>
+                  <p className="text-white/90 text-lg font-semibold">See your future income today</p>
                 </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
-                  <h4 className="text-xl font-bold mb-4">✅ Zero Manual Data Entry</h4>
-                  <p className="text-white/90">AI handles everything automatically</p>
+                <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-8">
+                  <h4 className="text-2xl font-bold mb-4">🚀 ZERO MANUAL WORK</h4>
+                  <p className="text-white/90 text-lg font-semibold">Completely hands-free operation</p>
                 </div>
               </div>
             </div>
@@ -240,34 +243,34 @@ const AICustomerOnboarding = () => {
       <section className="py-20 bg-gradient-to-br from-gray-900 via-elismet-blue to-purple-900 text-white">
         <div className="container mx-auto px-6 text-center">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-5xl md:text-6xl font-bold mb-8 scroll-reveal">
-              Ready to 3x Your Customer Growth?
+            <h2 className="text-6xl md:text-7xl font-bold mb-8 scroll-reveal">
+              GET THIS NOW
             </h2>
-            <p className="text-2xl text-gray-200 mb-12 scroll-reveal">
-              Join 1000+ businesses using AI to dominate their market
+            <p className="text-3xl text-yellow-400 mb-12 scroll-reveal font-bold">
+              FREE SETUP • GUARANTEED RESULTS • AI DOES EVERYTHING
             </p>
             
             <div className="scroll-reveal">
               <Link to="/contact-direct">
-                <Button size="lg" className="bg-elismet-orange hover:bg-elismet-orange/90 text-white px-16 py-8 text-2xl rounded-2xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 font-bold">
-                  Contact Us to Setup Free
-                  <ArrowRight className="ml-4 w-8 h-8" />
+                <Button size="lg" className="bg-elismet-orange hover:bg-elismet-orange/90 text-white px-20 py-10 text-3xl rounded-2xl shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105 font-bold border-4 border-white">
+                  CONTACT US - SETUP FREE NOW
+                  <ArrowRight className="ml-6 w-10 h-10" />
                 </Button>
               </Link>
             </div>
             
-            <div className="mt-12 flex items-center justify-center gap-8 text-gray-300">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-6 h-6 text-green-400" />
-                <span className="text-lg font-semibold">Free AI setup</span>
+            <div className="mt-12 flex items-center justify-center gap-8 text-green-400 text-xl font-bold">
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-8 h-8" />
+                <span>100% FREE</span>
               </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-6 h-6 text-green-400" />
-                <span className="text-lg font-semibold">Personal onboarding</span>
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-8 h-8" />
+                <span>RESULTS GUARANTEED</span>
               </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-6 h-6 text-green-400" />
-                <span className="text-lg font-semibold">Results guarantee</span>
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-8 h-8" />
+                <span>AI SETUP INCLUDED</span>
               </div>
             </div>
           </div>
