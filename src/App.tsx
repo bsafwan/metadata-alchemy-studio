@@ -59,6 +59,7 @@ const App = () => (
           <SuperAdminProvider>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/multi-channel-support" element={<MultiChannelSupport />} />
               <Route path="/author" element={<Author />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />
