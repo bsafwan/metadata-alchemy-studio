@@ -10,6 +10,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import SuperAdminProtectedRoute from "@/components/SuperAdminProtectedRoute";
 import Index from "./pages/Index";
 import MultiChannelSupport from "./pages/MultiChannelSupport";
+import AICustomerOnboarding from "./pages/AICustomerOnboarding";
 import Author from "./pages/Author";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
