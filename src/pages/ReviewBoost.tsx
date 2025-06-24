@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Star, TrendingUp, Users, CheckCircle } from 'lucide-react';
@@ -192,14 +191,10 @@ const ReviewBoost = () => {
               The Results
             </h2>
             
-            <div className="grid md:grid-cols-3 gap-12 mb-16">
+            <div className="grid md:grid-cols-2 gap-12 mb-16">
               <div className="scroll-reveal">
                 <div className="text-6xl font-bold text-green-600 mb-4">70%</div>
                 <div className="text-xl text-gray-800 font-bold">Review Guarantee</div>
-              </div>
-              <div className="scroll-reveal">
-                <div className="text-6xl font-bold text-blue-600 mb-4">1.15</div>
-                <div className="text-xl text-gray-800 font-bold">Reviews Per Customer</div>
               </div>
               <div className="scroll-reveal">
                 <div className="text-6xl font-bold text-orange-600 mb-4">47X</div>
