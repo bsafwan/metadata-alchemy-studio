@@ -64,9 +64,22 @@ const ReviewBoost = () => {
             {/* Problem Statement */}
             <div className="bg-red-50 border-2 border-red-200 rounded-3xl p-12 mb-16 scroll-reveal">
               <h3 className="text-3xl font-bold text-red-700 mb-6">The Problem Is Real</h3>
-              <div className="grid md:grid-cols-2 gap-8 text-xl text-red-600">
-                <div>❌ No reviews = 47x fewer customers</div>
+              <div className="grid md:grid-cols-2 gap-8 text-xl text-red-600 mb-8">
+                <div>❌ No reviews = 4.7x fewer customers</div>
                 <div>❌ Competitors get chosen instead</div>
+              </div>
+              
+              {/* Real Example */}
+              <div className="bg-white rounded-2xl p-8 border-2 border-red-300">
+                <h4 className="text-2xl font-bold text-red-800 mb-4">Real Example: New York City</h4>
+                <p className="text-lg text-red-700 leading-relaxed">
+                  Within <span className="font-bold">4,734 cleaning businesses</span> in New York City, 
+                  only <span className="font-bold">27 cleaning services</span> (particularly owning more than 300+ Google reviews) 
+                  alone manage and deal with <span className="font-bold text-2xl">57% of customers</span>
+                </p>
+                <div className="mt-4 text-red-600 font-semibold">
+                  That's less than 1% of businesses capturing over half the market!
+                </div>
               </div>
             </div>
 
@@ -197,7 +210,7 @@ const ReviewBoost = () => {
                 <div className="text-xl text-gray-800 font-bold">Review Guarantee</div>
               </div>
               <div className="scroll-reveal">
-                <div className="text-6xl font-bold text-orange-600 mb-4">47X</div>
+                <div className="text-6xl font-bold text-orange-600 mb-4">4.7X</div>
                 <div className="text-xl text-gray-800 font-bold">More Customers</div>
               </div>
             </div>
