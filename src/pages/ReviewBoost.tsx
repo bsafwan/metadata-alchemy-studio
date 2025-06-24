@@ -133,7 +133,7 @@ const ReviewBoost = () => {
                 <p className="text-gray-600 text-lg">From Google Sheets or any system</p>
               </div>
               
-              <div className="scroll-reveal" style={{animationDelay: '0.1s'}}>
+              <div className="scroll-reveal opacity-0 translate-y-8 transition-all duration-700 delay-100">
                 <div className="bg-orange-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
                   <TrendingUp className="w-10 h-10 text-orange-600" />
                 </div>
@@ -141,7 +141,7 @@ const ReviewBoost = () => {
                 <p className="text-gray-600 text-lg">Via Email, WhatsApp, SMS, Calls</p>
               </div>
               
-              <div className="scroll-reveal" style={{animationDelay: '0.2s'}}>
+              <div className="scroll-reveal opacity-0 translate-y-8 transition-all duration-700 delay-200">
                 <div className="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Star className="w-10 h-10 text-green-600" />
                 </div>
@@ -258,7 +258,8 @@ const ReviewBoost = () => {
       </section>
 
       {/* CSS for scroll animations */}
-      <style jsx>{`
+      <style>
+        {`
         .scroll-reveal {
           opacity: 0;
           transform: translateY(30px);
@@ -269,7 +270,8 @@ const ReviewBoost = () => {
           opacity: 1;
           transform: translateY(0);
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };
