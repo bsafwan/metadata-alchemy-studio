@@ -14,6 +14,7 @@ import ReviewBoost from "./pages/ReviewBoost";
 import SmartScheduling from "./pages/SmartScheduling";
 import AutomatedFollowUps from "./pages/AutomatedFollowUps";
 import PaymentSolutions from "./pages/PaymentSolutions";
+import CostTracking from "./pages/CostTracking";
 import Author from "./pages/Author";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -69,6 +70,7 @@ const App = () => (
               <Route path="/smart-scheduling" element={<SmartScheduling />} />
               <Route path="/automated-follow-ups" element={<AutomatedFollowUps />} />
               <Route path="/payment-solutions" element={<PaymentSolutions />} />
+              <Route path="/cost-tracking" element={<CostTracking />} />
               <Route path="/author" element={<Author />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />
