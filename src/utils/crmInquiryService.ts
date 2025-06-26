@@ -82,16 +82,12 @@ ${inquiry.user_identifier ? `Use Client ID ${inquiry.user_identifier} for direct
       `
     });
 
-    // Send confirmation email to user
+    // Send confirmation email to user (without logo image)
     await EmailService.sendEmail({
       to: [inquiry.email],
       subject: 'Thank you for your CRM inquiry - Elismet Team',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="text-align: center; margin-bottom: 30px;">
-            <img src="/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png" alt="Elismet LTD" style="height: 60px;" />
-          </div>
-          
           <h2 style="color: #2563eb; text-align: center;">Thank You for Your CRM Inquiry!</h2>
           
           <p>Dear ${inquiry.company_name} Team,</p>
@@ -164,4 +160,3 @@ Your CRM Solution Partners
     return false;
   }
 };
-
