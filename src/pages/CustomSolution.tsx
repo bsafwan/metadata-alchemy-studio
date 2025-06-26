@@ -99,7 +99,7 @@ const CustomSolution = () => {
       <Navbar />
       <ScrollToTopButton />
 
-      <style jsx>{`
+      <style>{`
         .hand-drawn-underline {
           position: relative;
         }
