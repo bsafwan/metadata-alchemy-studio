@@ -8,7 +8,8 @@ const corsHeaders = {
 };
 
 interface PushNotificationRequest {
-  userEmail: string;
+  deviceId?: string;
+  userEmail?: string;
   title: string;
   body: string;
   url?: string;
@@ -32,24 +33,57 @@ const handler = async (req: Request): Promise<Response> => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { userEmail, title, body, url, data }: PushNotificationRequest = await req.json();
+    const { deviceId, userEmail, title, body, url, data }: PushNotificationRequest = await req.json();
 
-    console.log('Sending push notification to:', userEmail, 'Title:', title);
+    console.log('Sending push notification - Device ID:', deviceId, 'User Email:', userEmail, 'Title:', title);
 
-    // Get all active push subscriptions for the user
-    const { data: subscriptions, error: fetchError } = await supabase
-      .from('push_subscriptions')
-      .select('*')
-      .eq('user_email', userEmail)
-      .eq('is_active', true);
+    let subscriptions = [];
 
-    if (fetchError) {
-      console.error('Error fetching push subscriptions:', fetchError);
-      throw fetchError;
+    if (deviceId) {
+      // Get subscription by device ID
+      const { data: deviceSubs, error: deviceError } = await supabase
+        .from('device_push_subscriptions')
+        .select('*')
+        .eq('device_id', deviceId)
+        .eq('is_active', true);
+
+      if (deviceError) {
+        console.error('Error fetching device push subscriptions:', deviceError);
+        throw deviceError;
+      }
+
+      subscriptions = deviceSubs || [];
+    } else if (userEmail) {
+      // Get subscriptions by email (for associated devices)
+      const { data: emailSubs, error: emailError } = await supabase
+        .from('device_push_subscriptions')
+        .select('*')
+        .eq('user_email', userEmail)
+        .eq('is_active', true);
+
+      if (emailError) {
+        console.error('Error fetching email push subscriptions:', emailError);
+        throw emailError;
+      }
+
+      subscriptions = emailSubs || [];
+    } else {
+      // Get all active subscriptions (broadcast)
+      const { data: allSubs, error: allError } = await supabase
+        .from('device_push_subscriptions')
+        .select('*')
+        .eq('is_active', true);
+
+      if (allError) {
+        console.error('Error fetching all push subscriptions:', allError);
+        throw allError;
+      }
+
+      subscriptions = allSubs || [];
     }
 
     if (!subscriptions || subscriptions.length === 0) {
-      console.log('No active push subscriptions found for user:', userEmail);
+      console.log('No active push subscriptions found');
       return new Response(
         JSON.stringify({ success: true, message: 'No active subscriptions found' }),
         {
@@ -59,7 +93,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    console.log(`Found ${subscriptions.length} active subscriptions for user`);
+    console.log(`Found ${subscriptions.length} active subscriptions`);
 
     // Prepare the notification payload
     const notificationPayload = {
@@ -96,31 +130,31 @@ const handler = async (req: Request): Promise<Response> => {
         const response = await fetch(subscription.endpoint, webPushPayload);
 
         if (response.ok) {
-          console.log('Push notification sent successfully to endpoint:', subscription.endpoint);
+          console.log('Push notification sent successfully to device:', subscription.device_id);
           
           // Update last_used_at
           await supabase
-            .from('push_subscriptions')
+            .from('device_push_subscriptions')
             .update({ last_used_at: new Date().toISOString() })
             .eq('id', subscription.id);
 
-          return { success: true, endpoint: subscription.endpoint };
+          return { success: true, deviceId: subscription.device_id };
         } else {
-          console.error('Push notification failed:', response.status, response.statusText);
+          console.error('Push notification failed for device:', subscription.device_id, response.status, response.statusText);
           
           // If subscription is invalid, mark as inactive
           if (response.status === 410 || response.status === 404) {
             await supabase
-              .from('push_subscriptions')
+              .from('device_push_subscriptions')
               .update({ is_active: false })
               .eq('id', subscription.id);
           }
 
-          return { success: false, endpoint: subscription.endpoint, error: response.statusText };
+          return { success: false, deviceId: subscription.device_id, error: response.statusText };
         }
       } catch (error) {
-        console.error('Error sending push notification to endpoint:', subscription.endpoint, error);
-        return { success: false, endpoint: subscription.endpoint, error: error.message };
+        console.error('Error sending push notification to device:', subscription.device_id, error);
+        return { success: false, deviceId: subscription.device_id, error: error.message };
       }
     });
 

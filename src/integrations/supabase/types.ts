@@ -310,6 +310,57 @@ export type Database = {
         }
         Relationships: []
       }
+      device_push_subscriptions: {
+        Row: {
+          auth_key: string
+          created_at: string
+          device_fingerprint: string
+          device_id: string
+          device_info: Json | null
+          endpoint: string
+          id: string
+          is_active: boolean
+          last_used_at: string | null
+          p256dh_key: string
+          page_context: Json | null
+          user_agent: string | null
+          user_email: string | null
+          user_id: string | null
+        }
+        Insert: {
+          auth_key: string
+          created_at?: string
+          device_fingerprint: string
+          device_id: string
+          device_info?: Json | null
+          endpoint: string
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          p256dh_key: string
+          page_context?: Json | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          auth_key?: string
+          created_at?: string
+          device_fingerprint?: string
+          device_id?: string
+          device_info?: Json | null
+          endpoint?: string
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          p256dh_key?: string
+          page_context?: Json | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
