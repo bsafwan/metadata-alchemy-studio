@@ -8,6 +8,7 @@ import { SuperAdminProvider } from "@/contexts/SuperAdminContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SuperAdminProtectedRoute from "@/components/SuperAdminProtectedRoute";
 import Index from "./pages/Index";
+import CustomSolution from "./pages/CustomSolution";
 import MultiChannelSupport from "./pages/MultiChannelSupport";
 import AICustomerOnboarding from "./pages/AICustomerOnboarding";
 import ReviewBoost from "./pages/ReviewBoost";
@@ -64,6 +65,7 @@ const App = () => (
           <SuperAdminProvider>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/custom-solution" element={<CustomSolution />} />
               <Route path="/multi-channel-support" element={<MultiChannelSupport />} />
               <Route path="/ai-customer-onboarding" element={<AICustomerOnboarding />} />
               <Route path="/review-boost" element={<ReviewBoost />} />
