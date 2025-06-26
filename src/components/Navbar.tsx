@@ -44,29 +44,17 @@ const Navbar = () => {
           {/* Simple Auth Buttons */}
           <div className="flex items-center space-x-4">
             {user ? (
-              <div className="flex items-center space-x-4">
-                <Link to="/dashboard">
-                  <Button size="sm">
-                    Dashboard
-                  </Button>
-                </Link>
-                <Button onClick={logout} variant="outline" size="sm">
-                  Logout
+              <Link to="/dashboard">
+                <Button size="sm">
+                  Dashboard
                 </Button>
-              </div>
+              </Link>
             ) : (
-              <div className="flex items-center space-x-4">
-                <Link to="/login">
-                  <Button variant="ghost" size="sm">
-                    Login
-                  </Button>
-                </Link>
-                <Link to="/get-started">
-                  <Button size="sm">
-                    Get Started
-                  </Button>
-                </Link>
-              </div>
+              <Link to="/get-started">
+                <Button size="sm">
+                  Get Started
+                </Button>
+              </Link>
             )}
 
             {/* Mobile menu button */}
@@ -115,8 +103,8 @@ const Navbar = () => {
                 Author
               </Link>
               
-              {user ? (
-                <div className="border-t border-gray-200 mt-2 pt-2">
+              <div className="border-t border-gray-200 mt-2 pt-2">
+                {user ? (
                   <Link 
                     to="/dashboard" 
                     className="text-blue-600 font-medium px-4 py-2 block"
@@ -124,25 +112,7 @@ const Navbar = () => {
                   >
                     Dashboard
                   </Link>
-                  <button 
-                    onClick={() => {
-                      logout();
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="text-gray-700 hover:text-blue-600 transition-colors px-4 py-2 text-left w-full"
-                  >
-                    Logout
-                  </button>
-                </div>
-              ) : (
-                <div className="border-t border-gray-200 mt-2 pt-2">
-                  <Link 
-                    to="/login" 
-                    className="text-gray-700 hover:text-blue-600 transition-colors px-4 py-2 block"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Login
-                  </Link>
+                ) : (
                   <Link 
                     to="/get-started" 
                     className="text-blue-600 font-medium px-4 py-2 block"
@@ -150,8 +120,8 @@ const Navbar = () => {
                   >
                     Get Started
                   </Link>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         )}

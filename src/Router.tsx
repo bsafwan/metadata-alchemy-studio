@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -87,11 +88,11 @@ const Router = () => {
         <Route path="/privacy-policy" element={<><Navbar /><PrivacyPolicy /></>} />
         <Route path="/terms-of-service" element={<><Navbar /><TermsOfService /></>} />
 
-        {/* Auth Pages - WITH Navbar */}
+        {/* Auth Pages - Login/Verify WITH Navbar, SuperAdmin WITHOUT Navbar */}
         <Route path="/login" element={<><Navbar /><Login /></>} />
         <Route path="/verify-otp" element={<><Navbar /><VerifyOTP /></>} />
-        <Route path="/super-admin-login" element={<><Navbar /><SuperAdminLogin /></>} />
-        <Route path="/system-control-panel-auth-gateway-x7k9m2p8q4w1" element={<><Navbar /><SuperAdminLogin /></>} />
+        <Route path="/super-admin-login" element={<SuperAdminLogin />} />
+        <Route path="/system-control-panel-auth-gateway-x7k9m2p8q4w1" element={<SuperAdminLogin />} />
 
         {/* Business Feature Pages - WITH Navbar */}
         <Route path="/onboard" element={<><Navbar /><Onboard /></>} />
