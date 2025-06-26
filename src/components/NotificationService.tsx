@@ -22,6 +22,12 @@ interface NotificationServiceProps {
   onNotificationCount?: (count: number) => void;
 }
 
+// Helper function to safely parse JSON arrays
+const parseJsonArray = (jsonArray: any[], defaultValue: any[] = []): any[] => {
+  if (!Array.isArray(jsonArray)) return defaultValue;
+  return jsonArray.filter(item => item && typeof item === 'object');
+};
+
 export function NotificationService({ onNotificationCount }: NotificationServiceProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -47,15 +53,15 @@ export function NotificationService({ onNotificationCount }: NotificationService
           console.log('New notification received:', payload);
           const newMessage = payload.new;
           
-          // Transform to notification format
+          // Transform to notification format with proper type casting
           const newNotification: Notification = {
             id: newMessage.id,
             title: newMessage.title,
             content: newMessage.notification_content || '',
             is_read: false,
             created_at: newMessage.created_at,
-            links: Array.isArray(newMessage.links) ? newMessage.links : [],
-            images: Array.isArray(newMessage.images) ? newMessage.images : []
+            links: parseJsonArray(newMessage.links as any[]) as Array<{ text: string; url: string }>,
+            images: parseJsonArray(newMessage.images as any[]) as Array<{ alt: string; url: string }>
           };
           
           setNotifications(prev => [newNotification, ...prev]);
@@ -98,15 +104,15 @@ export function NotificationService({ onNotificationCount }: NotificationService
 
       if (error) throw error;
       
-      // Transform admin_messages to notification format
+      // Transform admin_messages to notification format with proper type casting
       const transformedNotifications: Notification[] = (data || []).map(msg => ({
         id: msg.id,
         title: msg.title,
         content: msg.notification_content || '',
         is_read: false, // Default to false for now
         created_at: msg.created_at,
-        links: Array.isArray(msg.links) ? msg.links : [],
-        images: Array.isArray(msg.images) ? msg.images : []
+        links: parseJsonArray(msg.links as any[]) as Array<{ text: string; url: string }>,
+        images: parseJsonArray(msg.images as any[]) as Array<{ alt: string; url: string }>
       }));
 
       setNotifications(transformedNotifications);

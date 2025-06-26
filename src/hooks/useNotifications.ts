@@ -13,6 +13,12 @@ interface Notification {
   images: Array<{ alt: string; url: string }>;
 }
 
+// Helper function to safely parse JSON arrays
+const parseJsonArray = (jsonArray: any[], defaultValue: any[] = []): any[] => {
+  if (!Array.isArray(jsonArray)) return defaultValue;
+  return jsonArray.filter(item => item && typeof item === 'object');
+};
+
 export const useNotifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -66,15 +72,15 @@ export const useNotifications = () => {
 
       if (error) throw error;
 
-      // Transform admin_messages to notification format
+      // Transform admin_messages to notification format with proper type casting
       const transformedNotifications: Notification[] = (data || []).map(msg => ({
         id: msg.id,
         title: msg.title,
         content: msg.notification_content || '',
         is_read: false, // Default to false for now
         created_at: msg.created_at,
-        links: Array.isArray(msg.links) ? msg.links : [],
-        images: Array.isArray(msg.images) ? msg.images : []
+        links: parseJsonArray(msg.links as any[]) as Array<{ text: string; url: string }>,
+        images: parseJsonArray(msg.images as any[]) as Array<{ alt: string; url: string }>
       }));
 
       setNotifications(transformedNotifications);
