@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Send, Building, Mail, Phone, Bell, BellOff, AlertTriangle, Copy, Check } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -13,6 +14,7 @@ import { saveCRMInquiry } from '@/utils/crmInquiryService';
 
 const ContactDirect = () => {
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
   const [showNotificationOverlay, setShowNotificationOverlay] = useState(false);
@@ -33,6 +35,17 @@ const ContactDirect = () => {
     }
     setUserIdentifier(identifier);
   }, []);
+
+  // Pre-fill business problems from URL parameters
+  useEffect(() => {
+    const businessProblems = searchParams.get('business-problems');
+    if (businessProblems) {
+      setFormData(prev => ({
+        ...prev,
+        crm_needs: decodeURIComponent(businessProblems)
+      }));
+    }
+  }, [searchParams]);
 
   // Check notification permission on mount and show overlay if needed
   useEffect(() => {
