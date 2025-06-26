@@ -134,6 +134,8 @@ export type Database = {
           email: string
           id: string
           phone: string
+          source_page: string | null
+          user_identifier: string | null
         }
         Insert: {
           company_name: string
@@ -142,6 +144,8 @@ export type Database = {
           email: string
           id?: string
           phone: string
+          source_page?: string | null
+          user_identifier?: string | null
         }
         Update: {
           company_name?: string
@@ -150,6 +154,8 @@ export type Database = {
           email?: string
           id?: string
           phone?: string
+          source_page?: string | null
+          user_identifier?: string | null
         }
         Relationships: []
       }

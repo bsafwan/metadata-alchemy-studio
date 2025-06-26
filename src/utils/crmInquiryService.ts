@@ -9,6 +9,7 @@ export interface CRMInquiry {
   phone: string;
   crm_needs: string;
   user_identifier?: string;
+  source_page?: string;
   created_at?: string;
 }
 
@@ -26,7 +27,7 @@ export const saveCRMInquiry = async (inquiry: Omit<CRMInquiry, 'id' | 'created_a
       return false;
     }
 
-    // Send email notification with user identifier
+    // Send email notification to admin with user identifier
     await EmailService.sendEmail({
       to: ['bsafwanjamil677@gmail.com'],
       subject: `New CRM Inquiry from ${inquiry.company_name}`,
@@ -48,6 +49,7 @@ export const saveCRMInquiry = async (inquiry: Omit<CRMInquiry, 'id' | 'created_a
             <p><strong>Email:</strong> ${inquiry.email}</p>
             <p><strong>Phone:</strong> ${inquiry.phone}</p>
             <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
+            ${inquiry.source_page ? `<p><strong>Source Page:</strong> ${inquiry.source_page}</p>` : ''}
           </div>
           
           <div style="margin: 20px 0;">
@@ -71,11 +73,88 @@ Company: ${inquiry.company_name}
 Email: ${inquiry.email}
 Phone: ${inquiry.phone}
 Date: ${new Date().toLocaleString()}
+${inquiry.source_page ? `Source Page: ${inquiry.source_page}\n` : ''}
 
 CRM Needs: ${inquiry.crm_needs}
 
 Please review and prepare a customized proposal.
 ${inquiry.user_identifier ? `Use Client ID ${inquiry.user_identifier} for direct communication.` : ''}
+      `
+    });
+
+    // Send confirmation email to user
+    await EmailService.sendEmail({
+      to: [inquiry.email],
+      subject: 'Thank you for your CRM inquiry - Elismet Team',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <img src="/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png" alt="Elismet LTD" style="height: 60px;" />
+          </div>
+          
+          <h2 style="color: #2563eb; text-align: center;">Thank You for Your CRM Inquiry!</h2>
+          
+          <p>Dear ${inquiry.company_name} Team,</p>
+          
+          <p>Thank you for reaching out to us regarding your CRM requirements. We have successfully received your inquiry and our team is excited to help you transform your business operations.</p>
+          
+          <div style="background: #e0f2fe; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #0288d1;">
+            <h3 style="margin: 0 0 10px 0; color: #01579b;">What happens next?</h3>
+            <ul style="margin: 0; padding-left: 20px; color: #01579b;">
+              <li>Our team will review your requirements within 24 hours</li>
+              <li>We'll prepare a customized CRM solution proposal</li>
+              <li>You'll receive a detailed quote and timeline</li>
+              <li>We'll schedule a consultation call to discuss your needs</li>
+            </ul>
+          </div>
+          
+          <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3>Your Inquiry Summary</h3>
+            <p><strong>Company:</strong> ${inquiry.company_name}</p>
+            <p><strong>Email:</strong> ${inquiry.email}</p>
+            <p><strong>Phone:</strong> ${inquiry.phone}</p>
+            <p><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
+          </div>
+          
+          <p><strong>Expected Response Time:</strong> Within 1 week (usually much faster!)</p>
+          
+          <p>If you have any urgent questions or need to provide additional information, please don't hesitate to contact us.</p>
+          
+          <p>Best regards,<br>
+          <strong>The Elismet Team</strong><br>
+          Your CRM Solution Partners</p>
+          
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; color: #6b7280; font-size: 12px;">
+            <p>This is an automated confirmation email. Please do not reply to this email.</p>
+          </div>
+        </div>
+      `,
+      text: `
+Thank You for Your CRM Inquiry!
+
+Dear ${inquiry.company_name} Team,
+
+Thank you for reaching out to us regarding your CRM requirements. We have successfully received your inquiry and our team is excited to help you transform your business operations.
+
+What happens next?
+- Our team will review your requirements within 24 hours
+- We'll prepare a customized CRM solution proposal  
+- You'll receive a detailed quote and timeline
+- We'll schedule a consultation call to discuss your needs
+
+Your Inquiry Summary:
+Company: ${inquiry.company_name}
+Email: ${inquiry.email}
+Phone: ${inquiry.phone}
+Submitted: ${new Date().toLocaleString()}
+
+Expected Response Time: Within 1 week (usually much faster!)
+
+If you have any urgent questions or need to provide additional information, please don't hesitate to contact us.
+
+Best regards,
+The Elismet Team
+Your CRM Solution Partners
       `
     });
 
@@ -85,3 +164,4 @@ ${inquiry.user_identifier ? `Use Client ID ${inquiry.user_identifier} for direct
     return false;
   }
 };
+
