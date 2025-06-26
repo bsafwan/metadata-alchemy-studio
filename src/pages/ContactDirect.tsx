@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,12 +11,13 @@ import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { saveCRMInquiry } from '@/utils/crmInquiryService';
+import { supabase } from '@/integrations/supabase/client';
 
 const ContactDirect = () => {
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+  const [notificationStatus, setNotificationStatus] = useState<'disabled' | 'enabled' | 'subscribed'>('disabled');
   const [showNotificationOverlay, setShowNotificationOverlay] = useState(false);
   const [userIdentifier, setUserIdentifier] = useState<string>('');
   const [sourcePage, setSourcePage] = useState<string>('');
@@ -25,6 +27,24 @@ const ContactDirect = () => {
     phone: '',
     crm_needs: ''
   });
+
+  // VAPID key from environment
+  const VAPID_PUBLIC_KEY = 'BHxvyf5-KzQpWrV9EKvQjF8nAEgqGv8nDf2QXqYjKpVqJ8FjRqW3QqKgF9nVfQh8yRqF7KpJvWq3QxKf8nDf2QX';
+
+  const urlBase64ToUint8Array = (base64String: string): Uint8Array => {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  };
 
   // Generate unique identifier for user (hidden from user)
   useEffect(() => {
@@ -55,72 +75,167 @@ const ContactDirect = () => {
 
   // Check notification permission on mount and show overlay if needed
   useEffect(() => {
-    if ('Notification' in window) {
-      const permission = Notification.permission;
-      setNotificationPermission(permission);
-      
-      // Show overlay if permission is not granted
-      if (permission !== 'granted') {
+    checkNotificationStatus();
+  }, []);
+
+  const checkNotificationStatus = async () => {
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+      setShowNotificationOverlay(true);
+      return;
+    }
+
+    const permission = Notification.permission;
+    
+    if (permission === 'granted') {
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration) {
+          const subscription = await registration.pushManager.getSubscription();
+          if (subscription) {
+            setNotificationStatus('subscribed');
+            setShowNotificationOverlay(false);
+          } else {
+            setNotificationStatus('enabled');
+            setShowNotificationOverlay(true);
+          }
+        } else {
+          setNotificationStatus('enabled');
+          setShowNotificationOverlay(true);
+        }
+      } catch (error) {
+        console.error('Error checking subscription status:', error);
+        setNotificationStatus('enabled');
         setShowNotificationOverlay(true);
       }
     } else {
-      // Browser doesn't support notifications
+      setNotificationStatus('disabled');
       setShowNotificationOverlay(true);
     }
-  }, []);
+  };
 
-  const requestNotificationPermission = async () => {
-    if ('Notification' in window) {
-      try {
-        const permission = await Notification.requestPermission();
-        setNotificationPermission(permission);
-        
-        if (permission === 'granted') {
+  const setupFullNotifications = async () => {
+    if (!('serviceWorker' in navigator) || !('Notification' in window)) {
+      toast({
+        title: "Notifications Not Supported",
+        description: "Your browser doesn't support notifications.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Step 1: Register service worker
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      console.log('Service Worker registered successfully');
+
+      // Step 2: Request permission
+      let permission = Notification.permission;
+      if (permission === 'default') {
+        permission = await Notification.requestPermission();
+      }
+
+      if (permission !== 'granted') {
+        toast({
+          title: "Notifications Blocked",
+          description: "Please allow notifications to receive updates about your inquiry.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setNotificationStatus('enabled');
+
+      // Step 3: Subscribe to push notifications for background support
+      const existingSubscription = await registration.pushManager.getSubscription();
+      
+      if (!existingSubscription && formData.email) {
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+
+        // Save subscription to database using the email from the form
+        const subscriptionData = {
+          user_email: formData.email,
+          endpoint: subscription.endpoint,
+          p256dh_key: btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('p256dh')!))),
+          auth_key: btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('auth')!))),
+          user_agent: navigator.userAgent
+        };
+
+        const { error } = await supabase.functions.invoke('insert-push-subscription', {
+          body: subscriptionData
+        });
+
+        if (error) {
+          console.error('Failed to save push subscription:', error);
+          toast({
+            title: "Subscription Error",
+            description: "Failed to save notification subscription. Please try again.",
+            variant: "destructive"
+          });
+        } else {
+          console.log('Push subscription saved successfully');
+          setNotificationStatus('subscribed');
           setShowNotificationOverlay(false);
           
           // Send test notification
           new Notification('Elismet CRM System', {
-            body: 'Notifications enabled! We can now keep you updated on your inquiry.',
+            body: 'Perfect! You\'ll receive updates about your CRM inquiry.',
             icon: '/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png'
           });
           
           toast({
-            title: "Notifications Enabled!",
-            description: "Perfect! You'll receive updates about your CRM inquiry.",
-          });
-        } else {
-          toast({
-            title: "Notifications Blocked",
-            description: "Please click the notification icon in your browser's address bar to enable notifications.",
-            variant: "destructive"
+            title: "All Notifications Enabled!",
+            description: "You'll receive updates everywhere - background, other tabs, even when browser is closed.",
           });
         }
-      } catch (error) {
-        console.error('Error requesting notification permission:', error);
+      } else {
+        console.log('Already subscribed to push notifications');
+        setNotificationStatus('subscribed');
+        setShowNotificationOverlay(false);
+        
         toast({
-          title: "Notification Error",
-          description: "There was an issue with notification permissions. Please try refreshing the page.",
-          variant: "destructive"
+          title: "Notifications Already Enabled!",
+          description: "You're all set to receive updates about your inquiry.",
         });
       }
+
+    } catch (error) {
+      console.error('Error setting up notifications:', error);
+      toast({
+        title: "Setup Error",
+        description: "There was an issue setting up notifications. Please try refreshing the page.",
+        variant: "destructive"
+      });
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check notification permission before allowing submission
-    if (notificationPermission !== 'granted') {
+    // Check if email is provided for subscription
+    if (!formData.email) {
+      toast({
+        title: "Email Required",
+        description: "Please provide your email address first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check notification setup
+    if (notificationStatus !== 'subscribed') {
       setShowNotificationOverlay(true);
       toast({
         title: "Enable Notifications First",
-        description: "Please allow notifications to submit your inquiry.",
+        description: "Please enable notifications to receive updates about your inquiry.",
         variant: "destructive"
       });
       return;
     }
     
-    if (!formData.company_name || !formData.email || !formData.phone || !formData.crm_needs) {
+    if (!formData.company_name || !formData.phone || !formData.crm_needs) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields.",
@@ -144,10 +259,10 @@ const ContactDirect = () => {
       if (success) {
         toast({
           title: "Inquiry Submitted Successfully!",
-          description: "We've received your CRM requirements. Check your notifications for updates!",
+          description: "We've received your CRM requirements. You'll receive updates via notifications!",
         });
         
-        // Send notification to user
+        // Send immediate notification to user
         new Notification('CRM Inquiry Submitted', {
           body: 'Your CRM inquiry has been submitted successfully. We will contact you soon!',
           icon: '/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png'
@@ -181,6 +296,11 @@ const ContactDirect = () => {
       ...prev,
       [field]: value
     }));
+    
+    // If email is being updated and notifications are not set up, re-check status
+    if (field === 'email' && value && notificationStatus !== 'subscribed') {
+      checkNotificationStatus();
+    }
   };
 
   return (
@@ -188,7 +308,7 @@ const ContactDirect = () => {
       <Navbar />
       
       {/* Notification Overlay */}
-      {showNotificationOverlay && notificationPermission !== 'granted' && (
+      {showNotificationOverlay && notificationStatus !== 'subscribed' && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <Card className="w-full max-w-md shadow-2xl border-0 bg-white">
             <CardContent className="p-8 text-center">
@@ -203,24 +323,31 @@ const ContactDirect = () => {
               />
               
               <h2 className="text-xl font-semibold text-gray-900 mb-3">
-                Enable Notifications
+                Enable Universal Notifications
               </h2>
               
               <p className="text-gray-600 text-sm mb-6">
-                Allow notifications to receive important updates about your CRM project progress.
+                Get updates everywhere - in background, other tabs, even when browser is closed. We'll keep you posted on your CRM project.
               </p>
               
               <div className="space-y-3">
                 <Button 
-                  onClick={requestNotificationPermission}
+                  onClick={setupFullNotifications}
+                  disabled={!formData.email}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  Enable Notifications
+                  Enable All Notifications
                   <Bell className="ml-2 w-4 h-4" />
                 </Button>
                 
+                {!formData.email && (
+                  <p className="text-xs text-amber-600">
+                    Enter your email first to enable notifications
+                  </p>
+                )}
+                
                 <p className="text-xs text-gray-400">
-                  We only send updates about your inquiry
+                  Works in background, other tabs, and when browser is closed
                 </p>
               </div>
             </CardContent>
@@ -246,11 +373,11 @@ const ContactDirect = () => {
           </div>
 
           {/* Notification Status */}
-          {notificationPermission === 'granted' && (
+          {notificationStatus === 'subscribed' && (
             <div className="mb-8">
               <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-3">
                 <Bell className="w-4 h-4 text-green-600" />
-                <span className="text-green-800 text-sm font-medium">Notifications enabled</span>
+                <span className="text-green-800 text-sm font-medium">Universal notifications enabled - you'll get updates everywhere!</span>
               </div>
             </div>
           )}
@@ -325,7 +452,7 @@ const ContactDirect = () => {
                 {/* Submit Button */}
                 <Button 
                   type="submit" 
-                  disabled={isSubmitting || notificationPermission !== 'granted'}
+                  disabled={isSubmitting || notificationStatus !== 'subscribed'}
                   className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all"
                 >
                   {isSubmitting ? (
@@ -358,7 +485,7 @@ const ContactDirect = () => {
                   <p className="text-blue-800">Schedule consultation call</p>
                 </div>
                 <div className="text-center">
-                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-semibold">3</div>
+                  <div className="w-8 h-8 bg-blue-600 text-white rounded-pool flex items-center justify-center mx-auto mb-2 text-sm font-semibold">3</div>
                   <p className="text-blue-800">Receive detailed proposal</p>
                 </div>
               </div>
