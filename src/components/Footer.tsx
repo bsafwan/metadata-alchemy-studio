@@ -2,31 +2,6 @@
 import { Link } from 'react-router-dom';
 
 const Footer = () => {
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const handleProjectsClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (window.location.pathname === '/') {
-      scrollToSection('projects');
-    } else {
-      window.location.href = '/#projects';
-    }
-  };
-
-  const handleAboutClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (window.location.pathname === '/') {
-      scrollToSection('about');
-    } else {
-      window.location.href = '/#about';
-    }
-  };
-
   return (
     <footer className="bg-slate-900 text-white py-12">
       <div className="container mx-auto px-6">
@@ -41,19 +16,9 @@ const Footer = () => {
             </Link>
           </div>
           <div className="flex flex-wrap gap-x-8 gap-y-4 justify-center md:justify-end">
-            <Link to="/" className="hover:text-elismet-lightBlue transition-colors">Home</Link>
-            <button 
-              onClick={handleProjectsClick}
-              className="hover:text-elismet-lightBlue transition-colors"
-            >
-              Projects
-            </button>
-            <button 
-              onClick={handleAboutClick}
-              className="hover:text-elismet-lightBlue transition-colors"
-            >
-              About
-            </button>
+            <Link to="/demo" className="hover:text-elismet-lightBlue transition-colors">Demo</Link>
+            <Link to="/custom-solution" className="hover:text-elismet-lightBlue transition-colors">Solutions</Link>
+            <Link to="/about" className="hover:text-elismet-lightBlue transition-colors">About</Link>
             <Link to="/contact-direct" className="hover:text-elismet-lightBlue transition-colors">Contact</Link>
             <Link to="/author" className="hover:text-elismet-lightBlue transition-colors">Team</Link>
           </div>

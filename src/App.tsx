@@ -8,6 +8,8 @@ import { SuperAdminProvider } from "@/contexts/SuperAdminContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SuperAdminProtectedRoute from "@/components/SuperAdminProtectedRoute";
 import Index from "./pages/Index";
+import Demo from "./pages/Demo";
+import About from "./pages/About";
 import CustomSolution from "./pages/CustomSolution";
 import MultiChannelSupport from "./pages/MultiChannelSupport";
 import AICustomerOnboarding from "./pages/AICustomerOnboarding";
@@ -66,6 +68,8 @@ const App = () => (
           <SuperAdminProvider>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/demo" element={<Demo />} />
+              <Route path="/about" element={<About />} />
               <Route path="/custom-solution" element={<CustomSolution />} />
               <Route path="/multi-channel-support" element={<MultiChannelSupport />} />
               <Route path="/ai-customer-onboarding" element={<AICustomerOnboarding />} />
