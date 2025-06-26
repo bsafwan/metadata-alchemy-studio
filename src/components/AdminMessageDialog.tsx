@@ -92,19 +92,24 @@ export function AdminMessageDialog({ inquiry, isOpen, onClose, onMessageSent }: 
     setIsSending(true);
 
     try {
-      // Save message to database
+      // Save message to database - using the correct column name
+      const messageData = {
+        crm_inquiry_id: inquiry.id,
+        title: title.trim(),
+        email_content: emailContent.trim() || null,
+        notification_content: notificationContent.trim() || null,
+        links: links.filter(link => link.text && link.url),
+        images: images.filter(image => image.alt && image.url),
+      };
+
       const { error: dbError } = await supabase
         .from('admin_messages')
-        .insert({
-          crm_inquiry_id: inquiry.id,
-          title: title.trim(),
-          email_content: emailContent.trim() || null,
-          notification_content: notificationContent.trim() || null,
-          links: links.filter(link => link.text && link.url),
-          images: images.filter(image => image.alt && image.url),
-        });
+        .insert(messageData);
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error('Database error:', dbError);
+        throw dbError;
+      }
 
       // Send message via edge function
       const { error: sendError } = await supabase.functions.invoke('send-admin-message', {
@@ -118,7 +123,10 @@ export function AdminMessageDialog({ inquiry, isOpen, onClose, onMessageSent }: 
         }
       });
 
-      if (sendError) throw sendError;
+      if (sendError) {
+        console.error('Send error:', sendError);
+        throw sendError;
+      }
 
       toast.success('Message sent successfully!');
       onMessageSent();
