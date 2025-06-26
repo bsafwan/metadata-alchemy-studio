@@ -1,11 +1,11 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Send, Building, Mail, Phone } from 'lucide-react';
+import { ArrowLeft, Send, Building, Mail, Phone, Bell, BellOff, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
@@ -15,6 +15,8 @@ import { saveCRMInquiry } from '@/utils/crmInquiryService';
 const ContactDirect = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+  const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
   const [formData, setFormData] = useState({
     company_name: '',
     email: '',
@@ -22,8 +24,53 @@ const ContactDirect = () => {
     crm_needs: ''
   });
 
+  useEffect(() => {
+    // Check current notification permission
+    if ('Notification' in window) {
+      setNotificationPermission(Notification.permission);
+      if (Notification.permission === 'default' || Notification.permission === 'denied') {
+        setShowNotificationPrompt(true);
+      }
+    }
+  }, []);
+
+  const requestNotificationPermission = async () => {
+    if ('Notification' in window) {
+      try {
+        const permission = await Notification.requestPermission();
+        setNotificationPermission(permission);
+        if (permission === 'granted') {
+          setShowNotificationPrompt(false);
+          toast({
+            title: "Notifications Enabled",
+            description: "You'll receive updates about your CRM inquiry.",
+          });
+        } else {
+          toast({
+            title: "Notifications Required",
+            description: "Please enable notifications to proceed with your inquiry.",
+            variant: "destructive"
+          });
+        }
+      } catch (error) {
+        console.error('Error requesting notification permission:', error);
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check notification permission before allowing submission
+    if (notificationPermission !== 'granted') {
+      setShowNotificationPrompt(true);
+      toast({
+        title: "Notifications Required",
+        description: "Please enable notifications to submit your inquiry.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     console.log('Form submission started with data:', formData);
     
@@ -46,7 +93,7 @@ const ContactDirect = () => {
         console.log('CRM inquiry saved successfully');
         toast({
           title: "Inquiry Submitted!",
-          description: "We've received your CRM requirements and will contact you soon with a customized proposal.",
+          description: "We've received your CRM requirements and will contact you soon.",
         });
         
         // Reset form
@@ -80,148 +127,189 @@ const ContactDirect = () => {
     }));
   };
 
+  if (showNotificationPrompt && notificationPermission !== 'granted') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <Navbar />
+        
+        <div className="container mx-auto px-6 py-32">
+          <div className="max-w-md mx-auto">
+            <Card className="shadow-2xl border-0 bg-white/90 backdrop-blur">
+              <CardContent className="p-12 text-center">
+                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Bell className="w-10 h-10 text-blue-600" />
+                </div>
+                
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                  Enable Notifications
+                </h2>
+                
+                <p className="text-gray-600 mb-8">
+                  We need permission to send you updates about your CRM inquiry and project progress.
+                </p>
+                
+                <Button 
+                  onClick={requestNotificationPermission}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg rounded-xl"
+                  size="lg"
+                >
+                  Enable Notifications
+                  <Bell className="ml-2 w-5 h-5" />
+                </Button>
+                
+                <Link to="/get-started" className="block mt-4 text-gray-500 hover:text-gray-700">
+                  Go Back
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       <Navbar />
       
       <div className="container mx-auto px-6 py-16">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
-            <Link to="/get-started" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4">
+          {/* Header */}
+          <div className="text-center mb-16">
+            <Link to="/get-started" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Get Started
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">CRM Plan Inquiry</h1>
-            <p className="text-gray-600">Tell us about your business and CRM requirements</p>
+            
+            <h1 className="text-5xl font-bold text-gray-900 mb-4">
+              Let's Build Your
+              <span className="block text-blue-600">Custom CRM</span>
+            </h1>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Form */}
-            <div className="lg:col-span-2">
-              <Card className="shadow-lg">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Building className="w-5 h-5 mr-2" />
-                    CRM Requirements
-                  </CardTitle>
-                  <CardDescription>
-                    Share your business details and CRM needs for a customized solution
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="company_name" className="flex items-center">
-                          <Building className="w-4 h-4 mr-2" />
-                          Company Name *
-                        </Label>
-                        <Input
-                          id="company_name"
-                          type="text"
-                          value={formData.company_name}
-                          onChange={(e) => handleInputChange('company_name', e.target.value)}
-                          placeholder="Your Company Name"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="phone" className="flex items-center">
-                          <Phone className="w-4 h-4 mr-2" />
-                          Phone Number *
-                        </Label>
-                        <Input
-                          id="phone"
-                          type="tel"
-                          value={formData.phone}
-                          onChange={(e) => handleInputChange('phone', e.target.value)}
-                          placeholder="+1 (555) 123-4567"
-                          required
-                        />
-                      </div>
-                    </div>
+          {/* Notification Status */}
+          {notificationPermission === 'granted' && (
+            <div className="max-w-2xl mx-auto mb-8">
+              <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
+                <Bell className="w-5 h-5 text-green-600" />
+                <span className="text-green-800 font-medium">Notifications enabled - You're all set!</span>
+              </div>
+            </div>
+          )}
 
-                    <div className="space-y-2">
-                      <Label htmlFor="email" className="flex items-center">
-                        <Mail className="w-4 h-4 mr-2" />
-                        Email Address *
+          {/* Main Form */}
+          <div className="max-w-2xl mx-auto">
+            <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur">
+              <CardContent className="p-12">
+                <form onSubmit={handleSubmit} className="space-y-8">
+                  {/* Company Name */}
+                  <div className="space-y-3">
+                    <Label htmlFor="company_name" className="text-lg font-semibold text-gray-900 flex items-center">
+                      <Building className="w-5 h-5 mr-2 text-blue-600" />
+                      Company Name
+                    </Label>
+                    <Input
+                      id="company_name"
+                      type="text"
+                      value={formData.company_name}
+                      onChange={(e) => handleInputChange('company_name', e.target.value)}
+                      placeholder="Your Company Name"
+                      className="h-14 text-lg border-gray-200 focus:border-blue-500 rounded-xl"
+                      required
+                    />
+                  </div>
+
+                  {/* Contact Details */}
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <Label htmlFor="email" className="text-lg font-semibold text-gray-900 flex items-center">
+                        <Mail className="w-5 h-5 mr-2 text-blue-600" />
+                        Email
                       </Label>
                       <Input
                         id="email"
                         type="email"
                         value={formData.email}
                         onChange={(e) => handleInputChange('email', e.target.value)}
-                        placeholder="contact@yourcompany.com"
+                        placeholder="contact@company.com"
+                        className="h-14 text-lg border-gray-200 focus:border-blue-500 rounded-xl"
                         required
                       />
                     </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="crm_needs">
-                        Tell us about your CRM needs *
+                    
+                    <div className="space-y-3">
+                      <Label htmlFor="phone" className="text-lg font-semibold text-gray-900 flex items-center">
+                        <Phone className="w-5 h-5 mr-2 text-blue-600" />
+                        Phone
                       </Label>
-                      <Textarea
-                        id="crm_needs"
-                        value={formData.crm_needs}
-                        onChange={(e) => handleInputChange('crm_needs', e.target.value)}
-                        placeholder="Describe your business requirements, current challenges, team size, integration needs, specific features you're looking for, budget range, timeline, etc."
-                        className="min-h-[200px] resize-vertical"
+                      <Input
+                        id="phone"
+                        type="tel"
+                        value={formData.phone}
+                        onChange={(e) => handleInputChange('phone', e.target.value)}
+                        placeholder="+1 (555) 123-4567"
+                        className="h-14 text-lg border-gray-200 focus:border-blue-500 rounded-xl"
                         required
                       />
                     </div>
+                  </div>
 
-                    <Button 
-                      type="submit" 
-                      className="w-full" 
-                      size="lg"
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? 'Submitting...' : 'Submit CRM Inquiry'}
-                      <Send className="ml-2 w-4 h-4" />
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            </div>
+                  {/* CRM Requirements */}
+                  <div className="space-y-3">
+                    <Label htmlFor="crm_needs" className="text-lg font-semibold text-gray-900">
+                      Your CRM Requirements
+                    </Label>
+                    <Textarea
+                      id="crm_needs"
+                      value={formData.crm_needs}
+                      onChange={(e) => handleInputChange('crm_needs', e.target.value)}
+                      placeholder="Tell us about your business needs, current challenges, team size, budget range, timeline, and any specific features you're looking for..."
+                      className="min-h-[150px] text-lg border-gray-200 focus:border-blue-500 rounded-xl resize-none"
+                      required
+                    />
+                  </div>
 
-            {/* Info Sidebar */}
-            <div className="space-y-6">
-              <Card className="shadow-lg bg-blue-50 border-blue-200">
-                <CardHeader>
-                  <CardTitle className="text-blue-900">What to Include?</CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm text-blue-800 space-y-3">
-                  <div>
-                    <h4 className="font-semibold mb-1">Business Information</h4>
-                    <p>• Industry type & company size<br/>• Current CRM challenges<br/>• Team structure</p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-1">Technical Requirements</h4>
-                    <p>• Integration needs<br/>• Data migration requirements<br/>• Security & compliance needs</p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-1">Project Details</h4>
-                    <p>• Budget expectations<br/>• Timeline requirements<br/>• Success metrics</p>
-                  </div>
-                </CardContent>
-              </Card>
+                  {/* Submit Button */}
+                  <Button 
+                    type="submit" 
+                    disabled={isSubmitting || notificationPermission !== 'granted'}
+                    className="w-full h-16 bg-blue-600 hover:bg-blue-700 text-white text-xl font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        Submit CRM Inquiry
+                        <Send className="ml-3 w-5 h-5" />
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
 
-              <Card className="shadow-lg">
-                <CardContent className="pt-6">
-                  <h3 className="font-semibold text-gray-900 mb-2">What happens next?</h3>
-                  <ul className="text-sm text-gray-600 space-y-2">
-                    <li>• Our team reviews your requirements</li>
-                    <li>• We prepare a customized CRM proposal</li>
-                    <li>• Schedule a consultation call</li>
-                    <li>• Provide detailed project timeline</li>
-                  </ul>
-                  <div className="mt-4 p-3 bg-green-50 rounded-lg">
-                    <p className="text-sm text-green-800">
-                      <strong>Response time:</strong> Within 24 hours
-                    </p>
+            {/* Next Steps */}
+            <div className="mt-12 text-center">
+              <div className="bg-blue-50 rounded-2xl p-8 border border-blue-100">
+                <h3 className="text-xl font-bold text-blue-900 mb-4">What Happens Next?</h3>
+                <div className="grid md:grid-cols-3 gap-6 text-sm">
+                  <div>
+                    <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-3 font-bold text-lg">1</div>
+                    <p className="text-blue-800">We review your requirements within 24 hours</p>
                   </div>
-                </CardContent>
-              </Card>
+                  <div>
+                    <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-3 font-bold text-lg">2</div>
+                    <p className="text-blue-800">Schedule a consultation call to discuss details</p>
+                  </div>
+                  <div>
+                    <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-3 font-bold text-lg">3</div>
+                    <p className="text-blue-800">Receive a detailed proposal and timeline</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
