@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 const CustomSolution = () => {
   // Add scroll reveal effect
   useEffect(() => {
-    const handleScroll = () => {
+    const handleScroll = ()=> {
       const elements = document.querySelectorAll('.scroll-reveal');
       
       elements.forEach(element => {
