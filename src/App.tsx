@@ -6,7 +6,7 @@ import Router from './Router';
 import { AuthProvider } from './contexts/AuthContext';
 import { SuperAdminProvider } from './contexts/SuperAdminContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { UniversalNotificationPrompt } from './components/UniversalNotificationPrompt';
+import { NotificationPrompt } from './components/NotificationPrompt';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,7 +23,7 @@ const App = () => {
       <AuthProvider>
         <SuperAdminProvider>
           <Router />
-          <UniversalNotificationPrompt />
+          <NotificationPrompt />
           <Toaster />
           <Sonner />
         </SuperAdminProvider>

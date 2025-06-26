@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { EmailService } from './emailService';
+import { deviceManager } from './deviceIdentifier';
 
 export interface CRMInquiry {
   id?: string;
@@ -15,10 +16,19 @@ export interface CRMInquiry {
 
 export const saveCRMInquiry = async (inquiry: Omit<CRMInquiry, 'id' | 'created_at'>): Promise<boolean> => {
   try {
-    // Save to database
+    // Get device info to associate with inquiry
+    const deviceInfo = await deviceManager.getOrCreateDeviceInfo();
+    
+    // Get existing subscription if available
+    const subscriptionData = await deviceManager.getSubscriptionData(deviceInfo.deviceId);
+    
+    // Save inquiry to database
     const { data, error } = await supabase
       .from('crm_inquiries')
-      .insert([inquiry])
+      .insert([{
+        ...inquiry,
+        user_identifier: deviceInfo.deviceId // Use device ID as user identifier
+      }])
       .select()
       .single();
 
@@ -27,7 +37,23 @@ export const saveCRMInquiry = async (inquiry: Omit<CRMInquiry, 'id' | 'created_a
       return false;
     }
 
-    // Send email notification to admin with user identifier
+    // If user has notification subscription, associate it with the inquiry
+    if (subscriptionData) {
+      await supabase
+        .from('device_push_subscriptions')
+        .update({ 
+          user_email: inquiry.email,
+          page_context: {
+            ...subscriptionData.page_context,
+            inquiry_id: data.id,
+            inquiry_email: inquiry.email,
+            inquiry_company: inquiry.company_name
+          }
+        })
+        .eq('device_id', deviceInfo.deviceId);
+    }
+
+    // Send email notification to admin
     await EmailService.sendEmail({
       to: ['bsafwanjamil677@gmail.com'],
       subject: `New CRM Inquiry from ${inquiry.company_name}`,
@@ -35,13 +61,13 @@ export const saveCRMInquiry = async (inquiry: Omit<CRMInquiry, 'id' | 'created_a
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #2563eb;">New CRM Plan Inquiry</h2>
           
-          ${inquiry.user_identifier ? `
           <div style="background: #fef7cd; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
-            <h3 style="margin: 0; color: #92400e;">User Identifier</h3>
-            <p style="margin: 5px 0 0 0; font-family: monospace; font-size: 16px; font-weight: bold; color: #92400e;">${inquiry.user_identifier}</p>
-            <p style="margin: 5px 0 0 0; font-size: 12px; color: #92400e;">Use this identifier for direct communication with the client</p>
+            <h3 style="margin: 0; color: #92400e;">Device Information</h3>
+            <p style="margin: 5px 0 0 0; font-family: monospace; font-size: 16px; font-weight: bold; color: #92400e;">Device ID: ${deviceInfo.deviceId}</p>
+            <p style="margin: 5px 0 0 0; font-size: 12px; color: #92400e;">
+              ${subscriptionData ? '✅ User has notifications enabled' : '❌ User has not enabled notifications'}
+            </p>
           </div>
-          ` : ''}
           
           <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3>Company Information</h3>
@@ -61,14 +87,16 @@ export const saveCRMInquiry = async (inquiry: Omit<CRMInquiry, 'id' | 'created_a
           
           <div style="margin: 20px 0; padding: 20px; background: #fef7cd; border-radius: 8px;">
             <p><strong>Action Required:</strong> Please review this CRM inquiry and prepare a customized proposal.</p>
-            ${inquiry.user_identifier ? `<p><strong>Client ID:</strong> ${inquiry.user_identifier} - Use this for direct messaging</p>` : ''}
+            <p><strong>Device ID:</strong> ${deviceInfo.deviceId} - ${subscriptionData ? 'Can send direct notifications' : 'User needs to enable notifications first'}</p>
           </div>
         </div>
       `,
       text: `
 New CRM Plan Inquiry
 
-${inquiry.user_identifier ? `User Identifier: ${inquiry.user_identifier}\n` : ''}
+Device ID: ${deviceInfo.deviceId}
+Notifications: ${subscriptionData ? 'Enabled' : 'Not enabled'}
+
 Company: ${inquiry.company_name}
 Email: ${inquiry.email}
 Phone: ${inquiry.phone}
@@ -78,11 +106,10 @@ ${inquiry.source_page ? `Source Page: ${inquiry.source_page}\n` : ''}
 CRM Needs: ${inquiry.crm_needs}
 
 Please review and prepare a customized proposal.
-${inquiry.user_identifier ? `Use Client ID ${inquiry.user_identifier} for direct communication.` : ''}
       `
     });
 
-    // Send confirmation email to user (without logo image)
+    // Send confirmation email to user
     await EmailService.sendEmail({
       to: [inquiry.email],
       subject: 'Thank you for your CRM inquiry - Elismet Team',
@@ -93,6 +120,13 @@ ${inquiry.user_identifier ? `Use Client ID ${inquiry.user_identifier} for direct
           <p>Dear ${inquiry.company_name} Team,</p>
           
           <p>Thank you for reaching out to us regarding your CRM requirements. We have successfully received your inquiry and our team is excited to help you transform your business operations.</p>
+          
+          ${!subscriptionData ? `
+          <div style="background: #fef7cd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+            <h3 style="margin: 0 0 10px 0; color: #92400e;">💡 Stay Updated</h3>
+            <p style="margin: 0; color: #92400e;">Enable notifications on our website to receive instant updates about your inquiry and proposal!</p>
+          </div>
+          ` : ''}
           
           <div style="background: #e0f2fe; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #0288d1;">
             <h3 style="margin: 0 0 10px 0; color: #01579b;">What happens next?</h3>
@@ -131,6 +165,8 @@ Thank You for Your CRM Inquiry!
 Dear ${inquiry.company_name} Team,
 
 Thank you for reaching out to us regarding your CRM requirements. We have successfully received your inquiry and our team is excited to help you transform your business operations.
+
+${!subscriptionData ? 'Tip: Enable notifications on our website to receive instant updates about your inquiry!\n\n' : ''}
 
 What happens next?
 - Our team will review your requirements within 24 hours
