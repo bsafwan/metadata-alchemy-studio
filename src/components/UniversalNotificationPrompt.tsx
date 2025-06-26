@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Bell, X, Check, Smartphone } from 'lucide-react';
+import { Bell, Check, Smartphone } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { deviceManager } from '@/utils/deviceIdentifier';
@@ -29,10 +29,12 @@ export const UniversalNotificationPrompt = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isEnabled, setIsEnabled] = useState(false);
   const [deviceInfo, setDeviceInfo] = useState<any>(null);
+  const [notificationCount, setNotificationCount] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
     initializeDeviceAndCheck();
+    setupRealtimeNotifications();
   }, []);
 
   const initializeDeviceAndCheck = async () => {
@@ -50,18 +52,64 @@ export const UniversalNotificationPrompt = () => {
         return;
       }
 
-      // Show prompt if not dismissed and not already enabled
-      const promptDismissed = localStorage.getItem('notification_prompt_dismissed');
-      if (!promptDismissed && Notification.permission !== 'granted') {
+      // Show prompt if not already enabled (non-dismissible)
+      if (Notification.permission !== 'granted') {
         const timer = setTimeout(() => {
           setShowPrompt(true);
-        }, 2000); // Show after 2 seconds
+        }, 2000);
         
         return () => clearTimeout(timer);
       }
     } catch (error) {
       console.error('Failed to initialize device info:', error);
     }
+  };
+
+  const setupRealtimeNotifications = () => {
+    // Listen for new admin messages in real-time
+    const channel = supabase
+      .channel('universal-notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'admin_messages',
+          filter: `notification_content=not.is.null`
+        },
+        (payload) => {
+          console.log('New universal notification received:', payload);
+          const newMessage = payload.new;
+          
+          // Show browser notification
+          if (Notification.permission === 'granted') {
+            new Notification(newMessage.title, {
+              body: newMessage.notification_content || '',
+              icon: '/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png',
+              badge: '/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png',
+              tag: 'elismet-universal',
+              requireInteraction: true,
+              silent: false,
+              vibrate: [200, 100, 200]
+            });
+          }
+          
+          // Update notification count
+          setNotificationCount(prev => prev + 1);
+          
+          // Show toast
+          toast({
+            title: `📢 ${newMessage.title}`,
+            description: newMessage.notification_content?.substring(0, 100) + '...',
+            duration: 8000,
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   };
 
   const setupUniversalNotifications = async () => {
@@ -98,8 +146,8 @@ export const UniversalNotificationPrompt = () => {
 
       if (permission !== 'granted') {
         toast({
-          title: "Permission Denied",
-          description: "Please allow notifications to receive updates.",
+          title: "Permission Required",
+          description: "Notifications are required for this service. Please allow and try again.",
           variant: "destructive"
         });
         return;
@@ -142,27 +190,28 @@ export const UniversalNotificationPrompt = () => {
       // Step 6: Store locally
       await deviceManager.storeSubscriptionData(deviceInfo.deviceId, subscriptionData);
 
-      // Success
+      // Success - Real-time update
       localStorage.setItem('notification_status', 'subscribed');
       setIsEnabled(true);
       setShowPrompt(false);
 
       // Send welcome notification
-      new Notification('🎉 Notifications Enabled!', {
-        body: `Device ${deviceInfo.deviceId.substr(-8)} is now subscribed! You'll receive updates everywhere.`,
-        icon: '/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png'
+      new Notification('🎉 Universal Notifications Active!', {
+        body: `Device ${deviceInfo.deviceId.substr(-8)} is now connected! You'll receive updates everywhere.`,
+        icon: '/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png',
+        requireInteraction: true
       });
 
       toast({
-        title: "Perfect! 🎉",
-        description: "Universal notifications enabled for this device!",
+        title: "🎉 Success!",
+        description: "Universal notifications are now active on this device!",
       });
 
     } catch (error) {
       console.error('Error setting up notifications:', error);
       toast({
         title: "Setup Failed",
-        description: "There was an issue enabling notifications. Please try again.",
+        description: "Please try again or refresh the page.",
         variant: "destructive"
       });
     } finally {
@@ -170,81 +219,79 @@ export const UniversalNotificationPrompt = () => {
     }
   };
 
-  const dismissPrompt = () => {
-    setShowPrompt(false);
-    localStorage.setItem('notification_prompt_dismissed', 'true');
-  };
-
+  // Show active status when subscribed
   if (isEnabled) {
     return (
       <div className="fixed bottom-4 right-4 z-50">
         <Card className="bg-green-50 border-green-200 shadow-lg">
-          <CardContent className="p-3 flex items-center gap-2">
-            <Smartphone className="w-4 h-4 text-green-600" />
-            <span className="text-sm text-green-800 font-medium">
-              Device notifications active
-            </span>
+          <CardContent className="p-3 flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Smartphone className="w-4 h-4 text-green-600" />
+              <span className="text-sm text-green-800 font-medium">
+                Universal notifications active
+              </span>
+            </div>
+            {notificationCount > 0 && (
+              <div className="bg-green-600 text-white text-xs px-2 py-1 rounded-full">
+                {notificationCount} new
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
     );
   }
 
+  // Show non-dismissible prompt
   if (!showPrompt) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 max-w-sm">
-      <Card className="shadow-2xl border-0 bg-white">
-        <CardContent className="p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
-                <Smartphone className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 text-sm">
-                  Stay Updated
-                </h3>
-                <p className="text-xs text-gray-600">
-                  Enable device notifications
-                </p>
-              </div>
-            </div>
-            <Button
-              onClick={dismissPrompt}
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600"
-            >
-              <X className="w-4 h-4" />
-            </Button>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <Card className="shadow-2xl border-0 bg-white max-w-sm w-full">
+        <CardContent className="p-6 text-center">
+          <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Bell className="w-6 h-6 text-blue-600" />
           </div>
-
-          <div className="space-y-3">
+          
+          <img 
+            src="/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png" 
+            alt="Elismet LTD" 
+            className="h-8 mx-auto mb-4" 
+          />
+          
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Enable Universal Notifications
+          </h3>
+          
+          <p className="text-sm text-gray-600 mb-6">
+            Get real-time updates everywhere - works in background, other tabs, and when browser is closed.
+          </p>
+          
+          <div className="space-y-4">
             <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
-              Device ID: {deviceInfo?.deviceId?.substr(-12) || 'Loading...'}
+              Device: {deviceInfo?.deviceId?.substr(-12) || 'Loading...'}
             </div>
             
             <Button 
               onClick={setupUniversalNotifications}
               disabled={isLoading || !deviceInfo}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm h-9"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white h-10"
             >
               {isLoading ? (
                 <>
-                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
-                  Setting up...
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Connecting...
                 </>
               ) : (
                 <>
-                  Enable Universal Notifications
-                  <Bell className="ml-2 w-3 h-3" />
+                  <Check className="mr-2 w-4 h-4" />
+                  Enable Now
                 </>
               )}
             </Button>
             
-            <p className="text-xs text-gray-500 text-center">
-              No email required • Works everywhere • Anonymous device subscription
+            <p className="text-xs text-gray-400">
+              Anonymous • Device-based • Universal coverage
             </p>
           </div>
         </CardContent>

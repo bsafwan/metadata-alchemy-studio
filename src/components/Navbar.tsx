@@ -1,161 +1,213 @@
-
-import React, { useState, useEffect } from 'react';
-import { Menu, X } from 'lucide-react';
-import { Button } from './ui/button';
-import { cn } from '@/lib/utils';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { Menu, X, User as UserIcon, Home as HomeIcon, LogOut as LogOutIcon, MessageSquare as MessageSquareIcon } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 const Navbar = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user } = useAuth();
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const toggleMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
-
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-    setMobileMenuOpen(false);
-  };
-
-  const navLinks = [
-    { label: "Home", action: () => window.location.pathname === '/' ? scrollToSection('home') : window.location.href = '/' },
-    { label: "Projects", action: () => window.location.pathname === '/' ? scrollToSection('projects') : window.location.href = '/#projects' },
-    { label: "About", action: () => window.location.pathname === '/' ? scrollToSection('about') : window.location.href = '/#about' },
-    { label: "Contact", path: "/contact-direct" },
-  ];
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
 
   return (
-    <nav 
-      className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-6 py-3",
-        isScrolled ? "bg-white/90 shadow-md backdrop-blur-md" : "bg-transparent"
-      )}
-    >
-      <div className="container mx-auto flex justify-between items-center">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 animate-slide-down">
-          <img 
-            src="/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png" 
-            alt="Elismet LTD Logo" 
-            className="h-12" 
-          />
-        </Link>
+    <nav className="bg-white shadow-lg sticky top-0 z-40">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center space-x-2">
+              <img 
+                src="/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png" 
+                alt="Elismet LTD" 
+                className="h-8" 
+              />
+              <span className="text-xl font-bold text-gray-900">Elismet</span>
+            </Link>
+          </div>
 
-        {/* Desktop Menu */}
-        <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((link, index) => (
-            link.path ? (
-              <Link 
-                key={link.label}
-                to={link.path}
-                className="text-foreground hover:text-elismet-blue transition-colors animated-link font-medium animate-slide-down"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                {link.label}
-              </Link>
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            <Link to="/" className="text-gray-700 hover:text-blue-600 transition-colors">
+              Home
+            </Link>
+            <Link to="/get-started" className="text-gray-700 hover:text-blue-600 transition-colors">
+              Get Started
+            </Link>
+            <Link to="/custom-solution" className="text-gray-700 hover:text-blue-600 transition-colors">
+              Custom Solution
+            </Link>
+            <Link to="/author" className="text-gray-700 hover:text-blue-600 transition-colors">
+              Author
+            </Link>
+          </div>
+
+          {/* User Menu */}
+          <div className="flex items-center space-x-4">
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <span className="text-gray-700 text-sm">
+                  Welcome, {user.email}
+                </span>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      <UserIcon className="w-4 h-4 mr-2" />
+                      Menu
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem asChild>
+                      <Link to="/dashboard" className="flex items-center">
+                        <HomeIcon className="w-4 h-4 mr-2" />
+                        Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/account" className="flex items-center">
+                        <UserIcon className="w-4 h-4 mr-2" />
+                        Account
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/conversations" className="flex items-center">
+                        <MessageSquareIcon className="w-4 h-4 mr-2" />
+                        Messages
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={logout}>
+                      <LogOutIcon className="w-4 h-4 mr-2" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             ) : (
-              <button
-                key={link.label}
-                onClick={link.action}
-                className="text-foreground hover:text-elismet-blue transition-colors animated-link font-medium animate-slide-down"
-                style={{ animationDelay: `${index * 0.1}s` }}
+              <div className="flex items-center space-x-4">
+                <Link to="/login">
+                  <Button variant="ghost" size="sm">
+                    Login
+                  </Button>
+                </Link>
+                <Link to="/get-started">
+                  <Button size="sm">
+                    Get Started
+                  </Button>
+                </Link>
+              </div>
+            )}
+
+            {/* Mobile menu button */}
+            <div className="md:hidden">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               >
-                {link.label}
-              </button>
-            )
-          ))}
-          {user ? (
-            <Link to="/dashboard">
-              <Button 
-                className="bg-elismet-blue hover:bg-elismet-lightBlue text-white animate-slide-down"
-                style={{ animationDelay: `${navLinks.length * 0.1}s` }}
-              >
-                Dashboard
+                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </Button>
-            </Link>
-          ) : (
-            <Link to="/get-started">
-              <Button 
-                className="bg-elismet-blue hover:bg-elismet-lightBlue text-white animate-slide-down"
-                style={{ animationDelay: `${navLinks.length * 0.1}s` }}
-              >
-                Get Started
-              </Button>
-            </Link>
-          )}
+            </div>
+          </div>
         </div>
 
-        {/* Mobile Menu Button */}
-        <button 
-          className="md:hidden text-foreground hover:text-elismet-blue transition-colors"
-          onClick={toggleMenu}
-          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-        >
-          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      <div 
-        className={cn(
-          "fixed inset-0 bg-white z-40 pt-20 px-6 transition-transform duration-300 md:hidden",
-          mobileMenuOpen ? "translate-x-0" : "translate-x-full"
+        {/* Mobile Navigation */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 py-4">
+            <div className="flex flex-col space-y-2">
+              <Link 
+                to="/" 
+                className="text-gray-700 hover:text-blue-600 transition-colors px-4 py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Home
+              </Link>
+              <Link 
+                to="/get-started" 
+                className="text-gray-700 hover:text-blue-600 transition-colors px-4 py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Get Started
+              </Link>
+              <Link 
+                to="/custom-solution" 
+                className="text-gray-700 hover:text-blue-600 transition-colors px-4 py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Custom Solution
+              </Link>
+              <Link 
+                to="/author" 
+                className="text-gray-700 hover:text-blue-600 transition-colors px-4 py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Author
+              </Link>
+              
+              {user ? (
+                <>
+                  <div className="border-t border-gray-200 mt-2 pt-2">
+                    <div className="px-4 py-2 text-sm text-gray-600">
+                      {user.email}
+                    </div>
+                    <Link 
+                      to="/dashboard" 
+                      className="text-gray-700 hover:text-blue-600 transition-colors px-4 py-2 block"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                    <Link 
+                      to="/account" 
+                      className="text-gray-700 hover:text-blue-600 transition-colors px-4 py-2 block"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Account
+                    </Link>
+                    <Link 
+                      to="/conversations" 
+                      className="text-gray-700 hover:text-blue-600 transition-colors px-4 py-2 block"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Messages
+                    </Link>
+                    <button 
+                      onClick={() => {
+                        logout();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="text-gray-700 hover:text-blue-600 transition-colors px-4 py-2 text-left w-full"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="border-t border-gray-200 mt-2 pt-2">
+                  <Link 
+                    to="/login" 
+                    className="text-gray-700 hover:text-blue-600 transition-colors px-4 py-2 block"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Login
+                  </Link>
+                  <Link 
+                    to="/get-started" 
+                    className="text-blue-600 font-medium px-4 py-2 block"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Get Started
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
         )}
-      >
-        <div className="flex flex-col gap-6">
-          {navLinks.map((link) => (
-            link.path ? (
-              <Link 
-                key={link.label}
-                to={link.path}
-                className="text-xl font-medium text-foreground hover:text-elismet-blue transition-colors"
-                onClick={toggleMenu}
-              >
-                {link.label}
-              </Link>
-            ) : (
-              <button
-                key={link.label}
-                onClick={link.action}
-                className="text-xl font-medium text-foreground hover:text-elismet-blue transition-colors text-left"
-              >
-                {link.label}
-              </button>
-            )
-          ))}
-          {user ? (
-            <Link to="/dashboard" onClick={toggleMenu}>
-              <Button className="bg-elismet-blue hover:bg-elismet-lightBlue text-white w-full mt-4">
-                Dashboard
-              </Button>
-            </Link>
-          ) : (
-            <Link to="/get-started" onClick={toggleMenu}>
-              <Button className="bg-elismet-blue hover:bg-elismet-lightBlue text-white w-full mt-4">
-                Get Started
-              </Button>
-            </Link>
-          )}
-        </div>
       </div>
     </nav>
   );
