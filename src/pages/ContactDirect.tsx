@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Send, Building, Mail, Phone, Bell, BellOff, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Send, Building, Mail, Phone, Bell, BellOff, AlertTriangle, Copy, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
@@ -16,7 +16,9 @@ const ContactDirect = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
-  const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
+  const [showNotificationOverlay, setShowNotificationOverlay] = useState(false);
+  const [userIdentifier, setUserIdentifier] = useState<string>('');
+  const [identifierCopied, setIdentifierCopied] = useState(false);
   const [formData, setFormData] = useState({
     company_name: '',
     email: '',
@@ -24,13 +26,29 @@ const ContactDirect = () => {
     crm_needs: ''
   });
 
+  // Generate unique identifier for user
   useEffect(() => {
-    // Check current notification permission
+    let identifier = localStorage.getItem('user_identifier');
+    if (!identifier) {
+      identifier = 'USR-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5).toUpperCase();
+      localStorage.setItem('user_identifier', identifier);
+    }
+    setUserIdentifier(identifier);
+  }, []);
+
+  // Check notification permission on mount and show overlay if needed
+  useEffect(() => {
     if ('Notification' in window) {
-      setNotificationPermission(Notification.permission);
-      if (Notification.permission === 'default' || Notification.permission === 'denied') {
-        setShowNotificationPrompt(true);
+      const permission = Notification.permission;
+      setNotificationPermission(permission);
+      
+      // Show overlay if permission is not granted
+      if (permission !== 'granted') {
+        setShowNotificationOverlay(true);
       }
+    } else {
+      // Browser doesn't support notifications
+      setShowNotificationOverlay(true);
     }
   }, []);
 
@@ -39,22 +57,53 @@ const ContactDirect = () => {
       try {
         const permission = await Notification.requestPermission();
         setNotificationPermission(permission);
+        
         if (permission === 'granted') {
-          setShowNotificationPrompt(false);
+          setShowNotificationOverlay(false);
+          
+          // Send test notification
+          new Notification('CRM System', {
+            body: 'Notifications enabled! We can now keep you updated on your inquiry.',
+            icon: '/favicon.ico'
+          });
+          
           toast({
-            title: "Notifications Enabled",
-            description: "You'll receive updates about your CRM inquiry.",
+            title: "Notifications Enabled!",
+            description: "Perfect! You'll receive updates about your CRM inquiry.",
           });
         } else {
           toast({
-            title: "Notifications Required",
-            description: "Please enable notifications to proceed with your inquiry.",
+            title: "Notifications Blocked",
+            description: "Please click the notification icon in your browser's address bar to enable notifications.",
             variant: "destructive"
           });
         }
       } catch (error) {
         console.error('Error requesting notification permission:', error);
+        toast({
+          title: "Notification Error",
+          description: "There was an issue with notification permissions. Please try refreshing the page.",
+          variant: "destructive"
+        });
       }
+    }
+  };
+
+  const copyIdentifier = async () => {
+    try {
+      await navigator.clipboard.writeText(userIdentifier);
+      setIdentifierCopied(true);
+      toast({
+        title: "Identifier Copied!",
+        description: "Your unique identifier has been copied to clipboard.",
+      });
+      setTimeout(() => setIdentifierCopied(false), 2000);
+    } catch (error) {
+      toast({
+        title: "Copy Failed",
+        description: "Please manually copy your identifier: " + userIdentifier,
+        variant: "destructive"
+      });
     }
   };
 
@@ -63,16 +112,14 @@ const ContactDirect = () => {
     
     // Check notification permission before allowing submission
     if (notificationPermission !== 'granted') {
-      setShowNotificationPrompt(true);
+      setShowNotificationOverlay(true);
       toast({
-        title: "Notifications Required",
-        description: "Please enable notifications to submit your inquiry.",
+        title: "Enable Notifications First",
+        description: "Please allow notifications to submit your inquiry.",
         variant: "destructive"
       });
       return;
     }
-    
-    console.log('Form submission started with data:', formData);
     
     if (!formData.company_name || !formData.email || !formData.phone || !formData.crm_needs) {
       toast({
@@ -86,14 +133,24 @@ const ContactDirect = () => {
     setIsSubmitting(true);
     
     try {
-      console.log('Calling saveCRMInquiry service...');
-      const success = await saveCRMInquiry(formData);
+      // Add user identifier to the inquiry
+      const inquiryWithIdentifier = {
+        ...formData,
+        user_identifier: userIdentifier
+      };
+      
+      const success = await saveCRMInquiry(inquiryWithIdentifier);
       
       if (success) {
-        console.log('CRM inquiry saved successfully');
         toast({
-          title: "Inquiry Submitted!",
-          description: "We've received your CRM requirements and will contact you soon.",
+          title: "Inquiry Submitted Successfully!",
+          description: "We've received your CRM requirements. Check your notifications for updates!",
+        });
+        
+        // Send notification to user
+        new Notification('CRM Inquiry Submitted', {
+          body: 'Your CRM inquiry has been submitted successfully. We will contact you soon!',
+          icon: '/favicon.ico'
         });
         
         // Reset form
@@ -104,7 +161,6 @@ const ContactDirect = () => {
           crm_needs: ''
         });
       } else {
-        console.error('saveCRMInquiry returned false');
         throw new Error('Failed to submit inquiry');
       }
       
@@ -127,50 +183,45 @@ const ContactDirect = () => {
     }));
   };
 
-  if (showNotificationPrompt && notificationPermission !== 'granted') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <Navbar />
-        
-        <div className="container mx-auto px-6 py-32">
-          <div className="max-w-md mx-auto">
-            <Card className="shadow-2xl border-0 bg-white/90 backdrop-blur">
-              <CardContent className="p-12 text-center">
-                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Bell className="w-10 h-10 text-blue-600" />
-                </div>
-                
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                  Enable Notifications
-                </h2>
-                
-                <p className="text-gray-600 mb-8">
-                  We need permission to send you updates about your CRM inquiry and project progress.
-                </p>
-                
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 relative">
+      <Navbar />
+      
+      {/* Notification Overlay */}
+      {showNotificationOverlay && notificationPermission !== 'granted' && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md shadow-2xl border-0 bg-white">
+            <CardContent className="p-8 text-center">
+              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Bell className="w-10 h-10 text-blue-600" />
+              </div>
+              
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                Enable Notifications Required
+              </h2>
+              
+              <p className="text-gray-600 mb-6">
+                To use our CRM inquiry system, we need permission to send you important updates about your project progress and communications.
+              </p>
+              
+              <div className="space-y-3">
                 <Button 
                   onClick={requestNotificationPermission}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg rounded-xl"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl"
                   size="lg"
                 >
                   Enable Notifications
                   <Bell className="ml-2 w-5 h-5" />
                 </Button>
                 
-                <Link to="/get-started" className="block mt-4 text-gray-500 hover:text-gray-700">
-                  Go Back
-                </Link>
-              </CardContent>
-            </Card>
-          </div>
+                <p className="text-sm text-gray-500">
+                  Don't worry - we only send important updates about your CRM inquiry
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <Navbar />
+      )}
       
       <div className="container mx-auto px-6 py-16">
         <div className="max-w-4xl mx-auto">
@@ -183,8 +234,35 @@ const ContactDirect = () => {
             
             <h1 className="text-5xl font-bold text-gray-900 mb-4">
               Let's Build Your
-              <span className="block text-blue-600">Custom CRM</span>
+              <span className="block text-blue-600">Custom CRM System</span>
             </h1>
+          </div>
+
+          {/* User Identifier Display */}
+          <div className="max-w-2xl mx-auto mb-8">
+            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-blue-900 mb-1">Your Unique Identifier</h3>
+                    <p className="text-sm text-blue-700">Use this ID for direct communication with our team</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <code className="bg-white px-3 py-2 rounded-lg font-mono text-blue-800 border">
+                      {userIdentifier}
+                    </code>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={copyIdentifier}
+                      className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                    >
+                      {identifierCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Notification Status */}
@@ -192,14 +270,14 @@ const ContactDirect = () => {
             <div className="max-w-2xl mx-auto mb-8">
               <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
                 <Bell className="w-5 h-5 text-green-600" />
-                <span className="text-green-800 font-medium">Notifications enabled - You're all set!</span>
+                <span className="text-green-800 font-medium">✓ Notifications enabled - You're all set!</span>
               </div>
             </div>
           )}
 
           {/* Main Form */}
           <div className="max-w-2xl mx-auto">
-            <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur">
+            <Card className={`shadow-2xl border-0 bg-white/80 backdrop-blur transition-all ${showNotificationOverlay ? 'opacity-30 pointer-events-none' : ''}`}>
               <CardContent className="p-12">
                 <form onSubmit={handleSubmit} className="space-y-8">
                   {/* Company Name */}
