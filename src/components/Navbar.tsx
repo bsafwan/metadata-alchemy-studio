@@ -1,15 +1,9 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Menu, X, User as UserIcon, Home as HomeIcon, LogOut as LogOutIcon, MessageSquare as MessageSquareIcon } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -47,46 +41,18 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* User Menu */}
+          {/* Simple Auth Buttons */}
           <div className="flex items-center space-x-4">
             {user ? (
               <div className="flex items-center space-x-4">
-                <span className="text-gray-700 text-sm">
-                  Welcome, {user.email}
-                </span>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <UserIcon className="w-4 h-4 mr-2" />
-                      Menu
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem asChild>
-                      <Link to="/dashboard" className="flex items-center">
-                        <HomeIcon className="w-4 h-4 mr-2" />
-                        Dashboard
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/account" className="flex items-center">
-                        <UserIcon className="w-4 h-4 mr-2" />
-                        Account
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/conversations" className="flex items-center">
-                        <MessageSquareIcon className="w-4 h-4 mr-2" />
-                        Messages
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={logout}>
-                      <LogOutIcon className="w-4 h-4 mr-2" />
-                      Logout
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <Link to="/dashboard">
+                  <Button size="sm">
+                    Dashboard
+                  </Button>
+                </Link>
+                <Button onClick={logout} variant="outline" size="sm">
+                  Logout
+                </Button>
               </div>
             ) : (
               <div className="flex items-center space-x-4">
@@ -150,43 +116,24 @@ const Navbar = () => {
               </Link>
               
               {user ? (
-                <>
-                  <div className="border-t border-gray-200 mt-2 pt-2">
-                    <div className="px-4 py-2 text-sm text-gray-600">
-                      {user.email}
-                    </div>
-                    <Link 
-                      to="/dashboard" 
-                      className="text-gray-700 hover:text-blue-600 transition-colors px-4 py-2 block"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Dashboard
-                    </Link>
-                    <Link 
-                      to="/account" 
-                      className="text-gray-700 hover:text-blue-600 transition-colors px-4 py-2 block"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Account
-                    </Link>
-                    <Link 
-                      to="/conversations" 
-                      className="text-gray-700 hover:text-blue-600 transition-colors px-4 py-2 block"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Messages
-                    </Link>
-                    <button 
-                      onClick={() => {
-                        logout();
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className="text-gray-700 hover:text-blue-600 transition-colors px-4 py-2 text-left w-full"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                </>
+                <div className="border-t border-gray-200 mt-2 pt-2">
+                  <Link 
+                    to="/dashboard" 
+                    className="text-blue-600 font-medium px-4 py-2 block"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <button 
+                    onClick={() => {
+                      logout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="text-gray-700 hover:text-blue-600 transition-colors px-4 py-2 text-left w-full"
+                  >
+                    Logout
+                  </button>
+                </div>
               ) : (
                 <div className="border-t border-gray-200 mt-2 pt-2">
                   <Link 

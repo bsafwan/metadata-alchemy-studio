@@ -1,8 +1,10 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import SuperAdminProtectedRoute from './components/SuperAdminProtectedRoute';
+import DashboardLayout from './components/DashboardLayout';
+import AdminDashboardLayout from './components/AdminDashboardLayout';
+import ProjectAdminLayout from './components/ProjectAdminLayout';
 import Navbar from './components/Navbar';
 import ScrollToTop from './components/ScrollToTop';
 
@@ -76,74 +78,98 @@ const Router = () => {
   return (
     <BrowserRouter>
       <ScrollToTop />
-      <Navbar />
       <Routes>
-        {/* Landing Pages */}
-        <Route path="/" element={<Index />} />
-        <Route path="/get-started" element={<GetStarted />} />
-        <Route path="/custom-solution" element={<CustomSolution />} />
-        <Route path="/author" element={<Author />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/terms-of-service" element={<TermsOfService />} />
+        {/* Landing Pages - WITH Navbar */}
+        <Route path="/" element={<><Navbar /><Index /></>} />
+        <Route path="/get-started" element={<><Navbar /><GetStarted /></>} />
+        <Route path="/custom-solution" element={<><Navbar /><CustomSolution /></>} />
+        <Route path="/author" element={<><Navbar /><Author /></>} />
+        <Route path="/privacy-policy" element={<><Navbar /><PrivacyPolicy /></>} />
+        <Route path="/terms-of-service" element={<><Navbar /><TermsOfService /></>} />
 
-        {/* Auth Pages */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/verify-otp" element={<VerifyOTP />} />
-        <Route path="/super-admin-login" element={<SuperAdminLogin />} />
-        <Route path="/system-control-panel-auth-gateway-x7k9m2p8q4w1" element={<SuperAdminLogin />} />
+        {/* Auth Pages - WITH Navbar */}
+        <Route path="/login" element={<><Navbar /><Login /></>} />
+        <Route path="/verify-otp" element={<><Navbar /><VerifyOTP /></>} />
+        <Route path="/super-admin-login" element={<><Navbar /><SuperAdminLogin /></>} />
+        <Route path="/system-control-panel-auth-gateway-x7k9m2p8q4w1" element={<><Navbar /><SuperAdminLogin /></>} />
 
-        {/* Protected Dashboard Pages */}
-        <Route path="/dashboard" element={<ProtectedRoute><DashboardHome /></ProtectedRoute>} />
-        <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
-        <Route path="/project-setup" element={<ProtectedRoute><ProjectSetup /></ProtectedRoute>} />
-        <Route path="/project/:projectId" element={<ProtectedRoute><ProjectOverview /></ProtectedRoute>} />
-        <Route path="/project/:projectId/pricing-phases" element={<ProtectedRoute><ProjectPricingPhases /></ProtectedRoute>} />
-        <Route path="/payments-and-dues" element={<ProtectedRoute><PaymentsAndDues /></ProtectedRoute>} />
-        <Route path="/status" element={<ProtectedRoute><Status /></ProtectedRoute>} />
-        <Route path="/conversations" element={<ProtectedRoute><Conversations /></ProtectedRoute>} />
-        <Route path="/previews" element={<ProtectedRoute><Previews /></ProtectedRoute>} />
-        <Route path="/delivery-management" element={<ProtectedRoute><DeliveryManagement /></ProtectedRoute>} />
-        <Route path="/demos-and-previews" element={<ProtectedRoute><DemosAndPreviews /></ProtectedRoute>} />
+        {/* Business Feature Pages - WITH Navbar */}
+        <Route path="/onboard" element={<><Navbar /><Onboard /></>} />
+        <Route path="/ai-customer-onboarding" element={<><Navbar /><AICustomerOnboarding /></>} />
+        <Route path="/crm-assessment" element={<><Navbar /><CRMAssessment /></>} />
+        <Route path="/automated-follow-ups" element={<><Navbar /><AutomatedFollowUps /></>} />
+        <Route path="/smart-scheduling" element={<><Navbar /><SmartScheduling /></>} />
+        <Route path="/multi-channel-support" element={<><Navbar /><MultiChannelSupport /></>} />
+        <Route path="/review-boost" element={<><Navbar /><ReviewBoost /></>} />
+        <Route path="/payment-solutions" element={<><Navbar /><PaymentSolutions /></>} />
+        <Route path="/cost-tracking" element={<><Navbar /><CostTracking /></>} />
+        <Route path="/live-chat" element={<><Navbar /><LiveChat /></>} />
+        <Route path="/support-tickets" element={<><Navbar /><SupportTickets /></>} />
+        <Route path="/contact-direct" element={<><Navbar /><ContactDirect /></>} />
 
-        {/* Business Feature Pages */}
-        <Route path="/onboard" element={<Onboard />} />
-        <Route path="/ai-customer-onboarding" element={<AICustomerOnboarding />} />
-        <Route path="/crm-assessment" element={<CRMAssessment />} />
-        <Route path="/automated-follow-ups" element={<AutomatedFollowUps />} />
-        <Route path="/smart-scheduling" element={<SmartScheduling />} />
-        <Route path="/multi-channel-support" element={<MultiChannelSupport />} />
-        <Route path="/review-boost" element={<ReviewBoost />} />
-        <Route path="/payment-solutions" element={<PaymentSolutions />} />
-        <Route path="/cost-tracking" element={<CostTracking />} />
-        <Route path="/live-chat" element={<LiveChat />} />
-        <Route path="/support-tickets" element={<SupportTickets />} />
-        <Route path="/contact-direct" element={<ContactDirect />} />
+        {/* Client Dashboard - WITH Sidebar Layout */}
+        <Route path="/dashboard/*" element={
+          <ProtectedRoute>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }>
+          <Route index element={<DashboardHome />} />
+          <Route path="conversations" element={<Conversations />} />
+          <Route path="pricing-phases" element={<ProjectPricingPhases />} />
+          <Route path="previews" element={<Previews />} />
+          <Route path="payments" element={<PaymentsAndDues />} />
+          <Route path="delivery" element={<DeliveryManagement />} />
+        </Route>
 
-        {/* Super Admin Dashboard Pages */}
-        <Route path="/admin" element={<SuperAdminProtectedRoute><AdminDashboardHome /></SuperAdminProtectedRoute>} />
-        <Route path="/admin/clients" element={<SuperAdminProtectedRoute><AdminClients /></SuperAdminProtectedRoute>} />
-        <Route path="/admin/projects" element={<SuperAdminProtectedRoute><AdminProjects /></SuperAdminProtectedRoute>} />
-        <Route path="/admin/project/:projectId/pricing-phases" element={<SuperAdminProtectedRoute><AdminProjectPricingPhases /></SuperAdminProtectedRoute>} />
-        <Route path="/admin/messages" element={<SuperAdminProtectedRoute><AdminMessages /></SuperAdminProtectedRoute>} />
-        <Route path="/admin/payments" element={<SuperAdminProtectedRoute><AdminPayments /></SuperAdminProtectedRoute>} />
-        <Route path="/admin/quote-inquiries" element={<SuperAdminProtectedRoute><AdminQuoteInquiries /></SuperAdminProtectedRoute>} />
-        <Route path="/admin/analytics" element={<SuperAdminProtectedRoute><AdminAnalytics /></SuperAdminProtectedRoute>} />
-        <Route path="/admin/settings" element={<SuperAdminProtectedRoute><AdminSettings /></SuperAdminProtectedRoute>} />
-        <Route path="/admin/status" element={<SuperAdminProtectedRoute><AdminStatus /></SuperAdminProtectedRoute>} />
+        {/* Other Protected Routes - WITH Navbar */}
+        <Route path="/account" element={<><Navbar /><ProtectedRoute><Account /></ProtectedRoute></>} />
+        <Route path="/project-setup" element={<><Navbar /><ProtectedRoute><ProjectSetup /></ProtectedRoute></>} />
+        <Route path="/project/:projectId" element={<><Navbar /><ProtectedRoute><ProjectOverview /></ProtectedRoute></>} />
+        <Route path="/project/:projectId/pricing-phases" element={<><Navbar /><ProtectedRoute><ProjectPricingPhases /></ProtectedRoute></>} />
+        <Route path="/payments-and-dues" element={<><Navbar /><ProtectedRoute><PaymentsAndDues /></ProtectedRoute></>} />
+        <Route path="/status" element={<><Navbar /><ProtectedRoute><Status /></ProtectedRoute></>} />
+        <Route path="/conversations" element={<><Navbar /><ProtectedRoute><Conversations /></ProtectedRoute></>} />
+        <Route path="/previews" element={<><Navbar /><ProtectedRoute><Previews /></ProtectedRoute></>} />
+        <Route path="/delivery-management" element={<><Navbar /><ProtectedRoute><DeliveryManagement /></ProtectedRoute></>} />
+        <Route path="/demos-and-previews" element={<><Navbar /><ProtectedRoute><DemosAndPreviews /></ProtectedRoute></>} />
 
-        {/* Project Admin Pages */}
-        <Route path="/admin/project/:projectId" element={<SuperAdminProtectedRoute><ProjectAdminOverview /></SuperAdminProtectedRoute>} />
-        <Route path="/admin/project/:projectId/messages" element={<SuperAdminProtectedRoute><ProjectAdminMessages /></SuperAdminProtectedRoute>} />
-        <Route path="/admin/project/:projectId/payments" element={<SuperAdminProtectedRoute><ProjectAdminPayments /></SuperAdminProtectedRoute>} />
-        <Route path="/admin/project/:projectId/status" element={<SuperAdminProtectedRoute><ProjectAdminStatus /></SuperAdminProtectedRoute>} />
-        <Route path="/admin/project/:projectId/delivery" element={<SuperAdminProtectedRoute><ProjectAdminDelivery /></SuperAdminProtectedRoute>} />
-        <Route path="/admin/project/:projectId/demos" element={<SuperAdminProtectedRoute><ProjectAdminDemos /></SuperAdminProtectedRoute>} />
-        <Route path="/admin/project/:projectId/demos-new" element={<SuperAdminProtectedRoute><ProjectAdminDemosNew /></SuperAdminProtectedRoute>} />
-        <Route path="/admin/project/:projectId/previews" element={<SuperAdminProtectedRoute><ProjectAdminPreviews /></SuperAdminProtectedRoute>} />
-        <Route path="/admin/project/:projectId/support" element={<SuperAdminProtectedRoute><ProjectAdminSupport /></SuperAdminProtectedRoute>} />
+        {/* Super Admin Dashboard - WITH Sidebar Layout */}
+        <Route path="/admin/*" element={
+          <SuperAdminProtectedRoute>
+            <AdminDashboardLayout />
+          </SuperAdminProtectedRoute>
+        }>
+          <Route index element={<AdminDashboardHome />} />
+          <Route path="clients" element={<AdminClients />} />
+          <Route path="projects" element={<AdminProjects />} />
+          <Route path="payments" element={<AdminPayments />} />
+          <Route path="messages" element={<AdminMessages />} />
+          <Route path="quote-inquiries" element={<AdminQuoteInquiries />} />
+          <Route path="analytics" element={<AdminAnalytics />} />
+          <Route path="settings" element={<AdminSettings />} />
+          <Route path="status" element={<AdminStatus />} />
+        </Route>
+
+        {/* Project Admin Routes - WITH Sidebar Layout */}
+        <Route path="/admin/project/:projectId/*" element={
+          <SuperAdminProtectedRoute>
+            <ProjectAdminLayout />
+          </SuperAdminProtectedRoute>
+        }>
+          <Route index element={<ProjectAdminOverview />} />
+          <Route path="messages" element={<ProjectAdminMessages />} />
+          <Route path="pricing-phases" element={<AdminProjectPricingPhases />} />
+          <Route path="payments" element={<ProjectAdminPayments />} />
+          <Route path="status" element={<ProjectAdminStatus />} />
+          <Route path="delivery" element={<ProjectAdminDelivery />} />
+          <Route path="demos" element={<ProjectAdminDemos />} />
+          <Route path="demos-new" element={<ProjectAdminDemosNew />} />
+          <Route path="previews" element={<ProjectAdminPreviews />} />
+          <Route path="support" element={<ProjectAdminSupport />} />
+        </Route>
 
         {/* 404 Page */}
-        <Route path="*" element={<NotFound />} />
+        <Route path="*" element={<><Navbar /><NotFound /></>} />
       </Routes>
     </BrowserRouter>
   );
