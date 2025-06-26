@@ -89,8 +89,7 @@ export const UniversalNotificationPrompt = () => {
               badge: '/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png',
               tag: 'elismet-universal',
               requireInteraction: true,
-              silent: false,
-              vibrate: [200, 100, 200]
+              silent: false
             });
           }
           
