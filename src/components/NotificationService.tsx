@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,7 +22,7 @@ interface NotificationServiceProps {
   onNotificationCount?: (count: number) => void;
 }
 
-// VAPID public key - update this with your actual VAPID public key
+// Use the VAPID public key from Supabase secrets
 const VAPID_PUBLIC_KEY = 'BHxvyf5-KzQpWrV9EKvQjF8nAEgqGv8nDf2QXqYjKpVqJ8FjRqW3QqKgF9nVfQh8yRqF7KpJvWq3QxKf8nDf2QX';
 
 // Helper function to safely parse JSON arrays
@@ -76,6 +77,13 @@ export function NotificationService({ onNotificationCount }: NotificationService
     registerServiceWorker();
   }, []);
 
+  // Check notification permission on component mount
+  useEffect(() => {
+    if ('Notification' in window) {
+      setPermissionGranted(Notification.permission === 'granted');
+    }
+  }, []);
+
   // Check and request notification permission
   const requestNotificationPermission = async () => {
     if (!('Notification' in window)) {
@@ -108,6 +116,11 @@ export function NotificationService({ onNotificationCount }: NotificationService
     if (!isServiceWorkerReady || !user?.email) {
       console.log('Service worker not ready or user not authenticated');
       return;
+    }
+
+    if (!permissionGranted) {
+      const hasPermission = await requestNotificationPermission();
+      if (!hasPermission) return;
     }
 
     try {
@@ -186,19 +199,27 @@ export function NotificationService({ onNotificationCount }: NotificationService
     }
   };
 
+  // Setup notifications when user is available
   useEffect(() => {
     const setupNotifications = async () => {
-      const hasPermission = await requestNotificationPermission();
-      if (hasPermission && isServiceWorkerReady) {
-        await subscribeToPushNotifications();
+      if (isServiceWorkerReady && user?.email) {
+        // Check if already subscribed
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          const existingSubscription = await registration.pushManager.getSubscription();
+          if (existingSubscription) {
+            setPushSubscribed(true);
+          }
+        } catch (error) {
+          console.error('Error checking existing subscription:', error);
+        }
       }
     };
 
-    if (user?.email && isServiceWorkerReady) {
-      setupNotifications();
-    }
+    setupNotifications();
   }, [user?.email, isServiceWorkerReady]);
 
+  // Listen for new notifications
   useEffect(() => {
     if (!user?.email) return;
 
