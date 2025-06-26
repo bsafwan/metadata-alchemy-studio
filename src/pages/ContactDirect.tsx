@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Send, Building, Mail, Phone, Bell, BellOff, AlertTriangle, Copy, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { saveCRMInquiry } from '@/utils/crmInquiryService';
 
@@ -164,25 +165,7 @@ const ContactDirect = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 relative">
-      {/* Temporary navigation header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center">
-              <img 
-                src="/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png" 
-                alt="Elismet LTD" 
-                className="h-10" 
-              />
-            </Link>
-            <div className="flex items-center gap-6">
-              <Link to="/" className="text-gray-600 hover:text-blue-600 transition-colors">Home</Link>
-              <Link to="/get-started" className="text-gray-600 hover:text-blue-600 transition-colors">Get Started</Link>
-              <Link to="/admin-messaging" className="text-gray-600 hover:text-blue-600 transition-colors">Admin</Link>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Navbar />
       
       {/* Notification Overlay */}
       {showNotificationOverlay && notificationPermission !== 'granted' && (
