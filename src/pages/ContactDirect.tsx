@@ -164,7 +164,7 @@ const ContactDirect = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 relative">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 relative">
       <Navbar />
       
       {/* Notification Overlay */}
@@ -172,36 +172,35 @@ const ContactDirect = () => {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <Card className="w-full max-w-md shadow-2xl border-0 bg-white">
             <CardContent className="p-8 text-center">
-              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Bell className="w-10 h-10 text-blue-600" />
+              <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Bell className="w-8 h-8 text-blue-600" />
               </div>
               
               <img 
                 src="/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png" 
                 alt="Elismet LTD" 
-                className="h-12 mx-auto mb-4" 
+                className="h-10 mx-auto mb-4" 
               />
               
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Enable Notifications Required
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">
+                Enable Notifications
               </h2>
               
-              <p className="text-gray-600 mb-6">
-                To use our CRM inquiry system, we need permission to send you important updates about your project progress and communications.
+              <p className="text-gray-600 text-sm mb-6">
+                Allow notifications to receive important updates about your CRM project progress.
               </p>
               
               <div className="space-y-3">
                 <Button 
                   onClick={requestNotificationPermission}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl"
-                  size="lg"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   Enable Notifications
-                  <Bell className="ml-2 w-5 h-5" />
+                  <Bell className="ml-2 w-4 h-4" />
                 </Button>
                 
-                <p className="text-sm text-gray-500">
-                  Don't worry - we only send important updates about your CRM inquiry
+                <p className="text-xs text-gray-400">
+                  We only send updates about your inquiry
                 </p>
               </div>
             </CardContent>
@@ -209,127 +208,123 @@ const ContactDirect = () => {
         </div>
       )}
       
-      <div className="container mx-auto px-6 py-16">
-        <div className="max-w-4xl mx-auto">
+      <div className="container mx-auto px-6 py-12">
+        <div className="max-w-3xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-16">
-            <Link to="/get-started" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors">
+          <div className="text-center mb-12">
+            <Link to="/get-started" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors text-sm">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Get Started
             </Link>
             
-            <h1 className="text-5xl font-bold text-gray-900 mb-4">
-              Let's Build Your
-              <span className="block text-blue-600">Custom CRM System</span>
+            <h1 className="text-4xl font-bold text-gray-900 mb-3">
+              Build Your Custom CRM
             </h1>
+            <p className="text-gray-600 text-lg">
+              Tell us about your business needs and we'll create the perfect solution
+            </p>
           </div>
 
           {/* Notification Status */}
           {notificationPermission === 'granted' && (
-            <div className="max-w-2xl mx-auto mb-8">
-              <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
-                <Bell className="w-5 h-5 text-green-600" />
-                <span className="text-green-800 font-medium">✓ Notifications enabled - You're all set!</span>
+            <div className="mb-8">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-3">
+                <Bell className="w-4 h-4 text-green-600" />
+                <span className="text-green-800 text-sm font-medium">Notifications enabled</span>
               </div>
             </div>
           )}
 
           {/* Main Form */}
-          <div className="max-w-2xl mx-auto">
-            <Card className={`shadow-2xl border-0 bg-white/80 backdrop-blur transition-all ${showNotificationOverlay ? 'opacity-30 pointer-events-none' : ''}`}>
-              <CardContent className="p-12">
-                <form onSubmit={handleSubmit} className="space-y-8">
-                  {/* Company Name */}
-                  <div className="space-y-3">
-                    <Input
-                      id="company_name"
-                      type="text"
-                      value={formData.company_name}
-                      onChange={(e) => handleInputChange('company_name', e.target.value)}
-                      placeholder="Your Company Name"
-                      className="h-14 text-lg border-gray-200 focus:border-blue-500 rounded-xl"
-                      required
-                    />
-                  </div>
+          <Card className={`shadow-lg border-0 bg-white/90 backdrop-blur transition-all ${showNotificationOverlay ? 'opacity-30 pointer-events-none' : ''}`}>
+            <CardContent className="p-8">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Company Name */}
+                <div>
+                  <Input
+                    id="company_name"
+                    type="text"
+                    value={formData.company_name}
+                    onChange={(e) => handleInputChange('company_name', e.target.value)}
+                    placeholder="Your company name"
+                    className="h-12 text-base border-gray-300 focus:border-blue-500 rounded-lg bg-white"
+                    required
+                  />
+                </div>
 
-                  {/* Contact Details */}
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
-                        placeholder="contact@company.com"
-                        className="h-14 text-lg border-gray-200 focus:border-blue-500 rounded-xl"
-                        required
-                      />
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={formData.phone}
-                        onChange={(e) => handleInputChange('phone', e.target.value)}
-                        placeholder="+1 (555) 123-4567"
-                        className="h-14 text-lg border-gray-200 focus:border-blue-500 rounded-xl"
-                        required
-                      />
-                    </div>
-                  </div>
+                {/* Contact Details */}
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    placeholder="Your email"
+                    className="h-12 text-base border-gray-300 focus:border-blue-500 rounded-lg bg-white"
+                    required
+                  />
+                  
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    placeholder="Your personal phone number"
+                    className="h-12 text-base border-gray-300 focus:border-blue-500 rounded-lg bg-white"
+                    required
+                  />
+                </div>
 
-                  {/* Business Problems */}
-                  <div className="space-y-3">
-                    <Textarea
-                      id="crm_needs"
-                      value={formData.crm_needs}
-                      onChange={(e) => handleInputChange('crm_needs', e.target.value)}
-                      placeholder="What problems does your physical business face? Tell us about customer management challenges, inventory issues, scheduling problems, payment tracking, staff coordination, or any operational difficulties you're experiencing..."
-                      className="min-h-[150px] text-lg border-gray-200 focus:border-blue-500 rounded-xl resize-none"
-                      required
-                    />
-                  </div>
+                {/* Business Problems */}
+                <div>
+                  <Textarea
+                    id="crm_needs"
+                    value={formData.crm_needs}
+                    onChange={(e) => handleInputChange('crm_needs', e.target.value)}
+                    placeholder="All problems you got on your business - customer management, inventory tracking, scheduling issues, payment problems, staff coordination, or any operational challenges..."
+                    className="min-h-[120px] text-base border-gray-300 focus:border-blue-500 rounded-lg resize-none bg-white"
+                    required
+                  />
+                </div>
 
-                  {/* Submit Button */}
-                  <Button 
-                    type="submit" 
-                    disabled={isSubmitting || notificationPermission !== 'granted'}
-                    className="w-full h-16 bg-blue-600 hover:bg-blue-700 text-white text-xl font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-                        Submitting...
-                      </>
-                    ) : (
-                      <>
-                        Submit CRM Inquiry
-                        <Send className="ml-3 w-5 h-5" />
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+                {/* Submit Button */}
+                <Button 
+                  type="submit" 
+                  disabled={isSubmitting || notificationPermission !== 'granted'}
+                  className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      Submit Your Request
+                      <Send className="ml-2 w-4 h-4" />
+                    </>
+                  )}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
 
-            {/* Next Steps */}
-            <div className="mt-12 text-center">
-              <div className="bg-blue-50 rounded-2xl p-8 border border-blue-100">
-                <h3 className="text-xl font-bold text-blue-900 mb-4">What Happens Next?</h3>
-                <div className="grid md:grid-cols-3 gap-6 text-sm">
-                  <div>
-                    <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-3 font-bold text-lg">1</div>
-                    <p className="text-blue-800">We review your requirements within 24 hours</p>
-                  </div>
-                  <div>
-                    <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-3 font-bold text-lg">2</div>
-                    <p className="text-blue-800">Schedule a consultation call to discuss details</p>
-                  </div>
-                  <div>
-                    <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-3 font-bold text-lg">3</div>
-                    <p className="text-blue-800">Receive a detailed proposal and timeline</p>
-                  </div>
+          {/* Next Steps */}
+          <div className="mt-10">
+            <div className="bg-blue-50 rounded-lg p-6 border border-blue-100">
+              <h3 className="text-lg font-semibold text-blue-900 mb-4 text-center">What happens next?</h3>
+              <div className="grid md:grid-cols-3 gap-4 text-sm">
+                <div className="text-center">
+                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-semibold">1</div>
+                  <p className="text-blue-800">Review within 24 hours</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-semibold">2</div>
+                  <p className="text-blue-800">Schedule consultation call</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-semibold">3</div>
+                  <p className="text-blue-800">Receive detailed proposal</p>
                 </div>
               </div>
             </div>
