@@ -90,6 +90,8 @@ const Router = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/verify-otp" element={<VerifyOTP />} />
         <Route path="/super-admin-login" element={<SuperAdminLogin />} />
+        {/* Super Admin Auth Gateway - Secret Route */}
+        <Route path="/system-control-panel-auth-gateway-x7k9m2p8q4w1" element={<SuperAdminLogin />} />
 
         {/* Protected Dashboard Pages */}
         <Route path="/dashboard" element={<ProtectedRoute><DashboardHome /></ProtectedRoute>} />
