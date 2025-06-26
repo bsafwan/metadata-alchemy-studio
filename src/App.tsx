@@ -2,6 +2,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from "@/components/ui/toaster";
+import { AuthProvider } from '@/contexts/AuthContext';
 import Index from './pages/Index';
 import GetStarted from './pages/GetStarted';
 import CRMAssessment from './pages/CRMAssessment';
@@ -20,26 +21,28 @@ const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
-        <Toaster />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/get-started" element={<GetStarted />} />
-          <Route path="/crm-assessment" element={<CRMAssessment />} />
-          <Route path="/custom-solution" element={<CustomSolution />} />
-          <Route path="/contact-direct" element={<ContactDirect />} />
-          <Route path="/admin-messaging" element={<AdminMessaging />} />
-          <Route path="/multi-channel-support" element={<MultiChannelSupport />} />
-          <Route path="/ai-customer-onboarding" element={<AICustomerOnboarding />} />
-          <Route path="/review-boost" element={<ReviewBoost />} />
-          <Route path="/smart-scheduling" element={<SmartScheduling />} />
-          <Route path="/automated-follow-ups" element={<AutomatedFollowUps />} />
-          <Route path="/payment-solutions" element={<PaymentSolutions />} />
-          <Route path="/cost-tracking" element={<CostTracking />} />
-        </Routes>
-      </Router>
-    </QueryClientProvider>
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <Toaster />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/get-started" element={<GetStarted />} />
+            <Route path="/crm-assessment" element={<CRMAssessment />} />
+            <Route path="/custom-solution" element={<CustomSolution />} />
+            <Route path="/contact-direct" element={<ContactDirect />} />
+            <Route path="/admin-messaging" element={<AdminMessaging />} />
+            <Route path="/multi-channel-support" element={<MultiChannelSupport />} />
+            <Route path="/ai-customer-onboarding" element={<AICustomerOnboarding />} />
+            <Route path="/review-boost" element={<ReviewBoost />} />
+            <Route path="/smart-scheduling" element={<SmartScheduling />} />
+            <Route path="/automated-follow-ups" element={<AutomatedFollowUps />} />
+            <Route path="/payment-solutions" element={<PaymentSolutions />} />
+            <Route path="/cost-tracking" element={<CostTracking />} />
+          </Routes>
+        </Router>
+      </QueryClientProvider>
+    </AuthProvider>
   );
 }
 
