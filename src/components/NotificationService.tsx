@@ -32,7 +32,7 @@ export function NotificationService({ onNotificationCount }: NotificationService
 
     fetchNotifications();
 
-    // Set up real-time subscription for new notifications
+    // Set up real-time subscription for new admin messages with notifications
     const channel = supabase
       .channel('user-notifications')
       .on(
@@ -40,11 +40,24 @@ export function NotificationService({ onNotificationCount }: NotificationService
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'user_notifications',
-          filter: `recipient_email=eq.${user.email}`
+          table: 'admin_messages',
+          filter: `notification_content=not.is.null`
         },
         (payload) => {
-          const newNotification = payload.new as Notification;
+          console.log('New notification received:', payload);
+          const newMessage = payload.new;
+          
+          // Transform to notification format
+          const newNotification: Notification = {
+            id: newMessage.id,
+            title: newMessage.title,
+            content: newMessage.notification_content || '',
+            is_read: false,
+            created_at: newMessage.created_at,
+            links: Array.isArray(newMessage.links) ? newMessage.links : [],
+            images: Array.isArray(newMessage.images) ? newMessage.images : []
+          };
+          
           setNotifications(prev => [newNotification, ...prev]);
           
           // Show browser notification if permission is granted
@@ -75,39 +88,42 @@ export function NotificationService({ onNotificationCount }: NotificationService
     if (!user?.email) return;
 
     try {
+      // Use admin_messages table as temporary solution
       const { data, error } = await supabase
-        .from('user_notifications')
+        .from('admin_messages')
         .select('*')
-        .eq('recipient_email', user.email)
+        .not('notification_content', 'is', null)
         .order('created_at', { ascending: false })
         .limit(50);
 
       if (error) throw error;
-      setNotifications(data || []);
+      
+      // Transform admin_messages to notification format
+      const transformedNotifications: Notification[] = (data || []).map(msg => ({
+        id: msg.id,
+        title: msg.title,
+        content: msg.notification_content || '',
+        is_read: false, // Default to false for now
+        created_at: msg.created_at,
+        links: Array.isArray(msg.links) ? msg.links : [],
+        images: Array.isArray(msg.images) ? msg.images : []
+      }));
+
+      setNotifications(transformedNotifications);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     }
   };
 
   const markAsRead = async (notificationId: string) => {
-    try {
-      const { error } = await supabase
-        .from('user_notifications')
-        .update({ is_read: true, read_at: new Date().toISOString() })
-        .eq('id', notificationId);
-
-      if (error) throw error;
-
-      setNotifications(prev =>
-        prev.map(n =>
-          n.id === notificationId
-            ? { ...n, is_read: true }
-            : n
-        )
-      );
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
+    // For now, just update local state
+    setNotifications(prev =>
+      prev.map(n =>
+        n.id === notificationId
+          ? { ...n, is_read: true }
+          : n
+      )
+    );
   };
 
   const requestNotificationPermission = async () => {
