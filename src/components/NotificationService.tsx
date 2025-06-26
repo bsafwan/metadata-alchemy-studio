@@ -22,16 +22,14 @@ interface NotificationServiceProps {
   onNotificationCount?: (count: number) => void;
 }
 
-// Use the VAPID public key from Supabase secrets
+// VAPID key from environment - this should be set in Supabase secrets
 const VAPID_PUBLIC_KEY = 'BHxvyf5-KzQpWrV9EKvQjF8nAEgqGv8nDf2QXqYjKpVqJ8FjRqW3QqKgF9nVfQh8yRqF7KpJvWq3QxKf8nDf2QX';
 
-// Helper function to safely parse JSON arrays
 const parseJsonArray = (jsonArray: any[], defaultValue: any[] = []): any[] => {
   if (!Array.isArray(jsonArray)) return defaultValue;
   return jsonArray.filter(item => item && typeof item === 'object');
 };
 
-// Convert VAPID key to Uint8Array
 const urlBase64ToUint8Array = (base64String: string): Uint8Array => {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
   const base64 = (base64String + padding)
@@ -50,180 +48,112 @@ const urlBase64ToUint8Array = (base64String: string): Uint8Array => {
 export function NotificationService({ onNotificationCount }: NotificationServiceProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [permissionGranted, setPermissionGranted] = useState(false);
-  const [pushSubscribed, setPushSubscribed] = useState(false);
-  const [isServiceWorkerReady, setIsServiceWorkerReady] = useState(false);
+  const [notificationStatus, setNotificationStatus] = useState<'disabled' | 'enabled' | 'subscribed'>('disabled');
   const { user } = useAuth();
 
-  // Register service worker
-  useEffect(() => {
-    const registerServiceWorker = async () => {
-      if ('serviceWorker' in navigator) {
-        try {
-          const registration = await navigator.serviceWorker.register('/sw.js');
-          console.log('Service Worker registered:', registration);
-          setIsServiceWorkerReady(true);
-          
-          // Listen for updates
-          registration.addEventListener('updatefound', () => {
-            console.log('Service Worker update found');
-          });
-        } catch (error) {
-          console.error('Service Worker registration failed:', error);
-        }
-      }
-    };
-
-    registerServiceWorker();
-  }, []);
-
-  // Check notification permission on component mount
-  useEffect(() => {
-    if ('Notification' in window) {
-      setPermissionGranted(Notification.permission === 'granted');
-    }
-  }, []);
-
-  // Check and request notification permission
-  const requestNotificationPermission = async () => {
-    if (!('Notification' in window)) {
-      toast.error('This browser does not support notifications');
-      return false;
-    }
-
-    if (Notification.permission === 'granted') {
-      setPermissionGranted(true);
-      return true;
-    }
-
-    if (Notification.permission === 'default') {
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        setPermissionGranted(true);
-        toast.success('Browser notifications enabled!');
-        return true;
-      } else {
-        toast.error('Notification permission denied. You can enable it in your browser settings.');
-        return false;
-      }
-    }
-
-    return false;
-  };
-
-  // Subscribe to push notifications
-  const subscribeToPushNotifications = async () => {
-    if (!isServiceWorkerReady || !user?.email) {
-      console.log('Service worker not ready or user not authenticated');
+  // Single setup function for all notifications
+  const setupNotifications = async () => {
+    if (!user?.email || !('serviceWorker' in navigator) || !('Notification' in window)) {
+      console.log('Notifications not supported or user not authenticated');
       return;
     }
 
-    if (!permissionGranted) {
-      const hasPermission = await requestNotificationPermission();
-      if (!hasPermission) return;
-    }
-
     try {
-      const registration = await navigator.serviceWorker.ready;
-      
-      // Check if already subscribed
+      // Step 1: Register service worker
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      console.log('Service Worker registered successfully');
+
+      // Step 2: Request permission
+      let permission = Notification.permission;
+      if (permission === 'default') {
+        permission = await Notification.requestPermission();
+      }
+
+      if (permission !== 'granted') {
+        console.log('Notification permission denied');
+        setNotificationStatus('disabled');
+        return;
+      }
+
+      setNotificationStatus('enabled');
+
+      // Step 3: Subscribe to push notifications for background support
       const existingSubscription = await registration.pushManager.getSubscription();
-      if (existingSubscription) {
-        console.log('Already subscribed to push notifications');
-        setPushSubscribed(true);
-        return;
-      }
+      
+      if (!existingSubscription) {
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
 
-      // Subscribe to push notifications
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-      });
+        // Save subscription to database
+        const subscriptionData = {
+          user_email: user.email,
+          endpoint: subscription.endpoint,
+          p256dh_key: btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('p256dh')!))),
+          auth_key: btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('auth')!))),
+          user_agent: navigator.userAgent
+        };
 
-      console.log('Push subscription created:', subscription);
+        const { error } = await supabase.functions.invoke('insert-push-subscription', {
+          body: subscriptionData
+        });
 
-      // Save subscription to database using edge function
-      const subscriptionData = {
-        user_email: user.email,
-        endpoint: subscription.endpoint,
-        p256dh_key: btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('p256dh')!))),
-        auth_key: btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('auth')!))),
-        user_agent: navigator.userAgent
-      };
-
-      const { error } = await supabase.functions.invoke('insert-push-subscription', {
-        body: subscriptionData
-      });
-
-      if (error) {
-        console.error('Error saving push subscription:', error);
-        toast.error('Failed to enable push notifications');
-        return;
-      }
-
-      setPushSubscribed(true);
-      toast.success('Push notifications enabled! You\'ll receive notifications even when the browser is closed.');
-
-    } catch (error) {
-      console.error('Error subscribing to push notifications:', error);
-      toast.error('Failed to enable push notifications');
-    }
-  };
-
-  // Show browser notification (fallback for when tab is active)
-  const showBrowserNotification = (title: string, content: string) => {
-    if (!permissionGranted || !('Notification' in window)) return;
-    
-    try {
-      const notification = new Notification(title, {
-        body: content,
-        icon: '/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png',
-        badge: '/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png',
-        tag: 'elismet-notification',
-        requireInteraction: true,
-        silent: false
-      });
-
-      setTimeout(() => {
-        notification.close();
-      }, 10000);
-
-      notification.onclick = () => {
-        window.focus();
-        notification.close();
-      };
-
-      console.log('Browser notification displayed:', title);
-    } catch (error) {
-      console.error('Failed to show notification:', error);
-    }
-  };
-
-  // Setup notifications when user is available
-  useEffect(() => {
-    const setupNotifications = async () => {
-      if (isServiceWorkerReady && user?.email) {
-        // Check if already subscribed
-        try {
-          const registration = await navigator.serviceWorker.ready;
-          const existingSubscription = await registration.pushManager.getSubscription();
-          if (existingSubscription) {
-            setPushSubscribed(true);
-          }
-        } catch (error) {
-          console.error('Error checking existing subscription:', error);
+        if (error) {
+          console.error('Failed to save push subscription:', error);
+        } else {
+          console.log('Push subscription saved successfully');
+          setNotificationStatus('subscribed');
         }
+      } else {
+        console.log('Already subscribed to push notifications');
+        setNotificationStatus('subscribed');
       }
-    };
 
-    setupNotifications();
-  }, [user?.email, isServiceWorkerReady]);
+    } catch (error) {
+      console.error('Error setting up notifications:', error);
+      setNotificationStatus('disabled');
+    }
+  };
 
-  // Listen for new notifications
+  // Show notification (works for both in-tab and background)
+  const showNotification = (title: string, content: string) => {
+    if (Notification.permission === 'granted') {
+      try {
+        const notification = new Notification(title, {
+          body: content,
+          icon: '/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png',
+          badge: '/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png',
+          tag: 'elismet-notification',
+          requireInteraction: false,
+          silent: false
+        });
+
+        // Auto close after 8 seconds
+        setTimeout(() => notification.close(), 8000);
+
+        notification.onclick = () => {
+          window.focus();
+          notification.close();
+        };
+
+        console.log('Notification displayed:', title);
+      } catch (error) {
+        console.error('Failed to show notification:', error);
+      }
+    }
+  };
+
+  // Initialize on component mount
+  useEffect(() => {
+    if (user?.email) {
+      fetchNotifications();
+    }
+  }, [user?.email]);
+
+  // Listen for new notifications in real-time
   useEffect(() => {
     if (!user?.email) return;
-
-    fetchNotifications();
 
     const channel = supabase
       .channel('user-notifications')
@@ -244,17 +174,17 @@ export function NotificationService({ onNotificationCount }: NotificationService
             title: newMessage.title,
             content: newMessage.notification_content || '',
             is_read: false,
-            created_at: newMessage.created_at,
+            created_at: new Date().toISOString(),
             links: parseJsonArray(newMessage.links as any[]) as Array<{ text: string; url: string }>,
             images: parseJsonArray(newMessage.images as any[]) as Array<{ alt: string; url: string }>
           };
           
           setNotifications(prev => [newNotification, ...prev]);
           
-          if (document.visibilityState === 'visible') {
-            showBrowserNotification(newNotification.title, newNotification.content);
-          }
+          // Show notification regardless of page visibility
+          showNotification(newNotification.title, newNotification.content);
           
+          // Show toast for in-app users
           toast.success(`New message: ${newNotification.title}`, {
             description: newNotification.content.substring(0, 100) + '...',
             duration: 5000,
@@ -266,8 +196,9 @@ export function NotificationService({ onNotificationCount }: NotificationService
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.email, permissionGranted]);
+  }, [user?.email]);
 
+  // Update notification count
   useEffect(() => {
     const unreadCount = notifications.filter(n => !n.is_read).length;
     onNotificationCount?.(unreadCount);
@@ -333,26 +264,14 @@ export function NotificationService({ onNotificationCount }: NotificationService
         )}
       </Button>
 
-      {!permissionGranted && (
+      {notificationStatus === 'disabled' && (
         <Button
           variant="outline"
           size="sm"
-          onClick={requestNotificationPermission}
+          onClick={setupNotifications}
           className="ml-2"
         >
-          Enable Notifications
-        </Button>
-      )}
-
-      {permissionGranted && !pushSubscribed && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={subscribeToPushNotifications}
-          className="ml-2"
-          disabled={!isServiceWorkerReady}
-        >
-          Enable Background Notifications
+          Enable All Notifications
         </Button>
       )}
 
@@ -361,9 +280,14 @@ export function NotificationService({ onNotificationCount }: NotificationService
           <div className="p-4 border-b border-gray-200 flex items-center justify-between">
             <h3 className="font-semibold">Notifications</h3>
             <div className="flex items-center gap-2">
-              {pushSubscribed && (
+              {notificationStatus === 'subscribed' && (
                 <Badge variant="secondary" className="text-xs">
-                  Background Enabled
+                  All Enabled
+                </Badge>
+              )}
+              {notificationStatus === 'enabled' && (
+                <Badge variant="outline" className="text-xs">
+                  Basic Enabled
                 </Badge>
               )}
               <Button
