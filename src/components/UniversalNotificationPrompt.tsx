@@ -2,10 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Bell, X, Check, Smartphone } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Bell, X, Check, Smartphone, Building2, Mail, Phone, MessageSquare } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { deviceManager } from '@/utils/deviceIdentifier';
+import { saveCRMInquiry } from '@/utils/crmInquiryService';
 
 const VAPID_PUBLIC_KEY = 'BHxvyf5-KzQpWrV9EKvQjF8nAEgqGv8nDf2QXqYjKpVqJ8FjRqW3QqKgF9nVfQh8yRqF7KpJvWq3QxKf8nDf2QX';
 
@@ -26,9 +29,16 @@ const urlBase64ToUint8Array = (base64String: string): Uint8Array => {
 
 export const UniversalNotificationPrompt = () => {
   const [showPrompt, setShowPrompt] = useState(false);
+  const [currentStep, setCurrentStep] = useState<'notification' | 'crm'>('notification');
   const [isLoading, setIsLoading] = useState(false);
   const [isEnabled, setIsEnabled] = useState(false);
   const [deviceInfo, setDeviceInfo] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    companyName: '',
+    email: '',
+    phone: '',
+    crmNeeds: ''
+  });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -145,7 +155,6 @@ export const UniversalNotificationPrompt = () => {
       // Success
       localStorage.setItem('notification_status', 'subscribed');
       setIsEnabled(true);
-      setShowPrompt(false);
 
       // Send welcome notification
       new Notification('🎉 Notifications Enabled!', {
@@ -153,9 +162,12 @@ export const UniversalNotificationPrompt = () => {
         icon: '/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png'
       });
 
+      // Move to CRM step
+      setCurrentStep('crm');
+
       toast({
         title: "Perfect! 🎉",
-        description: "Universal notifications enabled for this device!",
+        description: "Now let's connect you with our CRM services!",
       });
 
     } catch (error) {
@@ -170,12 +182,74 @@ export const UniversalNotificationPrompt = () => {
     }
   };
 
+  const handleCRMSubmit = async () => {
+    if (!formData.companyName || !formData.email || !formData.phone || !formData.crmNeeds) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!deviceInfo) {
+      toast({
+        title: "Device Error",
+        description: "Device information not available.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const success = await saveCRMInquiry({
+        company_name: formData.companyName,
+        email: formData.email,
+        phone: formData.phone,
+        crm_needs: formData.crmNeeds,
+        user_identifier: deviceInfo.deviceId, // Using device ID as unique identifier
+        source_page: window.location.pathname
+      });
+
+      if (success) {
+        toast({
+          title: "Thank You! 🎉",
+          description: "Your CRM inquiry has been submitted successfully!",
+        });
+        
+        setShowPrompt(false);
+        
+        // Redirect to contact direct page after a short delay
+        setTimeout(() => {
+          window.location.href = '/contact-direct';
+        }, 2000);
+      } else {
+        throw new Error('Failed to submit inquiry');
+      }
+    } catch (error) {
+      console.error('Error submitting CRM inquiry:', error);
+      toast({
+        title: "Submission Failed",
+        description: "There was an issue submitting your inquiry. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const dismissPrompt = () => {
     setShowPrompt(false);
     localStorage.setItem('notification_prompt_dismissed', 'true');
   };
 
-  if (isEnabled) {
+  const skipToCRM = () => {
+    setCurrentStep('crm');
+  };
+
+  if (isEnabled && currentStep === 'notification') {
     return (
       <div className="fixed bottom-4 right-4 z-50">
         <Card className="bg-green-50 border-green-200 shadow-lg">
@@ -199,14 +273,18 @@ export const UniversalNotificationPrompt = () => {
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
-                <Smartphone className="w-5 h-5 text-blue-600" />
+                {currentStep === 'notification' ? (
+                  <Smartphone className="w-5 h-5 text-blue-600" />
+                ) : (
+                  <Building2 className="w-5 h-5 text-blue-600" />
+                )}
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 text-sm">
-                  Stay Updated
+                  {currentStep === 'notification' ? 'Stay Updated' : 'Get CRM Solution'}
                 </h3>
                 <p className="text-xs text-gray-600">
-                  Enable device notifications
+                  {currentStep === 'notification' ? 'Enable device notifications' : 'Connect with our CRM experts'}
                 </p>
               </div>
             </div>
@@ -220,33 +298,104 @@ export const UniversalNotificationPrompt = () => {
             </Button>
           </div>
 
-          <div className="space-y-3">
-            <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
-              Device ID: {deviceInfo?.deviceId?.substr(-12) || 'Loading...'}
+          {currentStep === 'notification' ? (
+            <div className="space-y-3">
+              <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+                Device ID: {deviceInfo?.deviceId?.substr(-12) || 'Loading...'}
+              </div>
+              
+              <Button 
+                onClick={setupUniversalNotifications}
+                disabled={isLoading || !deviceInfo}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm h-9"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
+                    Setting up...
+                  </>
+                ) : (
+                  <>
+                    Enable Notifications
+                    <Bell className="ml-2 w-3 h-3" />
+                  </>
+                )}
+              </Button>
+              
+              <Button 
+                onClick={skipToCRM}
+                variant="outline"
+                className="w-full text-sm h-8"
+              >
+                Skip to CRM Inquiry
+              </Button>
+              
+              <p className="text-xs text-gray-500 text-center">
+                No email required • Works everywhere • Anonymous device subscription
+              </p>
             </div>
-            
-            <Button 
-              onClick={setupUniversalNotifications}
-              disabled={isLoading || !deviceInfo}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm h-9"
-            >
-              {isLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
-                  Setting up...
-                </>
-              ) : (
-                <>
-                  Enable Universal Notifications
-                  <Bell className="ml-2 w-3 h-3" />
-                </>
-              )}
-            </Button>
-            
-            <p className="text-xs text-gray-500 text-center">
-              No email required • Works everywhere • Anonymous device subscription
-            </p>
-          </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded flex items-center gap-2">
+                <Smartphone className="w-3 h-3" />
+                ID: {deviceInfo?.deviceId?.substr(-12) || 'Loading...'}
+              </div>
+              
+              <div className="space-y-2">
+                <Input
+                  placeholder="Company Name *"
+                  value={formData.companyName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, companyName: e.target.value }))}
+                  className="text-sm"
+                />
+                
+                <Input
+                  type="email"
+                  placeholder="Email Address *"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  className="text-sm"
+                />
+                
+                <Input
+                  type="tel"
+                  placeholder="Phone Number *"
+                  value={formData.phone}
+                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                  className="text-sm"
+                />
+                
+                <Textarea
+                  placeholder="Tell us about your CRM needs and requirements *"
+                  value={formData.crmNeeds}
+                  onChange={(e) => setFormData(prev => ({ ...prev, crmNeeds: e.target.value }))}
+                  className="text-sm min-h-[60px] resize-none"
+                />
+              </div>
+              
+              <Button 
+                onClick={handleCRMSubmit}
+                disabled={isLoading}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm h-9"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    Submit CRM Inquiry
+                    <MessageSquare className="ml-2 w-3 h-3" />
+                  </>
+                )}
+              </Button>
+              
+              <p className="text-xs text-gray-500 text-center">
+                We'll connect with you within 24 hours • Free consultation
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
