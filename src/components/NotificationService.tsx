@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,7 +21,7 @@ interface NotificationServiceProps {
   onNotificationCount?: (count: number) => void;
 }
 
-// VAPID public key - you'll need to set this in your environment
+// VAPID public key - update this with your actual VAPID public key
 const VAPID_PUBLIC_KEY = 'BHxvyf5-KzQpWrV9EKvQjF8nAEgqGv8nDf2QXqYjKpVqJ8FjRqW3QqKgF9nVfQh8yRqF7KpJvWq3QxKf8nDf2QX';
 
 // Helper function to safely parse JSON arrays
@@ -130,7 +129,7 @@ export function NotificationService({ onNotificationCount }: NotificationService
 
       console.log('Push subscription created:', subscription);
 
-      // Save subscription to database
+      // Save subscription to database using edge function
       const subscriptionData = {
         user_email: user.email,
         endpoint: subscription.endpoint,
@@ -139,9 +138,9 @@ export function NotificationService({ onNotificationCount }: NotificationService
         user_agent: navigator.userAgent
       };
 
-      const { error } = await supabase
-        .from('push_subscriptions')
-        .upsert(subscriptionData, { onConflict: 'user_email,endpoint' });
+      const { error } = await supabase.functions.invoke('insert-push-subscription', {
+        body: subscriptionData
+      });
 
       if (error) {
         console.error('Error saving push subscription:', error);
@@ -172,12 +171,10 @@ export function NotificationService({ onNotificationCount }: NotificationService
         silent: false
       });
 
-      // Auto close after 10 seconds
       setTimeout(() => {
         notification.close();
       }, 10000);
 
-      // Handle notification click
       notification.onclick = () => {
         window.focus();
         notification.close();
@@ -190,7 +187,6 @@ export function NotificationService({ onNotificationCount }: NotificationService
   };
 
   useEffect(() => {
-    // Request permission and setup push notifications on component mount
     const setupNotifications = async () => {
       const hasPermission = await requestNotificationPermission();
       if (hasPermission && isServiceWorkerReady) {
@@ -208,7 +204,6 @@ export function NotificationService({ onNotificationCount }: NotificationService
 
     fetchNotifications();
 
-    // Set up real-time subscription for new admin messages with notifications
     const channel = supabase
       .channel('user-notifications')
       .on(
@@ -223,7 +218,6 @@ export function NotificationService({ onNotificationCount }: NotificationService
           console.log('New notification received:', payload);
           const newMessage = payload.new;
           
-          // Transform to notification format with proper type casting
           const newNotification: Notification = {
             id: newMessage.id,
             title: newMessage.title,
@@ -236,12 +230,10 @@ export function NotificationService({ onNotificationCount }: NotificationService
           
           setNotifications(prev => [newNotification, ...prev]);
           
-          // Show browser notification only if document is visible (fallback)
           if (document.visibilityState === 'visible') {
             showBrowserNotification(newNotification.title, newNotification.content);
           }
           
-          // Show toast notification as well
           toast.success(`New message: ${newNotification.title}`, {
             description: newNotification.content.substring(0, 100) + '...',
             duration: 5000,
@@ -264,7 +256,6 @@ export function NotificationService({ onNotificationCount }: NotificationService
     if (!user?.email) return;
 
     try {
-      // Use admin_messages table as temporary solution
       const { data, error } = await supabase
         .from('admin_messages')
         .select('*')
@@ -274,12 +265,11 @@ export function NotificationService({ onNotificationCount }: NotificationService
 
       if (error) throw error;
       
-      // Transform admin_messages to notification format with proper type casting
       const transformedNotifications: Notification[] = (data || []).map(msg => ({
         id: msg.id,
         title: msg.title,
         content: msg.notification_content || '',
-        is_read: false, // Default to false for now
+        is_read: false,
         created_at: msg.created_at,
         links: parseJsonArray(msg.links as any[]) as Array<{ text: string; url: string }>,
         images: parseJsonArray(msg.images as any[]) as Array<{ alt: string; url: string }>
@@ -292,7 +282,6 @@ export function NotificationService({ onNotificationCount }: NotificationService
   };
 
   const markAsRead = async (notificationId: string) => {
-    // For now, just update local state
     setNotifications(prev =>
       prev.map(n =>
         n.id === notificationId
@@ -340,6 +329,7 @@ export function NotificationService({ onNotificationCount }: NotificationService
           size="sm"
           onClick={subscribeToPushNotifications}
           className="ml-2"
+          disabled={!isServiceWorkerReady}
         >
           Enable Background Notifications
         </Button>
