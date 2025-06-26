@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from "@/components/ui/toaster";
@@ -8,7 +9,7 @@ import CustomSolution from './pages/CustomSolution';
 import ContactDirect from './pages/ContactDirect';
 import AdminMessaging from './pages/AdminMessaging';
 import MultiChannelSupport from './pages/MultiChannelSupport';
-import AISolution from './pages/AISolution';
+import AICustomerOnboarding from './pages/AICustomerOnboarding';
 import ReviewBoost from './pages/ReviewBoost';
 import SmartScheduling from './pages/SmartScheduling';
 import AutomatedFollowUps from './pages/AutomatedFollowUps';
@@ -30,7 +31,7 @@ function App() {
           <Route path="/contact-direct" element={<ContactDirect />} />
           <Route path="/admin-messaging" element={<AdminMessaging />} />
           <Route path="/multi-channel-support" element={<MultiChannelSupport />} />
-          <Route path="/ai-customer-onboarding" element={<AISolution />} />
+          <Route path="/ai-customer-onboarding" element={<AICustomerOnboarding />} />
           <Route path="/review-boost" element={<ReviewBoost />} />
           <Route path="/smart-scheduling" element={<SmartScheduling />} />
           <Route path="/automated-follow-ups" element={<AutomatedFollowUps />} />
