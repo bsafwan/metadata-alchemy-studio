@@ -9,6 +9,56 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_messages: {
+        Row: {
+          created_at: string
+          crm_inquiry_id: string | null
+          email_content: string | null
+          id: string
+          images: Json | null
+          links: Json | null
+          message_type: string
+          notification_content: string | null
+          sent_at: string
+          sent_by: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          crm_inquiry_id?: string | null
+          email_content?: string | null
+          id?: string
+          images?: Json | null
+          links?: Json | null
+          message_type?: string
+          notification_content?: string | null
+          sent_at?: string
+          sent_by?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          crm_inquiry_id?: string | null
+          email_content?: string | null
+          id?: string
+          images?: Json | null
+          links?: Json | null
+          message_type?: string
+          notification_content?: string | null
+          sent_at?: string
+          sent_by?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_messages_crm_inquiry_id_fkey"
+            columns: ["crm_inquiry_id"]
+            isOneToOne: false
+            referencedRelation: "crm_inquiries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_users: {
         Row: {
           created_at: string

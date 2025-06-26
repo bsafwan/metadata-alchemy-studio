@@ -38,6 +38,7 @@ import AdminClients from "./pages/AdminClients";
 import AdminProjects from "./pages/AdminProjects";
 import AdminPayments from "./pages/AdminPayments";
 import AdminMessages from "./pages/AdminMessages";
+import AdminQuoteInquiries from "./pages/AdminQuoteInquiries";
 import AdminSettings from "./pages/AdminSettings";
 import ProjectAdminLayout from "./components/ProjectAdminLayout";
 import ProjectAdminOverview from "./pages/ProjectAdminOverview";
@@ -121,6 +122,7 @@ const App = () => (
                 <Route path="projects" element={<AdminProjects />} />
                 <Route path="payments" element={<AdminPayments />} />
                 <Route path="messages" element={<AdminMessages />} />
+                <Route path="quote-inquiries" element={<AdminQuoteInquiries />} />
                 <Route path="settings" element={<AdminSettings />} />
               </Route>
 
