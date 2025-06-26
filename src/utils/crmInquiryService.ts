@@ -128,7 +128,7 @@ ${inquiry.user_identifier ? `📱 Use Device ID ${inquiry.user_identifier} for d
               <li>We'll prepare a customized CRM solution proposal</li>
               <li>You'll receive a detailed quote and timeline</li>
               <li>We'll schedule a consultation call to discuss your needs</li>
-              ${inquiry.user_identifier ? '<li>You'll get real-time updates via push notifications</li>' : ''}
+              ${inquiry.user_identifier ? '<li>You\'ll get real-time updates via push notifications</li>' : ''}
             </ul>
           </div>
           
