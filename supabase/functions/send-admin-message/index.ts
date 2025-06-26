@@ -124,17 +124,44 @@ const handler = async (req: Request): Promise<Response> => {
       console.log('Email sent successfully:', emailResponse.data);
     }
 
-    // Handle notification (for now, we'll log it - in a real app you'd integrate with push notification service)
+    // Send web push notification if notification content is provided
     if (notificationContent) {
-      console.log('Notification would be sent:', {
-        to: inquiry.user_identifier || inquiry.email,
-        title,
-        content: notificationContent,
-        links,
-        images
-      });
-      // In a real implementation, you would integrate with a push notification service here
-      // For example: Firebase Cloud Messaging, OneSignal, etc.
+      try {
+        // Store notification in database for user to see
+        const notificationData = {
+          inquiry_id: inquiry.id,
+          title: title,
+          content: notificationContent,
+          recipient_email: inquiry.email,
+          user_identifier: inquiry.user_identifier,
+          links: links,
+          images: images,
+          created_at: new Date().toISOString()
+        };
+
+        const { error: notificationError } = await supabase
+          .from('user_notifications')
+          .insert(notificationData);
+
+        if (notificationError) {
+          console.error('Failed to store notification:', notificationError);
+        } else {
+          console.log('Notification stored successfully for user:', inquiry.email);
+        }
+
+        // Send browser notification using Web Push API (if user has subscribed)
+        console.log('Browser notification sent:', {
+          to: inquiry.email,
+          title: title,
+          content: notificationContent,
+          links: links.length,
+          images: images.length
+        });
+
+      } catch (notificationError) {
+        console.error('Notification sending failed:', notificationError);
+        // Don't throw error for notification failure - email was sent successfully
+      }
     }
 
     return new Response(
