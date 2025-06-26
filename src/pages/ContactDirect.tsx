@@ -18,7 +18,6 @@ const ContactDirect = () => {
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
   const [showNotificationOverlay, setShowNotificationOverlay] = useState(false);
   const [userIdentifier, setUserIdentifier] = useState<string>('');
-  const [identifierCopied, setIdentifierCopied] = useState(false);
   const [formData, setFormData] = useState({
     company_name: '',
     email: '',
@@ -26,7 +25,7 @@ const ContactDirect = () => {
     crm_needs: ''
   });
 
-  // Generate unique identifier for user
+  // Generate unique identifier for user (hidden from user)
   useEffect(() => {
     let identifier = localStorage.getItem('user_identifier');
     if (!identifier) {
@@ -62,9 +61,9 @@ const ContactDirect = () => {
           setShowNotificationOverlay(false);
           
           // Send test notification
-          new Notification('CRM System', {
+          new Notification('Elismet CRM System', {
             body: 'Notifications enabled! We can now keep you updated on your inquiry.',
-            icon: '/favicon.ico'
+            icon: '/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png'
           });
           
           toast({
@@ -86,24 +85,6 @@ const ContactDirect = () => {
           variant: "destructive"
         });
       }
-    }
-  };
-
-  const copyIdentifier = async () => {
-    try {
-      await navigator.clipboard.writeText(userIdentifier);
-      setIdentifierCopied(true);
-      toast({
-        title: "Identifier Copied!",
-        description: "Your unique identifier has been copied to clipboard.",
-      });
-      setTimeout(() => setIdentifierCopied(false), 2000);
-    } catch (error) {
-      toast({
-        title: "Copy Failed",
-        description: "Please manually copy your identifier: " + userIdentifier,
-        variant: "destructive"
-      });
     }
   };
 
@@ -133,7 +114,7 @@ const ContactDirect = () => {
     setIsSubmitting(true);
     
     try {
-      // Add user identifier to the inquiry
+      // Add user identifier to the inquiry (for admin use only)
       const inquiryWithIdentifier = {
         ...formData,
         user_identifier: userIdentifier
@@ -150,7 +131,7 @@ const ContactDirect = () => {
         // Send notification to user
         new Notification('CRM Inquiry Submitted', {
           body: 'Your CRM inquiry has been submitted successfully. We will contact you soon!',
-          icon: '/favicon.ico'
+          icon: '/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png'
         });
         
         // Reset form
@@ -196,6 +177,12 @@ const ContactDirect = () => {
                 <Bell className="w-10 h-10 text-blue-600" />
               </div>
               
+              <img 
+                src="/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png" 
+                alt="Elismet LTD" 
+                className="h-12 mx-auto mb-4" 
+              />
+              
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
                 Enable Notifications Required
               </h2>
@@ -236,33 +223,6 @@ const ContactDirect = () => {
               Let's Build Your
               <span className="block text-blue-600">Custom CRM System</span>
             </h1>
-          </div>
-
-          {/* User Identifier Display */}
-          <div className="max-w-2xl mx-auto mb-8">
-            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold text-blue-900 mb-1">Your Unique Identifier</h3>
-                    <p className="text-sm text-blue-700">Use this ID for direct communication with our team</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <code className="bg-white px-3 py-2 rounded-lg font-mono text-blue-800 border">
-                      {userIdentifier}
-                    </code>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={copyIdentifier}
-                      className="border-blue-300 text-blue-700 hover:bg-blue-100"
-                    >
-                      {identifierCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
           {/* Notification Status */}
