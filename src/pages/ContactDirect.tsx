@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -242,10 +241,6 @@ const ContactDirect = () => {
                 <form onSubmit={handleSubmit} className="space-y-8">
                   {/* Company Name */}
                   <div className="space-y-3">
-                    <Label htmlFor="company_name" className="text-lg font-semibold text-gray-900 flex items-center">
-                      <Building className="w-5 h-5 mr-2 text-blue-600" />
-                      Company Name
-                    </Label>
                     <Input
                       id="company_name"
                       type="text"
@@ -260,10 +255,6 @@ const ContactDirect = () => {
                   {/* Contact Details */}
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-3">
-                      <Label htmlFor="email" className="text-lg font-semibold text-gray-900 flex items-center">
-                        <Mail className="w-5 h-5 mr-2 text-blue-600" />
-                        Email
-                      </Label>
                       <Input
                         id="email"
                         type="email"
@@ -276,10 +267,6 @@ const ContactDirect = () => {
                     </div>
                     
                     <div className="space-y-3">
-                      <Label htmlFor="phone" className="text-lg font-semibold text-gray-900 flex items-center">
-                        <Phone className="w-5 h-5 mr-2 text-blue-600" />
-                        Phone
-                      </Label>
                       <Input
                         id="phone"
                         type="tel"
@@ -292,16 +279,13 @@ const ContactDirect = () => {
                     </div>
                   </div>
 
-                  {/* CRM Requirements */}
+                  {/* Business Problems */}
                   <div className="space-y-3">
-                    <Label htmlFor="crm_needs" className="text-lg font-semibold text-gray-900">
-                      Your CRM Requirements
-                    </Label>
                     <Textarea
                       id="crm_needs"
                       value={formData.crm_needs}
                       onChange={(e) => handleInputChange('crm_needs', e.target.value)}
-                      placeholder="Tell us about your business needs, current challenges, team size, budget range, timeline, and any specific features you're looking for..."
+                      placeholder="What problems does your physical business face? Tell us about customer management challenges, inventory issues, scheduling problems, payment tracking, staff coordination, or any operational difficulties you're experiencing..."
                       className="min-h-[150px] text-lg border-gray-200 focus:border-blue-500 rounded-xl resize-none"
                       required
                     />
