@@ -92,14 +92,18 @@ export function AdminMessageDialog({ inquiry, isOpen, onClose, onMessageSent }: 
     setIsSending(true);
 
     try {
-      // Save message to database - using the correct column name
+      // Filter and convert to plain objects for JSON storage
+      const filteredLinks = links.filter(link => link.text && link.url);
+      const filteredImages = images.filter(image => image.alt && image.url);
+
+      // Save message to database - converting arrays to JSON
       const messageData = {
         crm_inquiry_id: inquiry.id,
         title: title.trim(),
         email_content: emailContent.trim() || null,
         notification_content: notificationContent.trim() || null,
-        links: links.filter(link => link.text && link.url),
-        images: images.filter(image => image.alt && image.url),
+        links: filteredLinks as any, // Convert to Json type
+        images: filteredImages as any, // Convert to Json type
       };
 
       const { error: dbError } = await supabase
@@ -118,8 +122,8 @@ export function AdminMessageDialog({ inquiry, isOpen, onClose, onMessageSent }: 
           title: title.trim(),
           emailContent: emailContent.trim() || null,
           notificationContent: notificationContent.trim() || null,
-          links: links.filter(link => link.text && link.url),
-          images: images.filter(image => image.alt && image.url),
+          links: filteredLinks,
+          images: filteredImages,
         }
       });
 
