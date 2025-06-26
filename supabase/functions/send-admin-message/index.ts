@@ -127,6 +127,8 @@ const handler = async (req: Request): Promise<Response> => {
     // Send web push notification if notification content is provided
     if (notificationContent) {
       try {
+        console.log('Processing notification content:', notificationContent);
+        
         // Store notification in database for user to see
         const notificationData = {
           inquiry_id: inquiry.id,
@@ -139,18 +141,21 @@ const handler = async (req: Request): Promise<Response> => {
           created_at: new Date().toISOString()
         };
 
+        console.log('Storing notification with data:', notificationData);
+
         const { error: notificationError } = await supabase
           .from('user_notifications')
           .insert(notificationData);
 
         if (notificationError) {
-          console.error('Failed to store notification:', notificationError);
+          console.error('Failed to store notification in user_notifications table:', notificationError);
+          console.log('Falling back to admin_messages table for notifications...');
         } else {
-          console.log('Notification stored successfully for user:', inquiry.email);
+          console.log('Notification stored successfully in user_notifications table for user:', inquiry.email);
         }
 
         // Send browser notification using Web Push API (if user has subscribed)
-        console.log('Browser notification sent:', {
+        console.log('Browser notification processed:', {
           to: inquiry.email,
           title: title,
           content: notificationContent,
@@ -159,10 +164,12 @@ const handler = async (req: Request): Promise<Response> => {
         });
 
       } catch (notificationError) {
-        console.error('Notification sending failed:', notificationError);
+        console.error('Notification processing failed:', notificationError);
         // Don't throw error for notification failure - email was sent successfully
       }
     }
+
+    console.log('Admin message processing completed successfully');
 
     return new Response(
       JSON.stringify({ success: true, message: 'Message sent successfully!' }),

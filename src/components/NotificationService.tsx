@@ -31,7 +31,71 @@ const parseJsonArray = (jsonArray: any[], defaultValue: any[] = []): any[] => {
 export function NotificationService({ onNotificationCount }: NotificationServiceProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [permissionGranted, setPermissionGranted] = useState(false);
   const { user } = useAuth();
+
+  // Check and request notification permission
+  const requestNotificationPermission = async () => {
+    if (!('Notification' in window)) {
+      console.warn('This browser does not support notifications');
+      return false;
+    }
+
+    if (Notification.permission === 'granted') {
+      setPermissionGranted(true);
+      return true;
+    }
+
+    if (Notification.permission === 'default') {
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        setPermissionGranted(true);
+        toast.success('Browser notifications enabled!');
+        return true;
+      } else {
+        toast.error('Notification permission denied. You can enable it in your browser settings.');
+        return false;
+      }
+    }
+
+    return false;
+  };
+
+  // Show browser notification
+  const showBrowserNotification = (title: string, content: string) => {
+    if (!permissionGranted || !('Notification' in window)) return;
+    
+    try {
+      const notification = new Notification(title, {
+        body: content,
+        icon: '/favicon.ico',
+        badge: '/favicon.ico',
+        tag: 'elismet-notification',
+        requireInteraction: true,
+        silent: false
+      });
+
+      // Auto close after 10 seconds
+      setTimeout(() => {
+        notification.close();
+      }, 10000);
+
+      // Handle notification click
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
+
+      console.log('Browser notification displayed:', title);
+    } catch (error) {
+      console.error('Failed to show notification:', error);
+    }
+  };
+
+  useEffect(() => {
+    // Request permission on component mount
+    requestNotificationPermission();
+  }, []);
 
   useEffect(() => {
     if (!user?.email) return;
@@ -66,16 +130,14 @@ export function NotificationService({ onNotificationCount }: NotificationService
           
           setNotifications(prev => [newNotification, ...prev]);
           
-          // Show browser notification if permission is granted
-          if (Notification.permission === 'granted') {
-            new Notification(newNotification.title, {
-              body: newNotification.content,
-              icon: '/favicon.ico'
-            });
-          }
+          // Show browser notification immediately
+          showBrowserNotification(newNotification.title, newNotification.content);
           
-          // Show toast notification
-          toast.success(`New message: ${newNotification.title}`);
+          // Show toast notification as well
+          toast.success(`New message: ${newNotification.title}`, {
+            description: newNotification.content.substring(0, 100) + '...',
+            duration: 5000,
+          });
         }
       )
       .subscribe();
@@ -83,7 +145,7 @@ export function NotificationService({ onNotificationCount }: NotificationService
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.email]);
+  }, [user?.email, permissionGranted]);
 
   useEffect(() => {
     const unreadCount = notifications.filter(n => !n.is_read).length;
@@ -132,19 +194,6 @@ export function NotificationService({ onNotificationCount }: NotificationService
     );
   };
 
-  const requestNotificationPermission = async () => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        toast.success('Browser notifications enabled!');
-      }
-    }
-  };
-
-  useEffect(() => {
-    requestNotificationPermission();
-  }, []);
-
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
   return (
@@ -165,6 +214,17 @@ export function NotificationService({ onNotificationCount }: NotificationService
           </Badge>
         )}
       </Button>
+
+      {!permissionGranted && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={requestNotificationPermission}
+          className="ml-2"
+        >
+          Enable Notifications
+        </Button>
+      )}
 
       {showNotifications && (
         <div className="absolute right-0 top-12 w-80 max-h-96 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg z-50">
