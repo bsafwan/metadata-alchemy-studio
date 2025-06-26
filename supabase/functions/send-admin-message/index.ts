@@ -99,9 +99,9 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
       `;
 
-      // Send email using Zoho - Fix: Pass email as array
+      // Send email using Zoho
       const emailPayload = {
-        to: [inquiry.email], // Fix: Convert string to array
+        to: [inquiry.email],
         subject: `${title} - Elismet Team`,
         html: emailHtml,
         text: `${title}\n\nDear ${inquiry.company_name} Team,\n\n${emailContent}\n\n${links.map(link => `${link.text}: ${link.url}`).join('\n\n')}\n\nBest regards,\nThe Elismet Team\n\n${inquiry.user_identifier ? `Reference ID: ${inquiry.user_identifier}` : ''}`
@@ -124,7 +124,7 @@ const handler = async (req: Request): Promise<Response> => {
       console.log('Email sent successfully:', emailResponse.data);
     }
 
-    // Send web push notification if notification content is provided
+    // Send push notification if notification content is provided
     if (notificationContent) {
       try {
         console.log('Processing notification content:', notificationContent);
@@ -143,19 +143,52 @@ const handler = async (req: Request): Promise<Response> => {
 
         console.log('Storing notification with data:', notificationData);
 
-        const { error: notificationError } = await supabase
-          .from('user_notifications')
-          .insert(notificationData);
+        // Store in admin_messages table (as fallback to user_notifications)
+        const { error: adminMessageError } = await supabase
+          .from('admin_messages')
+          .insert({
+            title: title,
+            notification_content: notificationContent,
+            links: links,
+            images: images,
+            crm_inquiry_id: inquiry.id,
+            created_at: new Date().toISOString()
+          });
 
-        if (notificationError) {
-          console.error('Failed to store notification in user_notifications table:', notificationError);
-          console.log('Falling back to admin_messages table for notifications...');
+        if (adminMessageError) {
+          console.error('Failed to store notification in admin_messages table:', adminMessageError);
         } else {
-          console.log('Notification stored successfully in user_notifications table for user:', inquiry.email);
+          console.log('Notification stored successfully in admin_messages table');
         }
 
-        // Send browser notification using Web Push API (if user has subscribed)
-        console.log('Browser notification processed:', {
+        // Send background push notification
+        try {
+          const pushResponse = await supabase.functions.invoke('send-push-notification', {
+            body: {
+              userEmail: inquiry.email,
+              title: title,
+              body: notificationContent,
+              url: '/',
+              data: {
+                inquiryId: inquiry.id,
+                userIdentifier: inquiry.user_identifier,
+                links: links,
+                images: images
+              }
+            }
+          });
+
+          if (pushResponse.error) {
+            console.error('Push notification sending failed:', pushResponse.error);
+          } else {
+            console.log('Push notification sent successfully:', pushResponse.data);
+          }
+        } catch (pushError) {
+          console.error('Error sending push notification:', pushError);
+          // Don't fail the whole request if push notification fails
+        }
+
+        console.log('Notification processing completed:', {
           to: inquiry.email,
           title: title,
           content: notificationContent,

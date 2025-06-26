@@ -22,22 +22,65 @@ interface NotificationServiceProps {
   onNotificationCount?: (count: number) => void;
 }
 
+// VAPID public key - you'll need to set this in your environment
+const VAPID_PUBLIC_KEY = 'BHxvyf5-KzQpWrV9EKvQjF8nAEgqGv8nDf2QXqYjKpVqJ8FjRqW3QqKgF9nVfQh8yRqF7KpJvWq3QxKf8nDf2QX';
+
 // Helper function to safely parse JSON arrays
 const parseJsonArray = (jsonArray: any[], defaultValue: any[] = []): any[] => {
   if (!Array.isArray(jsonArray)) return defaultValue;
   return jsonArray.filter(item => item && typeof item === 'object');
 };
 
+// Convert VAPID key to Uint8Array
+const urlBase64ToUint8Array = (base64String: string): Uint8Array => {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+};
+
 export function NotificationService({ onNotificationCount }: NotificationServiceProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [permissionGranted, setPermissionGranted] = useState(false);
+  const [pushSubscribed, setPushSubscribed] = useState(false);
+  const [isServiceWorkerReady, setIsServiceWorkerReady] = useState(false);
   const { user } = useAuth();
+
+  // Register service worker
+  useEffect(() => {
+    const registerServiceWorker = async () => {
+      if ('serviceWorker' in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.register('/sw.js');
+          console.log('Service Worker registered:', registration);
+          setIsServiceWorkerReady(true);
+          
+          // Listen for updates
+          registration.addEventListener('updatefound', () => {
+            console.log('Service Worker update found');
+          });
+        } catch (error) {
+          console.error('Service Worker registration failed:', error);
+        }
+      }
+    };
+
+    registerServiceWorker();
+  }, []);
 
   // Check and request notification permission
   const requestNotificationPermission = async () => {
     if (!('Notification' in window)) {
-      console.warn('This browser does not support notifications');
+      toast.error('This browser does not support notifications');
       return false;
     }
 
@@ -61,15 +104,69 @@ export function NotificationService({ onNotificationCount }: NotificationService
     return false;
   };
 
-  // Show browser notification
+  // Subscribe to push notifications
+  const subscribeToPushNotifications = async () => {
+    if (!isServiceWorkerReady || !user?.email) {
+      console.log('Service worker not ready or user not authenticated');
+      return;
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      
+      // Check if already subscribed
+      const existingSubscription = await registration.pushManager.getSubscription();
+      if (existingSubscription) {
+        console.log('Already subscribed to push notifications');
+        setPushSubscribed(true);
+        return;
+      }
+
+      // Subscribe to push notifications
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+
+      console.log('Push subscription created:', subscription);
+
+      // Save subscription to database
+      const subscriptionData = {
+        user_email: user.email,
+        endpoint: subscription.endpoint,
+        p256dh_key: btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('p256dh')!))),
+        auth_key: btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('auth')!))),
+        user_agent: navigator.userAgent
+      };
+
+      const { error } = await supabase
+        .from('push_subscriptions')
+        .upsert(subscriptionData, { onConflict: 'user_email,endpoint' });
+
+      if (error) {
+        console.error('Error saving push subscription:', error);
+        toast.error('Failed to enable push notifications');
+        return;
+      }
+
+      setPushSubscribed(true);
+      toast.success('Push notifications enabled! You\'ll receive notifications even when the browser is closed.');
+
+    } catch (error) {
+      console.error('Error subscribing to push notifications:', error);
+      toast.error('Failed to enable push notifications');
+    }
+  };
+
+  // Show browser notification (fallback for when tab is active)
   const showBrowserNotification = (title: string, content: string) => {
     if (!permissionGranted || !('Notification' in window)) return;
     
     try {
       const notification = new Notification(title, {
         body: content,
-        icon: '/favicon.ico',
-        badge: '/favicon.ico',
+        icon: '/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png',
+        badge: '/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png',
         tag: 'elismet-notification',
         requireInteraction: true,
         silent: false
@@ -93,9 +190,18 @@ export function NotificationService({ onNotificationCount }: NotificationService
   };
 
   useEffect(() => {
-    // Request permission on component mount
-    requestNotificationPermission();
-  }, []);
+    // Request permission and setup push notifications on component mount
+    const setupNotifications = async () => {
+      const hasPermission = await requestNotificationPermission();
+      if (hasPermission && isServiceWorkerReady) {
+        await subscribeToPushNotifications();
+      }
+    };
+
+    if (user?.email && isServiceWorkerReady) {
+      setupNotifications();
+    }
+  }, [user?.email, isServiceWorkerReady]);
 
   useEffect(() => {
     if (!user?.email) return;
@@ -130,8 +236,10 @@ export function NotificationService({ onNotificationCount }: NotificationService
           
           setNotifications(prev => [newNotification, ...prev]);
           
-          // Show browser notification immediately
-          showBrowserNotification(newNotification.title, newNotification.content);
+          // Show browser notification only if document is visible (fallback)
+          if (document.visibilityState === 'visible') {
+            showBrowserNotification(newNotification.title, newNotification.content);
+          }
           
           // Show toast notification as well
           toast.success(`New message: ${newNotification.title}`, {
@@ -226,17 +334,35 @@ export function NotificationService({ onNotificationCount }: NotificationService
         </Button>
       )}
 
+      {permissionGranted && !pushSubscribed && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={subscribeToPushNotifications}
+          className="ml-2"
+        >
+          Enable Background Notifications
+        </Button>
+      )}
+
       {showNotifications && (
         <div className="absolute right-0 top-12 w-80 max-h-96 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg z-50">
           <div className="p-4 border-b border-gray-200 flex items-center justify-between">
             <h3 className="font-semibold">Notifications</h3>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowNotifications(false)}
-            >
-              <X className="w-4 h-4" />
-            </Button>
+            <div className="flex items-center gap-2">
+              {pushSubscribed && (
+                <Badge variant="secondary" className="text-xs">
+                  Background Enabled
+                </Badge>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowNotifications(false)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
 
           <div className="max-h-80 overflow-y-auto">
