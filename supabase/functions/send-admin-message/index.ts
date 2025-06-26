@@ -14,6 +14,7 @@ interface SendMessageRequest {
     email: string;
     phone: string;
     user_identifier: string | null;
+    created_at?: string;
   };
   title: string;
   emailContent: string | null;
@@ -30,8 +31,6 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const zohoEmail = Deno.env.get('ZOHO_EMAIL')!;
-    const zohoPassword = Deno.env.get('ZOHO_PASSWORD')!;
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -100,31 +99,29 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
       `;
 
-      // Send email using Zoho
+      // Send email using Zoho - Fix: Pass email as array
       const emailPayload = {
-        from: zohoEmail,
-        to: inquiry.email,
+        to: [inquiry.email], // Fix: Convert string to array
         subject: `${title} - Elismet Team`,
         html: emailHtml,
         text: `${title}\n\nDear ${inquiry.company_name} Team,\n\n${emailContent}\n\n${links.map(link => `${link.text}: ${link.url}`).join('\n\n')}\n\nBest regards,\nThe Elismet Team\n\n${inquiry.user_identifier ? `Reference ID: ${inquiry.user_identifier}` : ''}`
       };
 
-      const emailResponse = await fetch('https://gemhywggtdryovqmalqh.supabase.co/functions/v1/zoho-mail', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseServiceKey}`,
-        },
-        body: JSON.stringify(emailPayload),
+      console.log('Sending email with payload:', {
+        to: emailPayload.to,
+        subject: emailPayload.subject
       });
 
-      if (!emailResponse.ok) {
-        const errorText = await emailResponse.text();
-        console.error('Email sending failed:', errorText);
-        throw new Error(`Failed to send email: ${errorText}`);
+      const emailResponse = await supabase.functions.invoke('zoho-mail', {
+        body: emailPayload
+      });
+
+      if (emailResponse.error) {
+        console.error('Email sending failed:', emailResponse.error);
+        throw new Error(`Failed to send email: ${JSON.stringify(emailResponse.error)}`);
       }
 
-      console.log('Email sent successfully');
+      console.log('Email sent successfully:', emailResponse.data);
     }
 
     // Handle notification (for now, we'll log it - in a real app you'd integrate with push notification service)
