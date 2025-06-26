@@ -22,139 +22,87 @@ interface NotificationServiceProps {
   onNotificationCount?: (count: number) => void;
 }
 
-// VAPID key from environment - this should be set in Supabase secrets
-const VAPID_PUBLIC_KEY = 'BHxvyf5-KzQpWrV9EKvQjF8nAEgqGv8nDf2QXqYjKpVqJ8FjRqW3QqKgF9nVfQh8yRqF7KpJvWq3QxKf8nDf2QX';
-
+// Helper function to safely parse JSON arrays
 const parseJsonArray = (jsonArray: any[], defaultValue: any[] = []): any[] => {
   if (!Array.isArray(jsonArray)) return defaultValue;
   return jsonArray.filter(item => item && typeof item === 'object');
 };
 
-const urlBase64ToUint8Array = (base64String: string): Uint8Array => {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding)
-    .replace(/-/g, '+')
-    .replace(/_/g, '/');
-
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
-};
-
 export function NotificationService({ onNotificationCount }: NotificationServiceProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notificationStatus, setNotificationStatus] = useState<'disabled' | 'enabled' | 'subscribed'>('disabled');
+  const [permissionGranted, setPermissionGranted] = useState(false);
   const { user } = useAuth();
 
-  // Single setup function for all notifications
-  const setupNotifications = async () => {
-    if (!user?.email || !('serviceWorker' in navigator) || !('Notification' in window)) {
-      console.log('Notifications not supported or user not authenticated');
-      return;
+  // Check and request notification permission
+  const requestNotificationPermission = async () => {
+    if (!('Notification' in window)) {
+      console.warn('This browser does not support notifications');
+      return false;
     }
 
-    try {
-      // Step 1: Register service worker
-      const registration = await navigator.serviceWorker.register('/sw.js');
-      console.log('Service Worker registered successfully');
-
-      // Step 2: Request permission
-      let permission = Notification.permission;
-      if (permission === 'default') {
-        permission = await Notification.requestPermission();
-      }
-
-      if (permission !== 'granted') {
-        console.log('Notification permission denied');
-        setNotificationStatus('disabled');
-        return;
-      }
-
-      setNotificationStatus('enabled');
-
-      // Step 3: Subscribe to push notifications for background support
-      const existingSubscription = await registration.pushManager.getSubscription();
-      
-      if (!existingSubscription) {
-        const subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-        });
-
-        // Save subscription to database
-        const subscriptionData = {
-          user_email: user.email,
-          endpoint: subscription.endpoint,
-          p256dh_key: btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('p256dh')!))),
-          auth_key: btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('auth')!))),
-          user_agent: navigator.userAgent
-        };
-
-        const { error } = await supabase.functions.invoke('insert-push-subscription', {
-          body: subscriptionData
-        });
-
-        if (error) {
-          console.error('Failed to save push subscription:', error);
-        } else {
-          console.log('Push subscription saved successfully');
-          setNotificationStatus('subscribed');
-        }
-      } else {
-        console.log('Already subscribed to push notifications');
-        setNotificationStatus('subscribed');
-      }
-
-    } catch (error) {
-      console.error('Error setting up notifications:', error);
-      setNotificationStatus('disabled');
-    }
-  };
-
-  // Show notification (works for both in-tab and background)
-  const showNotification = (title: string, content: string) => {
     if (Notification.permission === 'granted') {
-      try {
-        const notification = new Notification(title, {
-          body: content,
-          icon: '/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png',
-          badge: '/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png',
-          tag: 'elismet-notification',
-          requireInteraction: false,
-          silent: false
-        });
+      setPermissionGranted(true);
+      return true;
+    }
 
-        // Auto close after 8 seconds
-        setTimeout(() => notification.close(), 8000);
-
-        notification.onclick = () => {
-          window.focus();
-          notification.close();
-        };
-
-        console.log('Notification displayed:', title);
-      } catch (error) {
-        console.error('Failed to show notification:', error);
+    if (Notification.permission === 'default') {
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        setPermissionGranted(true);
+        toast.success('Browser notifications enabled!');
+        return true;
+      } else {
+        toast.error('Notification permission denied. You can enable it in your browser settings.');
+        return false;
       }
+    }
+
+    return false;
+  };
+
+  // Show browser notification
+  const showBrowserNotification = (title: string, content: string) => {
+    if (!permissionGranted || !('Notification' in window)) return;
+    
+    try {
+      const notification = new Notification(title, {
+        body: content,
+        icon: '/favicon.ico',
+        badge: '/favicon.ico',
+        tag: 'elismet-notification',
+        requireInteraction: true,
+        silent: false
+      });
+
+      // Auto close after 10 seconds
+      setTimeout(() => {
+        notification.close();
+      }, 10000);
+
+      // Handle notification click
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
+
+      console.log('Browser notification displayed:', title);
+    } catch (error) {
+      console.error('Failed to show notification:', error);
     }
   };
 
-  // Initialize on component mount
   useEffect(() => {
-    if (user?.email) {
-      fetchNotifications();
-    }
-  }, [user?.email]);
+    // Request permission on component mount
+    requestNotificationPermission();
+  }, []);
 
-  // Listen for new notifications in real-time
   useEffect(() => {
     if (!user?.email) return;
 
+    fetchNotifications();
+
+    // Set up real-time subscription for new admin messages with notifications
     const channel = supabase
       .channel('user-notifications')
       .on(
@@ -169,22 +117,23 @@ export function NotificationService({ onNotificationCount }: NotificationService
           console.log('New notification received:', payload);
           const newMessage = payload.new;
           
+          // Transform to notification format with proper type casting
           const newNotification: Notification = {
             id: newMessage.id,
             title: newMessage.title,
             content: newMessage.notification_content || '',
             is_read: false,
-            created_at: new Date().toISOString(),
+            created_at: newMessage.created_at,
             links: parseJsonArray(newMessage.links as any[]) as Array<{ text: string; url: string }>,
             images: parseJsonArray(newMessage.images as any[]) as Array<{ alt: string; url: string }>
           };
           
           setNotifications(prev => [newNotification, ...prev]);
           
-          // Show notification regardless of page visibility
-          showNotification(newNotification.title, newNotification.content);
+          // Show browser notification immediately
+          showBrowserNotification(newNotification.title, newNotification.content);
           
-          // Show toast for in-app users
+          // Show toast notification as well
           toast.success(`New message: ${newNotification.title}`, {
             description: newNotification.content.substring(0, 100) + '...',
             duration: 5000,
@@ -196,9 +145,8 @@ export function NotificationService({ onNotificationCount }: NotificationService
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.email]);
+  }, [user?.email, permissionGranted]);
 
-  // Update notification count
   useEffect(() => {
     const unreadCount = notifications.filter(n => !n.is_read).length;
     onNotificationCount?.(unreadCount);
@@ -208,6 +156,7 @@ export function NotificationService({ onNotificationCount }: NotificationService
     if (!user?.email) return;
 
     try {
+      // Use admin_messages table as temporary solution
       const { data, error } = await supabase
         .from('admin_messages')
         .select('*')
@@ -217,11 +166,12 @@ export function NotificationService({ onNotificationCount }: NotificationService
 
       if (error) throw error;
       
+      // Transform admin_messages to notification format with proper type casting
       const transformedNotifications: Notification[] = (data || []).map(msg => ({
         id: msg.id,
         title: msg.title,
         content: msg.notification_content || '',
-        is_read: false,
+        is_read: false, // Default to false for now
         created_at: msg.created_at,
         links: parseJsonArray(msg.links as any[]) as Array<{ text: string; url: string }>,
         images: parseJsonArray(msg.images as any[]) as Array<{ alt: string; url: string }>
@@ -234,6 +184,7 @@ export function NotificationService({ onNotificationCount }: NotificationService
   };
 
   const markAsRead = async (notificationId: string) => {
+    // For now, just update local state
     setNotifications(prev =>
       prev.map(n =>
         n.id === notificationId
@@ -264,14 +215,14 @@ export function NotificationService({ onNotificationCount }: NotificationService
         )}
       </Button>
 
-      {notificationStatus === 'disabled' && (
+      {!permissionGranted && (
         <Button
           variant="outline"
           size="sm"
-          onClick={setupNotifications}
+          onClick={requestNotificationPermission}
           className="ml-2"
         >
-          Enable All Notifications
+          Enable Notifications
         </Button>
       )}
 
@@ -279,25 +230,13 @@ export function NotificationService({ onNotificationCount }: NotificationService
         <div className="absolute right-0 top-12 w-80 max-h-96 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg z-50">
           <div className="p-4 border-b border-gray-200 flex items-center justify-between">
             <h3 className="font-semibold">Notifications</h3>
-            <div className="flex items-center gap-2">
-              {notificationStatus === 'subscribed' && (
-                <Badge variant="secondary" className="text-xs">
-                  All Enabled
-                </Badge>
-              )}
-              {notificationStatus === 'enabled' && (
-                <Badge variant="outline" className="text-xs">
-                  Basic Enabled
-                </Badge>
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowNotifications(false)}
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowNotifications(false)}
+            >
+              <X className="w-4 h-4" />
+            </Button>
           </div>
 
           <div className="max-h-80 overflow-y-auto">
