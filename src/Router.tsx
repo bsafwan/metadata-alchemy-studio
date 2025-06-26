@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { ProtectedRoute } from './components/ProtectedRoute';
-import { SuperAdminProtectedRoute } from './components/SuperAdminProtectedRoute';
+import ProtectedRoute from './components/ProtectedRoute';
+import SuperAdminProtectedRoute from './components/SuperAdminProtectedRoute';
 import Navbar from './components/Navbar';
 import ScrollToTop from './components/ScrollToTop';
 
