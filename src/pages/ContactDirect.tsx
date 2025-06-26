@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Send, Building, Mail, Phone, Bell, BellOff, AlertTriangle, Copy, Check } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -13,6 +13,7 @@ import { saveCRMInquiry } from '@/utils/crmInquiryService';
 
 const ContactDirect = () => {
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
   const [showNotificationOverlay, setShowNotificationOverlay] = useState(false);
@@ -24,6 +25,29 @@ const ContactDirect = () => {
     crm_needs: ''
   });
 
+  // Page-specific prompts
+  const getPromptForPage = (page: string): string => {
+    const prompts = {
+      'multi-channel-support': 'I need help managing customer communications across multiple channels (email, phone, social media, live chat). My current challenges include: scattered conversations, missed messages, inconsistent response times, and difficulty tracking customer interaction history across different platforms.',
+      
+      'ai-customer-onboarding': 'I want to automate and improve my customer onboarding process using AI. Current problems: manual welcome processes, inconsistent onboarding experience, high customer drop-off rates, time-consuming setup procedures, and difficulty personalizing the onboarding journey for different customer types.',
+      
+      'review-boost': 'I need to improve my online reputation and get more positive customer reviews. Current challenges: low review volume, negative reviews hurting my business, difficulty encouraging satisfied customers to leave reviews, managing review responses, and tracking reputation across multiple platforms.',
+      
+      'smart-scheduling': 'I need an intelligent scheduling system for my business operations. Current problems: double bookings, inefficient time management, manual appointment scheduling, no-shows, difficulty coordinating staff schedules, and poor resource allocation.',
+      
+      'automated-follow-ups': 'I want to automate my customer follow-up processes to improve retention and sales. Current issues: forgetting to follow up with leads, inconsistent communication timing, manual tracking of customer touchpoints, missed opportunities, and difficulty maintaining long-term customer relationships.',
+      
+      'payment-solutions': 'I need better payment processing and financial management for my business. Current problems: complicated payment processes, high transaction fees, delayed payments, difficulty tracking invoices, multiple payment systems, and poor cash flow management.',
+      
+      'cost-tracking': 'I need help tracking and managing my business costs and expenses. Current challenges: poor visibility into spending, manual expense tracking, difficulty budgeting, unexpected costs, inefficient resource allocation, and lack of financial reporting.',
+      
+      'custom-solution': 'I need a completely customized CRM solution tailored to my unique business requirements. My business has specific challenges that standard solutions cannot address, including unique workflows, specialized industry requirements, complex data management needs, and integration with existing systems.'
+    };
+    
+    return prompts[page as keyof typeof prompts] || '';
+  };
+
   // Generate unique identifier for user (hidden from user)
   useEffect(() => {
     let identifier = localStorage.getItem('user_identifier');
@@ -33,6 +57,20 @@ const ContactDirect = () => {
     }
     setUserIdentifier(identifier);
   }, []);
+
+  // Set initial CRM needs based on source page
+  useEffect(() => {
+    const source = searchParams.get('source');
+    if (source) {
+      const prompt = getPromptForPage(source);
+      if (prompt) {
+        setFormData(prev => ({
+          ...prev,
+          crm_needs: prompt
+        }));
+      }
+    }
+  }, [searchParams]);
 
   // Check notification permission on mount and show overlay if needed
   useEffect(() => {
@@ -247,7 +285,7 @@ const ContactDirect = () => {
                     value={formData.company_name}
                     onChange={(e) => handleInputChange('company_name', e.target.value)}
                     placeholder="Your company name"
-                    className="h-12 text-base border-gray-300 focus:border-blue-500 rounded-lg bg-white"
+                    className="h-14 text-base border-gray-200 focus:border-blue-500 rounded-xl bg-white shadow-sm"
                     required
                   />
                 </div>
@@ -260,7 +298,7 @@ const ContactDirect = () => {
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     placeholder="Your email"
-                    className="h-12 text-base border-gray-300 focus:border-blue-500 rounded-lg bg-white"
+                    className="h-14 text-base border-gray-200 focus:border-blue-500 rounded-xl bg-white shadow-sm"
                     required
                   />
                   
@@ -270,7 +308,7 @@ const ContactDirect = () => {
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
                     placeholder="Your personal phone number"
-                    className="h-12 text-base border-gray-300 focus:border-blue-500 rounded-lg bg-white"
+                    className="h-14 text-base border-gray-200 focus:border-blue-500 rounded-xl bg-white shadow-sm"
                     required
                   />
                 </div>
@@ -281,8 +319,8 @@ const ContactDirect = () => {
                     id="crm_needs"
                     value={formData.crm_needs}
                     onChange={(e) => handleInputChange('crm_needs', e.target.value)}
-                    placeholder="All problems you got on your business - customer management, inventory tracking, scheduling issues, payment problems, staff coordination, or any operational challenges..."
-                    className="min-h-[120px] text-base border-gray-300 focus:border-blue-500 rounded-lg resize-none bg-white"
+                    placeholder="All problems you got on your business..."
+                    className="min-h-[180px] text-base border-gray-200 focus:border-blue-500 rounded-xl resize-none bg-white shadow-sm"
                     required
                   />
                 </div>
@@ -291,17 +329,17 @@ const ContactDirect = () => {
                 <Button 
                   type="submit" 
                   disabled={isSubmitting || notificationPermission !== 'granted'}
-                  className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all"
+                  className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-sm hover:shadow-md transition-all text-base"
                 >
                   {isSubmitting ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                       Submitting...
                     </>
                   ) : (
                     <>
                       Submit Your Request
-                      <Send className="ml-2 w-4 h-4" />
+                      <Send className="ml-2 w-5 h-5" />
                     </>
                   )}
                 </Button>
