@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,6 +18,7 @@ const ContactDirect = () => {
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
   const [showNotificationOverlay, setShowNotificationOverlay] = useState(false);
   const [userIdentifier, setUserIdentifier] = useState<string>('');
+  const [sourcePage, setSourcePage] = useState<string>('');
   const [formData, setFormData] = useState({
     company_name: '',
     email: '',
@@ -36,14 +36,20 @@ const ContactDirect = () => {
     setUserIdentifier(identifier);
   }, []);
 
-  // Pre-fill business problems from URL parameters
+  // Pre-fill business problems and source page from URL parameters
   useEffect(() => {
     const businessProblems = searchParams.get('business-problems');
+    const sourcePageParam = searchParams.get('source-page');
+    
     if (businessProblems) {
       setFormData(prev => ({
         ...prev,
         crm_needs: decodeURIComponent(businessProblems)
       }));
+    }
+    
+    if (sourcePageParam) {
+      setSourcePage(decodeURIComponent(sourcePageParam));
     }
   }, [searchParams]);
 
@@ -126,10 +132,11 @@ const ContactDirect = () => {
     setIsSubmitting(true);
     
     try {
-      // Add user identifier to the inquiry (for admin use only)
+      // Add user identifier and source page to the inquiry (for admin use only)
       const inquiryWithIdentifier = {
         ...formData,
-        user_identifier: userIdentifier
+        user_identifier: userIdentifier,
+        source_page: sourcePage || 'Direct'
       };
       
       const success = await saveCRMInquiry(inquiryWithIdentifier);
@@ -146,7 +153,7 @@ const ContactDirect = () => {
           icon: '/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png'
         });
         
-        // Reset form
+        // Reset form but keep source page
         setFormData({
           company_name: '',
           email: '',
@@ -252,6 +259,21 @@ const ContactDirect = () => {
           <Card className={`shadow-lg border-0 bg-white/90 backdrop-blur transition-all ${showNotificationOverlay ? 'opacity-30 pointer-events-none' : ''}`}>
             <CardContent className="p-8">
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Source Page - Only show if source page exists */}
+                {sourcePage && (
+                  <div>
+                    <Input
+                      id="source_page"
+                      type="text"
+                      value={sourcePage}
+                      placeholder="Source page"
+                      className="h-12 text-base border-gray-300 bg-gray-50 rounded-lg"
+                      readOnly
+                      disabled
+                    />
+                  </div>
+                )}
+
                 {/* Company Name */}
                 <div>
                   <Input
