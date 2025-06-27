@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -187,16 +188,40 @@ const ContactDirect = () => {
                   />
                 </div>
 
-                {/* Business Problems */}
-                <div>
-                  <Textarea
-                    id="crm_needs"
-                    value={formData.crm_needs}
-                    onChange={(e) => handleInputChange('crm_needs', e.target.value)}
-                    placeholder="All problems you got on your business - customer management, inventory tracking, scheduling issues, payment problems, staff coordination, or any operational challenges..."
-                    className="min-h-[120px] text-base border-gray-300 focus:border-blue-500 rounded-lg resize-none bg-white"
-                    required
-                  />
+                {/* Business Problems - Enhanced Email-like Design */}
+                <div className="space-y-2">
+                  <Label htmlFor="crm_needs" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <Mail className="w-4 h-4" />
+                    Describe Your Business Challenges
+                  </Label>
+                  <div className="relative">
+                    <Textarea
+                      id="crm_needs"
+                      value={formData.crm_needs}
+                      onChange={(e) => handleInputChange('crm_needs', e.target.value)}
+                      placeholder="Tell us about all the problems you're facing in your business...
+
+Examples:
+• Customer management issues - losing track of clients, follow-ups
+• Inventory tracking problems - stock management, ordering
+• Scheduling conflicts - appointments, staff coordination
+• Payment processing delays - invoicing, collections
+• Staff coordination difficulties - task assignments, communication
+• Data organization - reports, analytics, record keeping
+• Manual processes that waste time
+• Any other operational challenges
+
+Please be as detailed as possible so we can understand your needs and create the perfect solution for your business."
+                      className="min-h-[400px] text-base leading-relaxed border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg resize-none bg-white p-4 shadow-sm transition-all duration-200 hover:border-gray-400"
+                      required
+                    />
+                    <div className="absolute bottom-3 right-3 text-xs text-gray-400 bg-white px-2 py-1 rounded">
+                      {formData.crm_needs.length} characters
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    💡 The more details you provide, the better we can tailor your CRM solution
+                  </p>
                 </div>
 
                 {/* Submit Button */}
