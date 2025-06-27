@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -39,7 +38,7 @@ const About = () => {
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
                 <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-8">
-                  ELISMET LTD
+                  ELISMET LTD (16433590)
                 </h2>
                 <div className="space-y-6">
                   <div className="flex items-start gap-4">
