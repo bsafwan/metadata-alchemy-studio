@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -199,19 +198,17 @@ const ContactDirect = () => {
                       id="crm_needs"
                       value={formData.crm_needs}
                       onChange={(e) => handleInputChange('crm_needs', e.target.value)}
-                      placeholder="Tell us about all the problems you're facing in your business...
+                      placeholder="Describe the main challenges in your business:
 
-Examples:
-• Customer management issues - losing track of clients, follow-ups
-• Inventory tracking problems - stock management, ordering
-• Scheduling conflicts - appointments, staff coordination
-• Payment processing delays - invoicing, collections
-• Staff coordination difficulties - task assignments, communication
-• Data organization - reports, analytics, record keeping
-• Manual processes that waste time
-• Any other operational challenges
+• Customer management issues
+• Inventory or stock problems  
+• Scheduling conflicts
+• Payment delays
+• Staff coordination
+• Manual processes
+• Data organization
 
-Please be as detailed as possible so we can understand your needs and create the perfect solution for your business."
+Please provide specific details about your situation so we can create the right solution for you."
                       className="min-h-[400px] text-base leading-relaxed border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg resize-none bg-white p-4 shadow-sm transition-all duration-200 hover:border-gray-400"
                       required
                     />
