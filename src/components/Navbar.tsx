@@ -98,11 +98,30 @@ const Navbar = () => {
       {/* Mobile Menu */}
       <div 
         className={cn(
-          "fixed inset-0 bg-white z-40 pt-20 px-6 transition-transform duration-300 md:hidden",
+          "fixed inset-0 bg-white z-40 transition-transform duration-300 md:hidden",
           mobileMenuOpen ? "translate-x-0" : "translate-x-full"
         )}
       >
-        <div className="flex flex-col gap-6">
+        {/* Mobile Menu Header with Close Button */}
+        <div className="flex justify-between items-center p-6 border-b">
+          <Link to="/" onClick={toggleMenu} className="flex items-center gap-2">
+            <img 
+              src="/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png" 
+              alt="Elismet LTD Logo" 
+              className="h-10" 
+            />
+          </Link>
+          <button 
+            onClick={toggleMenu}
+            className="text-foreground hover:text-elismet-blue transition-colors p-2"
+            aria-label="Close menu"
+          >
+            <X size={24} />
+          </button>
+        </div>
+
+        {/* Mobile Menu Content */}
+        <div className="flex flex-col gap-6 p-6">
           {navLinks.map((link) => (
             <Link 
               key={link.label}
