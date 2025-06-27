@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Send, Building, Mail, Phone, Bell, BellOff, AlertTriangle, Copy, Check } from 'lucide-react';
+import { ArrowLeft, Send, Building, Mail, Phone } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
@@ -15,8 +15,6 @@ const ContactDirect = () => {
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
-  const [showNotificationOverlay, setShowNotificationOverlay] = useState(false);
   const [userIdentifier, setUserIdentifier] = useState<string>('');
   const [sourcePage, setSourcePage] = useState<string>('');
   const [formData, setFormData] = useState({
@@ -53,72 +51,8 @@ const ContactDirect = () => {
     }
   }, [searchParams]);
 
-  // Check notification permission on mount and show overlay if needed
-  useEffect(() => {
-    if ('Notification' in window) {
-      const permission = Notification.permission;
-      setNotificationPermission(permission);
-      
-      // Show overlay if permission is not granted
-      if (permission !== 'granted') {
-        setShowNotificationOverlay(true);
-      }
-    } else {
-      // Browser doesn't support notifications
-      setShowNotificationOverlay(true);
-    }
-  }, []);
-
-  const requestNotificationPermission = async () => {
-    if ('Notification' in window) {
-      try {
-        const permission = await Notification.requestPermission();
-        setNotificationPermission(permission);
-        
-        if (permission === 'granted') {
-          setShowNotificationOverlay(false);
-          
-          // Send test notification
-          new Notification('Elismet CRM System', {
-            body: 'Notifications enabled! We can now keep you updated on your inquiry.',
-            icon: '/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png'
-          });
-          
-          toast({
-            title: "Notifications Enabled!",
-            description: "Perfect! You'll receive updates about your CRM inquiry.",
-          });
-        } else {
-          toast({
-            title: "Notifications Blocked",
-            description: "Please click the notification icon in your browser's address bar to enable notifications.",
-            variant: "destructive"
-          });
-        }
-      } catch (error) {
-        console.error('Error requesting notification permission:', error);
-        toast({
-          title: "Notification Error",
-          description: "There was an issue with notification permissions. Please try refreshing the page.",
-          variant: "destructive"
-        });
-      }
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Check notification permission before allowing submission
-    if (notificationPermission !== 'granted') {
-      setShowNotificationOverlay(true);
-      toast({
-        title: "Enable Notifications First",
-        description: "Please allow notifications to submit your inquiry.",
-        variant: "destructive"
-      });
-      return;
-    }
     
     if (!formData.company_name || !formData.email || !formData.phone || !formData.crm_needs) {
       toast({
@@ -144,13 +78,7 @@ const ContactDirect = () => {
       if (success) {
         toast({
           title: "Inquiry Submitted Successfully!",
-          description: "We've received your CRM requirements. Check your notifications for updates!",
-        });
-        
-        // Send notification to user
-        new Notification('CRM Inquiry Submitted', {
-          body: 'Your CRM inquiry has been submitted successfully. We will contact you soon!',
-          icon: '/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png'
+          description: "We've received your CRM requirements. We will contact you soon!",
         });
         
         // Reset form but keep source page
@@ -184,49 +112,8 @@ const ContactDirect = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 relative">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
       <Navbar />
-      
-      {/* Notification Overlay */}
-      {showNotificationOverlay && notificationPermission !== 'granted' && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md shadow-2xl border-0 bg-white">
-            <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Bell className="w-8 h-8 text-blue-600" />
-              </div>
-              
-              <img 
-                src="/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png" 
-                alt="Elismet LTD" 
-                className="h-10 mx-auto mb-4" 
-              />
-              
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">
-                Enable Notifications
-              </h2>
-              
-              <p className="text-gray-600 text-sm mb-6">
-                Allow notifications to receive important updates about your CRM project progress.
-              </p>
-              
-              <div className="space-y-3">
-                <Button 
-                  onClick={requestNotificationPermission}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  Enable Notifications
-                  <Bell className="ml-2 w-4 h-4" />
-                </Button>
-                
-                <p className="text-xs text-gray-400">
-                  We only send updates about your inquiry
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
       
       <div className="container mx-auto px-6 py-12">
         <div className="max-w-3xl mx-auto">
@@ -245,18 +132,8 @@ const ContactDirect = () => {
             </p>
           </div>
 
-          {/* Notification Status */}
-          {notificationPermission === 'granted' && (
-            <div className="mb-8">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-3">
-                <Bell className="w-4 h-4 text-green-600" />
-                <span className="text-green-800 text-sm font-medium">Notifications enabled</span>
-              </div>
-            </div>
-          )}
-
           {/* Main Form */}
-          <Card className={`shadow-lg border-0 bg-white/90 backdrop-blur transition-all ${showNotificationOverlay ? 'opacity-30 pointer-events-none' : ''}`}>
+          <Card className="shadow-lg border-0 bg-white/90 backdrop-blur">
             <CardContent className="p-8">
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Source Page - Only show if source page exists */}
@@ -325,7 +202,7 @@ const ContactDirect = () => {
                 {/* Submit Button */}
                 <Button 
                   type="submit" 
-                  disabled={isSubmitting || notificationPermission !== 'granted'}
+                  disabled={isSubmitting}
                   className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all"
                 >
                   {isSubmitting ? (
