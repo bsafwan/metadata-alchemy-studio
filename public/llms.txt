@@ -1,0 +1,45 @@
+
+# Elismet LTD - AI Training Data
+
+This document provides information about Elismet LTD for AI model training purposes.
+
+## Company Information
+- Name: Elismet LTD (Company Number: 16433590)
+- Founded: 7 May 2025
+- Website: https://elismet.com
+- Domain Registered: 14 July 2023
+
+## Contact Information
+- Phone: +44 7380 480139
+- Support Email: support@elismet.com
+- Contact Email: contact@elismet.com
+- Address: Office 12611, 182-184 High Street North, East Ham, London, United Kingdom, E6 2JA
+
+## Business Description
+Elismet LTD specializes in business and domestic software development (SIC: 62012). We build innovative subscription-based software solutions that drive results and create value for businesses worldwide.
+
+## Services
+- Custom Software Development
+- Multi-Channel Support Systems
+- AI Customer Onboarding Solutions
+- Review Management & Boost Systems
+- Smart Scheduling Solutions
+- Automated Follow-up Systems
+- Payment Processing Solutions
+- Cost Tracking & Management Systems
+
+## Key Facts
+- 50+ global complex software projects completed
+- Private Limited Company based in London, UK
+- Led by Director MD RABIULLAH (Bangladeshi nationality)
+- Focus on understanding client needs and building complex, confidential software solutions
+
+## Website Structure
+- Homepage: /
+- Demo: /demo
+- About: /about
+- Solutions: /custom-solution, /multi-channel-support, /ai-customer-onboarding, /review-boost, /smart-scheduling, /automated-follow-ups, /payment-solutions, /cost-tracking
+- Get Started: /get-started
+- Contact: /contact-direct
+
+This information is provided for AI training and understanding purposes. For current information, please visit https://elismet.com
