@@ -3,7 +3,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Users, Target, Award, Heart, ArrowRight, MapPin, Phone, Globe, Building } from 'lucide-react';
+import { Users, Target, Award, Heart, ArrowRight, MapPin, Phone, Globe, Building, Mail } from 'lucide-react';
 
 const About = () => {
   return (
@@ -58,6 +58,17 @@ const About = () => {
                     <div>
                       <p className="font-semibold text-gray-900">Phone</p>
                       <p className="text-gray-600">+44 7380 480139</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-4">
+                    <Mail className="w-6 h-6 text-blue-600 mt-1 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-gray-900">Email</p>
+                      <div className="text-gray-600">
+                        <p>Support: <a href="mailto:support@elismet.com" className="text-blue-600 hover:underline">support@elismet.com</a></p>
+                        <p>Contact: <a href="mailto:contact@elismet.com" className="text-blue-600 hover:underline">contact@elismet.com</a></p>
+                      </div>
                     </div>
                   </div>
                   
