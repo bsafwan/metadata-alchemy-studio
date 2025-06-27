@@ -1,352 +1,237 @@
 
 import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, CreditCard, DollarSign, Zap, Shield, BarChart3, Bell, TrendingUp, Clock, CheckCircle } from 'lucide-react';
+import { ArrowRight, CreditCard, Shield, Zap, CheckCircle, DollarSign, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import { Helmet } from 'react-helmet-async';
 
 const PaymentSolutions = () => {
   useEffect(() => {
-    const handleScroll = () => {
-      const elements = document.querySelectorAll('.scroll-reveal');
-      
-      elements.forEach(element => {
-        const rect = element.getBoundingClientRect();
-        const isInView = rect.top <= window.innerHeight * 0.8;
-        
-        if (isInView) {
-          element.classList.add('revealed');
+    // Add structured data for SEO
+    const structuredData = {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "name": "Payment Processing Solutions - Elismet LTD",
+      "description": "Secure, fast payment processing solutions for businesses. Accept payments online, in-store, and on mobile with advanced security features.",
+      "url": "https://elismet.com/payment-solutions",
+      "provider": {
+        "@type": "Organization",
+        "name": "Elismet LTD",
+        "url": "https://elismet.com",
+        "logo": "https://elismet.com/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Office 12611, 182-184 High Street North",
+          "addressLocality": "East Ham",
+          "addressRegion": "London",
+          "postalCode": "E6 2JA",
+          "addressCountry": "GB"
+        },
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "telephone": "+44 7380 480139",
+          "contactType": "customer service",
+          "email": "support@elismet.com"
         }
-      });
+      },
+      "serviceType": "Payment Processing Solutions",
+      "offers": {
+        "@type": "Offer",
+        "description": "Secure payment processing and financial transaction solutions"
+      }
     };
-    
-    window.addEventListener('scroll', handleScroll);
-    handleScroll();
-    
-    return () => window.removeEventListener('scroll', handleScroll);
+
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.text = JSON.stringify(structuredData);
+    document.head.appendChild(script);
+
+    return () => {
+      document.head.removeChild(script);
+    };
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-xl z-50 border-b border-gray-100 shadow-sm">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <Link to="/" className="text-3xl font-black text-gray-900">
-            Elismet
-          </Link>
-          <Link to="/contact-direct">
-            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
-              Get Started
-            </Button>
-          </Link>
-        </div>
-      </nav>
+    <>
+      <Helmet>
+        <title>Payment Processing Solutions - Elismet LTD | Secure Financial Systems</title>
+        <meta name="description" content="Secure, fast payment processing solutions for businesses. Accept payments online, in-store, and mobile with advanced security and fraud protection from Elismet LTD." />
+        <meta name="keywords" content="payment processing, payment solutions, online payments, secure transactions, payment gateway, financial systems, elismet payments" />
+        <meta name="author" content="Elismet LTD" />
+        <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+        <link rel="canonical" href="https://elismet.com/payment-solutions" />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://elismet.com/payment-solutions" />
+        <meta property="og:title" content="Payment Processing Solutions - Elismet LTD | Secure Financial Systems" />
+        <meta property="og:description" content="Secure, fast payment processing solutions for businesses. Accept payments online, in-store, and mobile with advanced security features." />
+        <meta property="og:image" content="https://elismet.com/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:site_name" content="Elismet LTD" />
+        <meta property="og:locale" content="en_GB" />
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-24 px-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5"></div>
-        <div className="container mx-auto max-w-7xl text-center relative">
-          <div className="scroll-reveal mb-12">
-            <div className="inline-flex items-center gap-2 px-6 py-3 bg-red-50 border border-red-200 rounded-full text-red-700 font-semibold mb-8">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-              87% of businesses lose money on payment chaos
-            </div>
-            
-            <h1 className="text-6xl md:text-8xl font-black text-gray-900 mb-8 leading-tight">
-              Payment Chaos
-              <br />
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Solved Forever
-              </span>
-            </h1>
-            
-            <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-4xl mx-auto font-light">
-              Stop chasing payments. Start collecting automatically.
-            </p>
-          </div>
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content="https://elismet.com/payment-solutions" />
+        <meta name="twitter:title" content="Payment Processing Solutions - Elismet LTD | Secure Financial Systems" />
+        <meta name="twitter:description" content="Secure, fast payment processing solutions for businesses. Accept payments online, in-store, and mobile with advanced security." />
+        <meta name="twitter:image" content="https://elismet.com/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png" />
+        <meta name="twitter:creator" content="@Elismet" />
 
-          {/* Problem Stats */}
-          <div className="scroll-reveal mb-16">
-            <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-100">
-                <div className="text-4xl font-black text-red-500 mb-2">73%</div>
-                <div className="text-gray-600">Waste time chasing payments</div>
-              </div>
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-100">
-                <div className="text-4xl font-black text-orange-500 mb-2">$47K</div>
-                <div className="text-gray-600">Average lost per year</div>
-              </div>
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-100">
-                <div className="text-4xl font-black text-green-500 mb-2">2.3x</div>
-                <div className="text-gray-600">Faster with automation</div>
-              </div>
-            </div>
-          </div>
+        {/* Additional SEO Meta Tags */}
+        <meta name="language" content="English" />
+        <meta name="revisit-after" content="7 days" />
+        <meta name="distribution" content="global" />
+        <meta name="rating" content="general" />
+        <meta http-equiv="Content-Language" content="en-gb" />
+      </Helmet>
 
-          {/* Main Dashboard Preview */}
-          <div className="scroll-reveal mb-16">
-            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-200 max-w-5xl mx-auto">
-              <img 
-                src="/lovable-uploads/f9a562f8-3759-43c7-b3a7-b6a11c49ae92.png" 
-                alt="Complete Payment Management Dashboard"
-                className="w-full h-auto"
-              />
-            </div>
-          </div>
-
-          <div className="scroll-reveal">
-            <Link to="/contact-direct">
-              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-16 py-6 text-xl rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 font-bold">
-                End Payment Chaos Now
-                <ArrowRight className="ml-4 w-6 h-6" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* The Problem */}
-      <section className="py-24 bg-gradient-to-r from-red-50 to-orange-50">
-        <div className="container mx-auto px-6">
-          <div className="max-w-6xl mx-auto text-center">
-            <h2 className="text-5xl font-black text-gray-900 mb-16 scroll-reveal">
-              The $47,000 Problem
-            </h2>
-            
-            <div className="grid md:grid-cols-2 gap-12 items-center">
-              <div className="scroll-reveal text-left">
-                <div className="space-y-8">
-                  <div className="flex items-start gap-4">
-                    <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <span className="text-white font-bold text-sm">1</span>
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">Payment Platforms Scattered</h3>
-                      <p className="text-gray-600">Stripe here, PayPal there, bank transfers everywhere. No single view.</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-4">
-                    <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <span className="text-white font-bold text-sm">2</span>
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">Invoices Get Lost</h3>
-                      <p className="text-gray-600">Manual invoicing, forgotten follow-ups, clients "didn't receive it".</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-4">
-                    <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <span className="text-white font-bold text-sm">3</span>
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">Cash Flow Breaks</h3>
-                      <p className="text-gray-600">Late payments kill growth. You're funding other people's businesses.</p>
-                    </div>
-                  </div>
-                </div>
+      <div className="min-h-screen bg-white">
+        <Navbar />
+        
+        {/* Hero Section */}
+        <section className="pt-32 pb-20 bg-gradient-to-br from-green-50 to-emerald-100">
+          <div className="container mx-auto px-6">
+            <div className="max-w-4xl mx-auto text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 border border-green-200 rounded-full text-green-700 mb-8">
+                <Shield className="w-4 h-4" />
+                <span className="text-sm font-medium">Bank-Level Security</span>
               </div>
               
-              <div className="scroll-reveal">
-                <div className="bg-white rounded-2xl shadow-xl p-8 border border-red-200">
-                  <div className="text-center">
-                    <div className="text-6xl font-black text-red-500 mb-4">87%</div>
-                    <div className="text-xl text-gray-900 font-bold mb-2">Of businesses struggle with payment chaos</div>
-                    <div className="text-gray-600">Leading to delayed growth and constant stress</div>
-                  </div>
-                </div>
+              <h1 className="text-5xl md:text-7xl font-black text-gray-900 mb-8 leading-tight">
+                Payment
+                <span className="block text-green-600">Solutions</span>
+              </h1>
+              
+              <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
+                Accept payments anywhere, anytime with secure, fast, and reliable payment processing solutions.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                <Link to="/contact-direct?source-page=Payment%20Solutions">
+                  <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white px-12 py-4 text-xl rounded-full shadow-lg hover:shadow-xl transition-all">
+                    Get Payment System
+                    <ArrowRight className="ml-3 w-5 h-5" />
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* The Solution */}
-      <section className="py-24 bg-white">
-        <div className="container mx-auto px-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-5xl font-black text-gray-900 mb-6 scroll-reveal">
-                One Dashboard. All Payments.
+        {/* Features Section */}
+        <section className="py-24 bg-white">
+          <div className="container mx-auto px-6">
+            <div className="max-w-4xl mx-auto text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-6">
+                Complete Payment Suite
               </h2>
-              <p className="text-xl text-gray-600 scroll-reveal">
-                Connect everything. Automate everything. Get paid faster.
+              <p className="text-xl text-gray-600">
+                Everything you need to accept and manage payments securely.
               </p>
             </div>
-            
-            <div className="grid md:grid-cols-2 gap-16 items-center mb-20">
-              <div className="scroll-reveal">
-                <div className="bg-gray-50 rounded-2xl shadow-xl overflow-hidden border">
-                  <img 
-                    src="/lovable-uploads/54af61ba-4e97-4c71-8b4e-a4f82e963999.png" 
-                    alt="Payment tracking and management interface"
-                    className="w-full h-auto"
-                  />
-                </div>
-              </div>
-              
-              <div className="scroll-reveal">
-                <h3 className="text-4xl font-bold text-gray-900 mb-8">
-                  Never Chase Payments Again
-                </h3>
-                <div className="space-y-6">
-                  <div className="flex items-center gap-4">
-                    <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0" />
-                    <span className="text-lg text-gray-700">Automatic payment reminders</span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0" />
-                    <span className="text-lg text-gray-700">Real-time payment tracking</span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0" />
-                    <span className="text-lg text-gray-700">One-click overdue notifications</span>
-                  </div>
-                </div>
-                
-                <div className="mt-8 p-6 bg-green-50 rounded-xl border border-green-200">
-                  <div className="text-2xl font-bold text-green-700">Result: 89% faster payment collection</div>
-                </div>
-              </div>
-            </div>
 
-            <div className="grid md:grid-cols-2 gap-16 items-center">
-              <div className="scroll-reveal order-2 md:order-1">
-                <h3 className="text-4xl font-bold text-gray-900 mb-8">
-                  Professional Invoices in Seconds
-                </h3>
-                <div className="space-y-6">
-                  <div className="flex items-center gap-4">
-                    <CheckCircle className="w-6 h-6 text-blue-500 flex-shrink-0" />
-                    <span className="text-lg text-gray-700">Branded invoice templates</span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <CheckCircle className="w-6 h-6 text-blue-500 flex-shrink-0" />
-                    <span className="text-lg text-gray-700">Automatic tax calculations</span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <CheckCircle className="w-6 h-6 text-blue-500 flex-shrink-0" />
-                    <span className="text-lg text-gray-700">Instant email delivery</span>
-                  </div>
-                </div>
-                
-                <div className="mt-8 p-6 bg-blue-50 rounded-xl border border-blue-200">
-                  <div className="text-2xl font-bold text-blue-700">Result: 5 minutes to 30 seconds</div>
-                </div>
-              </div>
-              
-              <div className="scroll-reveal order-1 md:order-2">
-                <div className="bg-gray-50 rounded-2xl shadow-xl overflow-hidden border">
-                  <img 
-                    src="/lovable-uploads/dc499f0a-9646-45c4-bdb6-c9b1ff9aa764.png" 
-                    alt="Professional invoice generation interface"
-                    className="w-full h-auto"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Results Section */}
-      <section className="py-24 bg-gradient-to-r from-green-50 to-blue-50">
-        <div className="container mx-auto px-6 text-center">
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-5xl font-black text-gray-900 mb-16 scroll-reveal">
-              Real Results, Real Fast
-            </h2>
-            
-            <div className="grid md:grid-cols-3 gap-8 mb-16">
-              <div className="scroll-reveal bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
-                <div className="text-5xl font-black text-green-500 mb-4">89%</div>
-                <div className="text-xl font-bold text-gray-900 mb-2">Faster Payments</div>
-                <div className="text-gray-600">Average time to payment reduced from 31 days to 3.4 days</div>
-              </div>
-              
-              <div className="scroll-reveal bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
-                <div className="text-5xl font-black text-blue-500 mb-4">$47K</div>
-                <div className="text-xl font-bold text-gray-900 mb-2">Recovered Revenue</div>
-                <div className="text-gray-600">Average annual recovery from automated follow-ups</div>
-              </div>
-              
-              <div className="scroll-reveal bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
-                <div className="text-5xl font-black text-purple-500 mb-4">98%</div>
-                <div className="text-xl font-bold text-gray-900 mb-2">Collection Rate</div>
-                <div className="text-gray-600">Client payment success rate with automated reminders</div>
-              </div>
-            </div>
-
-            <div className="scroll-reveal bg-white rounded-2xl p-12 shadow-xl border border-gray-200 max-w-4xl mx-auto">
+            <div className="grid md:grid-cols-3 gap-12 max-w-6xl mx-auto">
               <div className="text-center">
-                <div className="text-lg text-gray-600 mb-4">Average business saves</div>
-                <div className="text-6xl font-black bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-4">
-                  $47,000
+                <div className="bg-blue-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <CreditCard className="w-8 h-8 text-blue-600" />
                 </div>
-                <div className="text-xl text-gray-700">per year in recovered revenue and time savings</div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">Multiple Methods</h3>
+                <p className="text-gray-600">Cards, digital wallets, bank transfers, and more</p>
+              </div>
+              
+              <div className="text-center">
+                <div className="bg-green-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Shield className="w-8 h-8 text-green-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">Ultra Secure</h3>
+                <p className="text-gray-600">PCI DSS compliant with fraud protection</p>
+              </div>
+              
+              <div className="text-center">
+                <div className="bg-purple-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Globe className="w-8 h-8 text-purple-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">Global Reach</h3>
+                <p className="text-gray-600">Accept payments from customers worldwide</p>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Integration Partners */}
-      <section className="py-16 bg-white border-t border-gray-100">
-        <div className="container mx-auto px-6 text-center">
-          <div className="max-w-4xl mx-auto">
-            <h3 className="text-2xl font-bold text-gray-900 mb-12 scroll-reveal">
-              Connects With Everything You Use
-            </h3>
-            
-            <div className="flex justify-center items-center gap-16 flex-wrap opacity-60">
-              <div className="text-3xl font-bold text-blue-600">Stripe</div>
-              <div className="text-3xl font-bold text-blue-800">PayPal</div>
-              <div className="text-3xl font-bold text-green-600">QuickBooks</div>
-              <div className="text-3xl font-bold text-purple-600">Xero</div>
-              <div className="text-3xl font-bold text-orange-600">Mailchimp</div>
+        {/* Benefits Section */}
+        <section className="py-24 bg-gray-50">
+          <div className="container mx-auto px-6 text-center">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-16">
+                Why Choose Our Solutions?
+              </h2>
+              
+              <div className="grid md:grid-cols-2 gap-12 mb-16">
+                <div className="text-left">
+                  <div className="flex items-center gap-4 mb-4">
+                    <CheckCircle className="w-6 h-6 text-green-600" />
+                    <h3 className="text-xl font-semibold">Fast Setup</h3>
+                  </div>
+                  <p className="text-gray-600">Get started accepting payments in minutes, not weeks</p>
+                </div>
+                
+                <div className="text-left">
+                  <div className="flex items-center gap-4 mb-4">
+                    <CheckCircle className="w-6 h-6 text-green-600" />
+                    <h3 className="text-xl font-semibold">Low Fees</h3>
+                  </div>
+                  <p className="text-gray-600">Competitive rates with transparent pricing</p>
+                </div>
+                
+                <div className="text-left">
+                  <div className="flex items-center gap-4 mb-4">
+                    <CheckCircle className="w-6 h-6 text-green-600" />
+                    <h3 className="text-xl font-semibold">24/7 Support</h3>
+                  </div>
+                  <p className="text-gray-600">Round-the-clock technical and business support</p>
+                </div>
+                
+                <div className="text-left">
+                  <div className="flex items-center gap-4 mb-4">
+                    <CheckCircle className="w-6 h-6 text-green-600" />
+                    <h3 className="text-xl font-semibold">Advanced Analytics</h3>
+                  </div>
+                  <p className="text-gray-600">Real-time reporting and business insights</p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Final CTA */}
-      <section className="py-24 bg-gradient-to-r from-blue-600 to-purple-600">
-        <div className="container mx-auto px-6 text-center">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-5xl font-black text-white mb-8 scroll-reveal">
-              Stop Losing $47K Every Year
-            </h2>
-            <p className="text-xl text-blue-100 mb-12 scroll-reveal">
-              Join 5,000+ businesses that eliminated payment chaos forever
-            </p>
-            
-            <div className="scroll-reveal mb-8">
-              <Link to="/contact-direct">
-                <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-50 px-16 py-6 text-xl rounded-full shadow-xl hover:shadow-2xl transition-all font-bold transform hover:scale-105">
-                  Get Started - Free Setup
-                  <ArrowRight className="ml-4 w-6 h-6" />
+        {/* CTA Section */}
+        <section className="py-24 bg-green-600 text-white">
+          <div className="container mx-auto px-6 text-center">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-4xl md:text-5xl font-bold mb-8">
+                Ready to Accept Payments?
+              </h2>
+              <p className="text-xl text-green-100 mb-12">
+                Start processing payments securely today with our enterprise-grade solutions.
+              </p>
+              
+              <Link to="/contact-direct?source-page=Payment%20Solutions">
+                <Button size="lg" className="bg-white text-green-600 hover:bg-gray-100 px-12 py-4 text-xl rounded-full shadow-lg hover:shadow-xl transition-all">
+                  Get Started Now
+                  <ArrowRight className="ml-3 w-5 h-5" />
                 </Button>
               </Link>
             </div>
-            
-            <div className="flex items-center justify-center gap-12 text-blue-100 text-lg">
-              <div className="flex items-center gap-3">
-                <Shield className="w-6 h-6" />
-                <span>Bank-Level Security</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Zap className="w-6 h-6" />
-                <span>Setup in 24 Hours</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <BarChart3 className="w-6 h-6" />
-                <span>Guaranteed Results</span>
-              </div>
-            </div>
           </div>
-        </div>
-      </section>
-    </div>
+        </section>
+
+        <Footer />
+      </div>
+    </>
   );
 };
 
