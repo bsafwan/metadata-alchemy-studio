@@ -46,6 +46,62 @@ const Demo = () => {
         '/lovable-uploads/bc3e02cb-6839-4fd0-a0e7-e4c2f7cee5e8.png'
       ],
       features: ['Payment tracking', 'Invoice generation', 'Due date management', 'Multiple payment methods']
+    },
+    {
+      id: 'customer-analytics',
+      title: 'Customer Analytics Dashboard',
+      category: 'Business Intelligence',
+      description: 'Real-time customer metrics and activity tracking with comprehensive analytics for service businesses',
+      image: '/lovable-uploads/2aab92f1-4899-4d3d-a7cb-1a5b77bb33a8.png',
+      screenshots: [
+        '/lovable-uploads/d39de6c0-8bdf-4ec6-9743-e665b6d87aff.png'
+      ],
+      features: ['Customer progress tracking', 'Email & Live chat metrics', 'Success rate analytics', 'Recent activity monitoring']
+    },
+    {
+      id: 'multichannel-communication',
+      title: 'Multi-Channel Communication Hub',
+      category: 'Customer Support',
+      description: 'Unified communication platform managing customer interactions across email, WhatsApp, Facebook, and more',
+      image: '/lovable-uploads/0454494a-7e03-43a0-a243-39ed9a5494e4.png',
+      screenshots: [
+        '/lovable-uploads/ac30f576-4b81-4052-887d-3f45f5928a96.png',
+        '/lovable-uploads/fcbf0e7b-484b-4727-bf19-4e0c231ac92c.png'
+      ],
+      features: ['Multi-channel messaging', 'Customer database integration', 'Real-time chat support', 'Channel-specific metrics']
+    },
+    {
+      id: 'customer-onboarding',
+      title: 'Customer Onboarding Dashboard',
+      category: 'Customer Management',
+      description: 'Streamlined customer onboarding system with progress tracking and automated workflow management',
+      image: '/lovable-uploads/a8bfb530-4de8-4f36-93d6-ea7adee359e6.png',
+      screenshots: [
+        '/lovable-uploads/fcbf0e7b-484b-4727-bf19-4e0c231ac92c.png'
+      ],
+      features: ['Onboarding progress tracking', 'Customer status management', 'Automated workflows', 'Success rate monitoring']
+    },
+    {
+      id: 'project-management',
+      title: 'Project Management System',
+      category: 'Project Tracking',
+      description: 'Complete project lifecycle management with client communication and milestone tracking',
+      image: '/lovable-uploads/1519ddc3-88c0-47ed-895b-6db5da816a15.png',
+      screenshots: [
+        '/lovable-uploads/da44add3-cc0b-4fe8-bfba-12ae0a05f3d6.png'
+      ],
+      features: ['Project timeline tracking', 'Client messaging system', 'Milestone management', 'Requirements documentation']
+    },
+    {
+      id: 'business-dashboard',
+      title: 'Business Analytics Dashboard',
+      category: 'Performance Monitoring',
+      description: 'Comprehensive business performance dashboard with financial tracking and operational metrics',
+      image: '/lovable-uploads/da44add3-cc0b-4fe8-bfba-12ae0a05f3d6.png',
+      screenshots: [
+        '/lovable-uploads/2aab92f1-4899-4d3d-a7cb-1a5b77bb33a8.png'
+      ],
+      features: ['Financial tracking', 'Completion rate monitoring', 'Support ticket management', 'Performance analytics']
     }
   ];
 
@@ -94,7 +150,7 @@ const Demo = () => {
       {/* Live Demo Gallery */}
       <section className="py-24 bg-white">
         <div className="container mx-auto px-6">
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-6">
                 Interactive Demo Gallery
@@ -104,7 +160,7 @@ const Demo = () => {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
               {demoSolutions.map((demo) => (
                 <div
                   key={demo.id}
@@ -124,16 +180,16 @@ const Demo = () => {
                       {demo.category}
                     </div>
                     
-                    <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+                    <h3 className="text-lg font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors line-clamp-2">
                       {demo.title}
                     </h3>
                     
-                    <p className="text-gray-600 text-sm mb-4 leading-relaxed">
+                    <p className="text-gray-600 text-sm mb-4 leading-relaxed line-clamp-3">
                       {demo.description}
                     </p>
                     
                     <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-500">
+                      <div className="text-xs text-gray-500">
                         {demo.screenshots.length + 1} screenshots
                       </div>
                       <div className="flex items-center text-blue-600 text-sm font-semibold group-hover:text-blue-700">
