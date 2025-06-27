@@ -4,7 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Users, Target, Award, Heart, ArrowRight } from 'lucide-react';
+import { Users, Target, Award, Heart, ArrowRight, MapPin, Phone, Globe, Building } from 'lucide-react';
 
 const About = () => {
   return (
@@ -32,33 +32,110 @@ const About = () => {
         </div>
       </section>
 
-      {/* Our Story */}
+      {/* Company Information */}
       <section className="py-24 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div>
+                <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-8">
+                  ELISMET LTD
+                </h2>
+                <div className="space-y-6">
+                  <div className="flex items-start gap-4">
+                    <MapPin className="w-6 h-6 text-blue-600 mt-1 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-gray-900">Headquarters</p>
+                      <p className="text-gray-600">
+                        Office 12611, 182-184 High Street North<br />
+                        East Ham, London, United Kingdom<br />
+                        E6 2JA
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
+                    <Phone className="w-6 h-6 text-blue-600 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-gray-900">Phone</p>
+                      <p className="text-gray-600">+44 7380 480139</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
+                    <Globe className="w-6 h-6 text-blue-600 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-gray-900">Website</p>
+                      <a href="https://elismet.com" className="text-blue-600 hover:underline">elismet.com</a>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-4">
+                    <Building className="w-6 h-6 text-blue-600 mt-1 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-gray-900">Company Details</p>
+                      <p className="text-gray-600">
+                        Private Limited Company<br />
+                        Incorporated: 7 May 2025<br />
+                        Company Number: 16433590<br />
+                        SIC: 62012 - Business and domestic software development
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 rounded-2xl p-8">
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">Leadership</h3>
+                <div className="space-y-4">
+                  <div className="bg-white rounded-lg p-6">
+                    <h4 className="font-bold text-gray-900 mb-2">MD RABIULLAH</h4>
+                    <p className="text-sm text-gray-600 mb-4">Director & Founder</p>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <p>Born: August 1978</p>
+                      <p>Nationality: Bangladeshi</p>
+                      <p>Appointed: 7 May 2025</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Our Story */}
+      <section className="py-24 bg-gray-50">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-12 text-center">
-              Our Story
+              Our Journey
             </h2>
             
-            <div className="prose prose-xl max-w-none text-gray-600 leading-relaxed">
-              <p className="mb-8">
-                Elismet was founded with a simple yet powerful vision: to bridge the gap between complex business challenges and elegant software solutions. We believe that every business, regardless of size, deserves access to high-quality, custom software that drives growth and efficiency.
-              </p>
-              
-              <p className="mb-8">
-                Our journey began when we recognized that many businesses were struggling with off-the-shelf solutions that didn't quite fit their unique needs. We saw an opportunity to create something different – a company that would take the time to understand each client's specific requirements and build solutions that truly work.
+            <div className="prose prose-xl max-w-none text-gray-600 leading-relaxed space-y-8">
+              <p>
+                Elismet Ltd began as a vision when our founder registered the domain in July 2023. What started as a dream has transformed into a reality that spans the globe, delivering complex software solutions to clients worldwide.
               </p>
               
               <p>
-                Today, we're proud to have helped dozens of businesses transform their operations through custom software solutions. From small startups to established enterprises, we've consistently delivered results that exceed expectations.
+                Initially, we focused on local expansion, but we quickly realized that understanding our clients' needs deeply was more important than rapid growth. This philosophy shift allowed us to build stronger relationships and deliver more effective solutions.
               </p>
+              
+              <p>
+                Today, we have expanded our reach around the world, building complex software solutions for clients who value discretion and excellence. Many of our projects remain confidential at our clients' request, testament to the sensitive and critical nature of the work we do.
+              </p>
+              
+              <blockquote className="border-l-4 border-blue-600 pl-6 italic text-xl text-gray-700">
+                "Elismet Ltd was my dream once I registered the domain. Gracefully, today we have 50+ global complex software projects. It wasn't a long time, but only several years of my and my team's hard work got us here."
+                <cite className="block mt-4 text-lg font-semibold text-gray-900">- MD RABIULLAH, Founder & Director</cite>
+              </blockquote>
             </div>
           </div>
         </div>
       </section>
 
       {/* Our Values */}
-      <section className="py-24 bg-gray-50">
+      <section className="py-24 bg-white">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-6">
@@ -90,23 +167,23 @@ const About = () => {
               <div className="bg-purple-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <Users className="w-8 h-8 text-purple-600" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Client-Centric</h3>
-              <p className="text-gray-600">Your success is our success. We work closely with you to ensure our solutions align with your goals.</p>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Global Reach</h3>
+              <p className="text-gray-600">From local beginnings to worldwide impact, we serve clients across the globe with dedication and expertise.</p>
             </div>
             
             <div className="text-center">
               <div className="bg-red-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <Heart className="w-8 h-8 text-red-600" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Passionate</h3>
-              <p className="text-gray-600">We love what we do, and it shows in the enthusiasm and dedication we bring to every project.</p>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Confidentiality</h3>
+              <p className="text-gray-600">We understand the sensitive nature of business software and maintain the highest standards of discretion.</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Our Approach */}
-      <section className="py-24 bg-white">
+      <section className="py-24 bg-gray-50">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-6">
@@ -118,19 +195,19 @@ const About = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            <div className="bg-blue-50 rounded-2xl p-8 text-center">
+            <div className="bg-white rounded-2xl p-8 text-center shadow-lg">
               <div className="text-3xl font-black text-blue-600 mb-4">01</div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Understand</h3>
               <p className="text-gray-600">We start by deeply understanding your business, challenges, and goals.</p>
             </div>
             
-            <div className="bg-green-50 rounded-2xl p-8 text-center">
+            <div className="bg-white rounded-2xl p-8 text-center shadow-lg">
               <div className="text-3xl font-black text-green-600 mb-4">02</div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Design</h3>
               <p className="text-gray-600">We design solutions that are both functional and user-friendly.</p>
             </div>
             
-            <div className="bg-purple-50 rounded-2xl p-8 text-center">
+            <div className="bg-white rounded-2xl p-8 text-center shadow-lg">
               <div className="text-3xl font-black text-purple-600 mb-4">03</div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Deliver</h3>
               <p className="text-gray-600">We build, test, and deliver solutions that exceed expectations.</p>
