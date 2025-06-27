@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
 import ScrollToTopButton from '@/components/ScrollToTop';
-import { ArrowRight, CheckCircle, MessageSquare, Users, Star, Calendar, MessageCircle, CreditCard, BarChart3, Phone, Mail, Clock, TrendingUp } from 'lucide-react';
+import { ArrowRight, CheckCircle, MessageSquare, Users, Star, Calendar, MessageCircle, CreditCard, BarChart3, Phone, Mail, Clock, TrendingUp, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const CustomSolution = () => {
@@ -91,6 +91,15 @@ const CustomSolution = () => {
       result: "Find $5,000+ in hidden costs yearly",
       price: "$800 - $2,800",
       link: "/cost-tracking"
+    },
+    {
+      icon: <Settings className="w-8 h-8 text-gray-600" />,
+      title: "Custom Solution",
+      problem: "Your business has unique challenges that don't fit standard solutions",
+      solution: "We build exactly what you need from scratch",
+      result: "Perfect fit for your specific business needs",
+      price: "Custom Quote",
+      link: "/contact-direct"
     }
   ];
 
@@ -210,7 +219,7 @@ const CustomSolution = () => {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-4xl font-bold text-gray-900 mb-6 scroll-reveal">
-                7 Business Problems We Solve
+                8 Business Problems We Solve
               </h2>
               <p className="text-xl text-gray-600 scroll-reveal">
                 Click any solution to see exactly how it works
