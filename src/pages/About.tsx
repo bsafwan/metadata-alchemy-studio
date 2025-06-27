@@ -1,266 +1,261 @@
-
-import React, { useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, Building2, Users, Globe, Award, Phone, Mail } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Helmet } from 'react-helmet-async';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import { Users, Target, Award, Heart, ArrowRight, MapPin, Phone, Globe, Building, Mail } from 'lucide-react';
 
 const About = () => {
-  useEffect(() => {
-    // Add structured data for SEO
-    const structuredData = {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "Elismet LTD",
-      "alternateName": "Elismet",
-      "url": "https://elismet.com",
-      "logo": "https://elismet.com/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png",
-      "contactPoint": {
-        "@type": "ContactPoint",
-        "telephone": "+44 7380 480139",
-        "contactType": "customer service",
-        "email": "support@elismet.com",
-        "availableLanguage": "English"
-      },
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "Office 12611, 182-184 High Street North",
-        "addressLocality": "East Ham",
-        "addressRegion": "London",
-        "postalCode": "E6 2JA",
-        "addressCountry": "GB"
-      },
-      "description": "Elismet LTD specializes in business and domestic software development. We build innovative subscription-based software solutions that drive results for businesses worldwide.",
-      "foundingDate": "2025-05-07",
-      "industry": "Software Development",
-      "numberOfEmployees": "10-50",
-      "sameAs": [
-        "https://elismet.com"
-      ]
-    };
-
-    const script = document.createElement('script');
-    script.type = 'application/ld+json';
-    script.text = JSON.stringify(structuredData);
-    document.head.appendChild(script);
-
-    return () => {
-      document.head.removeChild(script);
-    };
-  }, []);
-
   return (
-    <>
-      <Helmet>
-        <title>About Elismet LTD (16433590) - London Software Development Company</title>
-        <meta name="description" content="Learn about Elismet LTD, a London-based software development company founded in 2025. We specialize in custom business software solutions with 50+ global projects completed." />
-        <meta name="keywords" content="elismet ltd, about elismet, london software company, software development company, business software solutions, custom software development" />
-        <meta name="author" content="Elismet LTD" />
-        <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
-        <link rel="canonical" href="https://elismet.com/about" />
-        
-        {/* Open Graph / Facebook */}
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://elismet.com/about" />
-        <meta property="og:title" content="About Elismet LTD (16433590) - London Software Development Company" />
-        <meta property="og:description" content="Learn about Elismet LTD, a London-based software development company founded in 2025. We specialize in custom business software solutions." />
-        <meta property="og:image" content="https://elismet.com/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:site_name" content="Elismet LTD" />
-        <meta property="og:locale" content="en_GB" />
-
-        {/* Twitter */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:url" content="https://elismet.com/about" />
-        <meta name="twitter:title" content="About Elismet LTD (16433590) - London Software Development Company" />
-        <meta name="twitter:description" content="Learn about Elismet LTD, a London-based software development company founded in 2025. Custom business software solutions." />
-        <meta name="twitter:image" content="https://elismet.com/lovable-uploads/da624388-20e3-4737-b773-3851cb8290f9.png" />
-        <meta name="twitter:creator" content="@Elismet" />
-
-        {/* Additional SEO Meta Tags */}
-        <meta name="language" content="English" />
-        <meta name="revisit-after" content="7 days" />
-        <meta name="distribution" content="global" />
-        <meta name="rating" content="general" />
-        <meta http-equiv="Content-Language" content="en-gb" />
-      </Helmet>
-
-      <div className="min-h-screen bg-white">
-        <Navbar />
-        
-        {/* Hero Section */}
-        <section className="pt-32 pb-20 bg-gradient-to-br from-blue-50 to-indigo-100">
-          <div className="container mx-auto px-6">
-            <div className="max-w-4xl mx-auto text-center">
-              <h1 className="text-5xl md:text-7xl font-black text-gray-900 mb-8 leading-tight">
-                About
-                <span className="block text-blue-600">Elismet LTD</span>
-              </h1>
-              
-              <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
-                We're a London-based software development company dedicated to building innovative solutions that drive real business results.
-              </p>
+    <div className="min-h-screen bg-white">
+      <Navbar />
+      
+      {/* Hero Section */}
+      <section className="pt-32 pb-20 bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="container mx-auto px-6">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 border border-blue-200 rounded-full text-blue-700 mb-8">
+              <Users className="w-4 h-4" />
+              <span className="text-sm font-medium">About Elismet</span>
             </div>
+            
+            <h1 className="text-5xl md:text-7xl font-black text-gray-900 mb-8 leading-tight">
+              Building the Future
+              <span className="block text-blue-600">One Solution at a Time</span>
+            </h1>
+            
+            <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
+              We are a passionate team of software developers dedicated to creating innovative solutions that drive real business results.
+            </p>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Company Info Section */}
-        <section className="py-24 bg-white">
-          <div className="container mx-auto px-6">
-            <div className="max-w-6xl mx-auto">
-              <div className="grid md:grid-cols-2 gap-12 items-center">
-                <div>
-                  <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                    Our Story
-                  </h2>
-                  <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                    Founded in May 2025, Elismet LTD (Company Number: 16433590) has quickly established itself as a trusted partner for businesses seeking innovative software solutions.
-                  </p>
-                  <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-                    We specialize in understanding complex business needs and translating them into powerful, user-friendly software that makes a real difference.
-                  </p>
+      {/* Company Information */}
+      <section className="py-24 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div>
+                <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-8">
+                  ELISMET LTD (16433590)
+                </h2>
+                <div className="space-y-6">
+                  <div className="flex items-start gap-4">
+                    <MapPin className="w-6 h-6 text-blue-600 mt-1 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-gray-900">Headquarters</p>
+                      <p className="text-gray-600">
+                        Office 12611, 182-184 High Street North<br />
+                        East Ham, London, United Kingdom<br />
+                        E6 2JA
+                      </p>
+                    </div>
+                  </div>
                   
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <Building2 className="w-6 h-6 text-blue-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900">Established 2025</h3>
-                        <p className="text-gray-600">Private Limited Company in London, UK</p>
-                      </div>
+                  <div className="flex items-center gap-4">
+                    <Phone className="w-6 h-6 text-blue-600 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-gray-900">Phone</p>
+                      <p className="text-gray-600">+44 7380 480139</p>
                     </div>
-                    
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                        <Award className="w-6 h-6 text-green-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900">50+ Projects Completed</h3>
-                        <p className="text-gray-600">Complex software solutions delivered globally</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                        <Globe className="w-6 h-6 text-purple-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900">Global Reach</h3>
-                        <p className="text-gray-600">Serving businesses worldwide</p>
+                  </div>
+                  
+                  <div className="flex items-start gap-4">
+                    <Mail className="w-6 h-6 text-blue-600 mt-1 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-gray-900">Email</p>
+                      <div className="text-gray-600">
+                        <p>Support: <a href="mailto:support@elismet.com" className="text-blue-600 hover:underline">support@elismet.com</a></p>
+                        <p>Contact: <a href="mailto:contact@elismet.com" className="text-blue-600 hover:underline">contact@elismet.com</a></p>
                       </div>
                     </div>
                   </div>
+                  
+                  <div className="flex items-center gap-4">
+                    <Globe className="w-6 h-6 text-blue-600 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-gray-900">Website</p>
+                      <a href="https://elismet.com" className="text-blue-600 hover:underline">elismet.com</a>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-4">
+                    <Building className="w-6 h-6 text-blue-600 mt-1 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-gray-900">Company Details</p>
+                      <p className="text-gray-600">
+                        Private Limited Company<br />
+                        Incorporated: 7 May 2025<br />
+                        Company Number: 16433590<br />
+                        SIC: 62012 - Business and domestic software development
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                
-                <div className="bg-gray-50 rounded-2xl p-8">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6">Company Information</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold text-gray-900">Company Name</h4>
-                      <p className="text-gray-600">ELISMET LTD (16433590)</p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900">Founded</h4>
-                      <p className="text-gray-600">7 May 2025</p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900">Website Registered</h4>
-                      <p className="text-gray-600">14 July 2023</p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900">Industry</h4>
-                      <p className="text-gray-600">Business & Domestic Software Development (SIC: 62012)</p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900">Contact Emails</h4>
-                      <p className="text-gray-600">support@elismet.com</p>
-                      <p className="text-gray-600">contact@elismet.com</p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900">Address</h4>
-                      <p className="text-gray-600">Office 12611, 182-184 High Street North, East Ham, London, United Kingdom, E6 2JA</p>
+              </div>
+              
+              <div className="bg-blue-50 rounded-2xl p-8">
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">Leadership</h3>
+                <div className="space-y-4">
+                  <div className="bg-white rounded-lg p-6">
+                    <h4 className="font-bold text-gray-900 mb-2">MD RABIULLAH</h4>
+                    <p className="text-sm text-gray-600 mb-4">Director & Founder</p>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <p>Born: August 1978</p>
+                      <p>Nationality: Bangladeshi</p>
+                      <p>Appointed: 7 May 2025</p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Services Section */}
-        <section className="py-24 bg-gray-50">
-          <div className="container mx-auto px-6">
-            <div className="max-w-4xl mx-auto text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-6">
-                What We Do
-              </h2>
-              <p className="text-xl text-gray-600">
-                We build innovative subscription-based software solutions that drive results and create value for businesses worldwide.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Custom Software Development</h3>
-                <p className="text-gray-600 text-sm">Tailored solutions for unique business needs</p>
-              </div>
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Multi-Channel Support Systems</h3>
-                <p className="text-gray-600 text-sm">Unified communication platforms</p>
-              </div>
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">AI Customer Onboarding</h3>
-                <p className="text-gray-600 text-sm">Intelligent automation solutions</p>
-              </div>
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Smart Scheduling Solutions</h3>
-                <p className="text-gray-600 text-sm">Automated scheduling and management</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Contact Section */}
-        <section className="py-24 bg-blue-600 text-white">
-          <div className="container mx-auto px-6 text-center">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-4xl md:text-5xl font-bold mb-8">
-                Ready to Work Together?
-              </h2>
-              <p className="text-xl text-blue-100 mb-12">
-                Let's discuss how we can help transform your business with innovative software solutions.
+      {/* Our Story */}
+      <section className="py-24 bg-gray-50">
+        <div className="container mx-auto px-6">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-12 text-center">
+              Our Journey
+            </h2>
+            
+            <div className="prose prose-xl max-w-none text-gray-600 leading-relaxed space-y-8">
+              <p>
+                Elismet Ltd began as a vision when our founder registered the domain in July 2023. What started as a dream has transformed into a reality that spans the globe, delivering complex software solutions to clients worldwide.
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-12">
-                <Link to="/contact-direct?source-page=About">
-                  <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 px-12 py-4 text-xl rounded-full shadow-lg hover:shadow-xl transition-all">
-                    Get In Touch
-                    <ArrowRight className="ml-3 w-5 h-5" />
-                  </Button>
-                </Link>
-              </div>
+              <p>
+                Initially, we focused on local expansion, but we quickly realized that understanding our clients' needs deeply was more important than rapid growth. This philosophy shift allowed us to build stronger relationships and deliver more effective solutions.
+              </p>
               
-              <div className="flex flex-col sm:flex-row gap-8 justify-center items-center text-blue-100">
-                <div className="flex items-center gap-2">
-                  <Phone className="w-5 h-5" />
-                  <span>+44 7380 480139</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Mail className="w-5 h-5" />
-                  <span>support@elismet.com</span>
-                </div>
-              </div>
+              <p>
+                Today, we have expanded our reach around the world, building complex software solutions for clients who value discretion and excellence. Many of our projects remain confidential at our clients' request, testament to the sensitive and critical nature of the work we do.
+              </p>
+              
+              <blockquote className="border-l-4 border-blue-600 pl-6 italic text-xl text-gray-700">
+                "Elismet Ltd was my dream once I registered the domain. Gracefully, today we have 50+ global complex software projects. It wasn't a long time, but only several years of my and my team's hard work got us here."
+                <cite className="block mt-4 text-lg font-semibold text-gray-900">- MD RABIULLAH, Founder & Director</cite>
+              </blockquote>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <Footer />
-      </div>
-    </>
+      {/* Our Values */}
+      <section className="py-24 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="max-w-4xl mx-auto text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-6">
+              Our Values
+            </h2>
+            <p className="text-xl text-gray-600">
+              The principles that guide everything we do.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-12 max-w-6xl mx-auto">
+            <div className="text-center">
+              <div className="bg-blue-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Target className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Purpose-Driven</h3>
+              <p className="text-gray-600">We don't just build software – we solve real problems and create meaningful impact for our clients' businesses.</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="bg-green-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Award className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Quality First</h3>
+              <p className="text-gray-600">Every line of code we write is crafted with attention to detail and a commitment to excellence.</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="bg-purple-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Users className="w-8 h-8 text-purple-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Global Reach</h3>
+              <p className="text-gray-600">From local beginnings to worldwide impact, we serve clients across the globe with dedication and expertise.</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="bg-red-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Heart className="w-8 h-8 text-red-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Confidentiality</h3>
+              <p className="text-gray-600">We understand the sensitive nature of business software and maintain the highest standards of discretion.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Our Approach */}
+      <section className="py-24 bg-gray-50">
+        <div className="container mx-auto px-6">
+          <div className="max-w-4xl mx-auto text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-6">
+              Our Approach
+            </h2>
+            <p className="text-xl text-gray-600">
+              How we work with you to deliver exceptional results.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div className="bg-white rounded-2xl p-8 text-center shadow-lg">
+              <div className="text-3xl font-black text-blue-600 mb-4">01</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Understand</h3>
+              <p className="text-gray-600">We start by deeply understanding your business, challenges, and goals.</p>
+            </div>
+            
+            <div className="bg-white rounded-2xl p-8 text-center shadow-lg">
+              <div className="text-3xl font-black text-green-600 mb-4">02</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Design</h3>
+              <p className="text-gray-600">We design solutions that are both functional and user-friendly.</p>
+            </div>
+            
+            <div className="bg-white rounded-2xl p-8 text-center shadow-lg">
+              <div className="text-3xl font-black text-purple-600 mb-4">03</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Deliver</h3>
+              <p className="text-gray-600">We build, test, and deliver solutions that exceed expectations.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-24 bg-blue-600 text-white">
+        <div className="container mx-auto px-6 text-center">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-4xl md:text-5xl font-bold mb-8">
+              Ready to Work Together?
+            </h2>
+            <p className="text-xl text-blue-100 mb-12">
+              Let's discuss how we can help transform your business with custom software solutions.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+              <Link to="/custom-solution">
+                <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 px-12 py-4 text-xl rounded-full shadow-lg hover:shadow-xl transition-all">
+                  View Solutions
+                  <ArrowRight className="ml-3 w-5 h-5" />
+                </Button>
+              </Link>
+              <Link to="/contact-direct">
+                <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-12 py-4 text-xl rounded-full">
+                  Contact Us
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <Footer />
+    </div>
   );
 };
 
