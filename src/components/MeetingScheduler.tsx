@@ -112,15 +112,18 @@ const MeetingScheduler = ({ onClose }: MeetingSchedulerProps) => {
     try {
       const { error } = await supabase.functions.invoke('send-meeting-notifications', {
         body: {
-          company_name: formData.company_name,
-          contact_name: formData.contact_name,
-          email: formData.email,
-          whatsapp: formData.whatsapp || null,
-          meeting_platform: formData.meeting_platform,
-          meeting_date: format(selectedDate, 'yyyy-MM-dd'),
-          meeting_time: selectedTime,
-          meeting_timezone: 'America/New_York',
-          duration_minutes: 30
+          meeting: {
+            company_name: formData.company_name,
+            contact_name: formData.contact_name,
+            email: formData.email,
+            whatsapp: formData.whatsapp || null,
+            meeting_platform: formData.meeting_platform,
+            meeting_date: format(selectedDate, 'yyyy-MM-dd'),
+            meeting_time: selectedTime,
+            meeting_timezone: 'America/New_York',
+            duration_minutes: 30
+          },
+          type: 'scheduled'
         }
       });
 

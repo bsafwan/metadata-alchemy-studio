@@ -326,9 +326,49 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { meeting, type, admin_notes }: NotificationRequest = await req.json();
+    const requestBody = await req.json();
+    
+    // Handle both old format (direct meeting data) and new format (meeting object wrapper)
+    let meeting: Meeting;
+    let type: string;
+    
+    if (requestBody.meeting && requestBody.type) {
+      // New format: { meeting: {...}, type: 'scheduled' }
+      meeting = requestBody.meeting;
+      type = requestBody.type;
+    } else {
+      // Old format: direct meeting data
+      meeting = requestBody;
+      type = 'scheduled'; // default to scheduled
+    }
 
-    console.log(`Processing ${type} notification for meeting:`, meeting.id);
+    console.log(`Processing ${type} notification for meeting data:`, meeting);
+
+    // If meeting doesn't have an ID, we need to save it to database first
+    if (!meeting.id) {
+      const { data: savedMeeting, error: insertError } = await supabase
+        .from('crm_meetings')
+        .insert({
+          company_name: meeting.company_name,
+          contact_name: meeting.contact_name,
+          email: meeting.email,
+          whatsapp: meeting.whatsapp,
+          meeting_platform: meeting.meeting_platform,
+          meeting_date: meeting.meeting_date,
+          meeting_time: meeting.meeting_time,
+          meeting_timezone: meeting.meeting_timezone || 'America/New_York',
+          duration_minutes: meeting.duration_minutes || 30,
+          status: 'scheduled'
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        throw new Error(`Failed to save meeting: ${insertError.message}`);
+      }
+
+      meeting = { ...meeting, id: savedMeeting.id };
+    }
 
     switch (type) {
       case 'scheduled':
