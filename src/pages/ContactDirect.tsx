@@ -134,6 +134,39 @@ const ContactDirect = () => {
             </p>
           </div>
 
+          {/* Schedule Meeting Option */}
+          <div className="mb-12">
+            <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 via-white to-indigo-50 shadow-xl">
+              <CardContent className="p-12 text-center">
+                <h2 className="text-3xl font-bold text-blue-900 mb-4">Fast-Track Your Project</h2>
+                <p className="text-blue-700 mb-8 text-lg">Schedule a professional consultation with our experts</p>
+                
+                <Button 
+                  onClick={() => setShowScheduler(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-12 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all text-lg"
+                >
+                  <Calendar className="w-6 h-6 mr-3" />
+                  Schedule Professional Meeting
+                </Button>
+
+                <div className="mt-6 flex items-center justify-center gap-8 text-blue-600">
+                  <span className="flex items-center gap-2 text-sm font-medium">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    Thursday & Friday Only
+                  </span>
+                  <span className="flex items-center gap-2 text-sm font-medium">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    30-Minute Sessions
+                  </span>
+                  <span className="flex items-center gap-2 text-sm font-medium">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    US Eastern Time
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Main Form */}
           <Card className="shadow-lg border-0 bg-white/90 backdrop-blur">
             <CardContent className="p-8">
@@ -245,59 +278,6 @@ Please provide specific details about your situation so we can create the right 
             </CardContent>
           </Card>
 
-          {/* Schedule Meeting Option */}
-          <div className="mt-10">
-            <Card className="border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50">
-              <CardContent className="p-6 text-center">
-                <h3 className="text-xl font-bold text-green-900 mb-3">Want to Fast-Track Your Project?</h3>
-                <p className="text-green-700 mb-6">Schedule a professional consultation meeting to discuss your CRM needs directly with our experts.</p>
-                
-                <Button 
-                  onClick={() => setShowScheduler(true)}
-                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all"
-                >
-                  <Calendar className="w-5 h-5 mr-2" />
-                  Schedule Professional Meeting
-                </Button>
-
-                <div className="mt-4 flex items-center justify-center gap-6 text-sm text-green-600">
-                  <span className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    Thursday & Friday Available
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    30-Minute Sessions
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    US Eastern Time
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Next Steps */}
-          <div className="mt-10">
-            <div className="bg-blue-50 rounded-lg p-6 border border-blue-100">
-              <h3 className="text-lg font-semibold text-blue-900 mb-4 text-center">What happens next?</h3>
-              <div className="grid md:grid-cols-3 gap-4 text-sm">
-                <div className="text-center">
-                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-semibold">1</div>
-                  <p className="text-blue-800">Review within 24 hours</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-semibold">2</div>
-                  <p className="text-blue-800">Schedule consultation call</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-semibold">3</div>
-                  <p className="text-blue-800">Receive detailed proposal</p>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
