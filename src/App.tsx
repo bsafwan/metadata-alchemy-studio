@@ -51,6 +51,7 @@ import ProjectAdminPreviews from "./pages/ProjectAdminPreviews";
 import ProjectAdminPayments from "./pages/ProjectAdminPayments";
 import ProjectAdminDelivery from "./pages/ProjectAdminDelivery";
 import SuperAdminLogin from "./pages/SuperAdminLogin";
+import MeetingConnect from "./pages/MeetingConnect";
 import NotFound from "./pages/NotFound";
 import Account from "./pages/Account";
 import ProjectPricingPhases from "./pages/ProjectPricingPhases";
@@ -146,6 +147,7 @@ const App = () => (
               </Route>
 
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="/meeting/:meetingId/connect" element={<MeetingConnect />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </SuperAdminProvider>

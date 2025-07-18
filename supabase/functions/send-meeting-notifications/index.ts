@@ -59,21 +59,8 @@ const getPlatformDetails = (platform: string): { name: string; icon: string } =>
   }
 };
 
-const generateMeetingLink = async (meeting: Meeting): Promise<string> => {
-  // In a real implementation, you would integrate with Google Meet API or Zoom API
-  // For now, we'll generate placeholder links
-  const meetingId = meeting.id.substring(0, 8);
-  
-  switch (meeting.meeting_platform) {
-    case 'google_meet':
-      return `https://meet.google.com/abc-defg-hij?meeting=${meetingId}`;
-    case 'zoom':
-      return `https://zoom.us/j/123456789?pwd=example&meeting=${meetingId}`;
-    case 'whatsapp':
-      return meeting.whatsapp ? `https://wa.me/${meeting.whatsapp.replace(/\D/g, '')}` : '';
-    default:
-      return '';
-  }
+const generateMeetingPortalLink = (meetingId: string): string => {
+  return `https://elismet.com/meeting/${meetingId}/connect`;
 };
 
 const sendEmailNotification = async (to: string[], subject: string, html: string): Promise<void> => {
@@ -99,20 +86,9 @@ const sendEmailNotification = async (to: string[], subject: string, html: string
 const handleScheduledNotification = async (meeting: Meeting): Promise<void> => {
   const platformDetails = getPlatformDetails(meeting.meeting_platform);
   const meetingDateTime = formatDateTime(meeting.meeting_date, meeting.meeting_time, meeting.meeting_timezone);
-  const meetingLink = await generateMeetingLink(meeting);
+  const meetingPortalLink = generateMeetingPortalLink(meeting.id);
 
-  // Update meeting with generated link
-  if (meetingLink) {
-    const updateField = meeting.meeting_platform === 'google_meet' ? 'google_meet_link' : 
-                      meeting.meeting_platform === 'zoom' ? 'zoom_link' : null;
-    
-    if (updateField) {
-      await supabase
-        .from('crm_meetings')
-        .update({ [updateField]: meetingLink })
-        .eq('id', meeting.id);
-    }
-  }
+  // No need to update with meeting link as we use portal system
 
   // Email to admin
   const adminEmailHtml = `
@@ -134,15 +110,13 @@ const handleScheduledNotification = async (meeting: Meeting): Promise<void> => {
         </table>
       </div>
 
-      ${meetingLink ? `
-        <div style="background: #ecfdf5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
-          <h3 style="margin: 0 0 10px 0; color: #065f46;">Meeting Link</h3>
-          <a href="${meetingLink}" style="color: #059669; font-weight: bold; text-decoration: none;">${meetingLink}</a>
-          <p style="margin: 10px 0 0 0; font-size: 12px; color: #065f46;">
-            Please provide this link to the client before the meeting.
-          </p>
-        </div>
-      ` : ''}
+      <div style="background: #ecfdf5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
+        <h3 style="margin: 0 0 10px 0; color: #065f46;">Meeting Portal Link</h3>
+        <a href="${meetingPortalLink}" style="color: #059669; font-weight: bold; text-decoration: none;">${meetingPortalLink}</a>
+        <p style="margin: 10px 0 0 0; font-size: 12px; color: #065f46;">
+          This is the custom portal link sent to the client. Meeting access will be available 20 minutes before the scheduled time.
+        </p>
+      </div>
 
       <div style="background: #fef7cd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
         <h3 style="margin: 0 0 10px 0; color: #92400e;">Action Required</h3>
@@ -181,19 +155,17 @@ const handleScheduledNotification = async (meeting: Meeting): Promise<void> => {
         </table>
       </div>
 
-      ${meetingLink ? `
-        <div style="background: #ecfdf5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
-          <h3 style="margin: 0 0 10px 0; color: #065f46;">🔗 Meeting Link</h3>
-          <a href="${meetingLink}" 
-             style="display: inline-block; background: #10b981; color: white; padding: 12px 24px; 
-                    text-decoration: none; border-radius: 6px; font-weight: bold; margin: 10px 0;">
-            Join Meeting
-          </a>
-          <p style="margin: 10px 0 0 0; font-size: 12px; color: #065f46;">
-            Save this link - you'll need it to join the meeting.
-          </p>
-        </div>
-      ` : ''}
+      <div style="background: #e0f2fe; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+        <p style="margin: 0 0 15px 0; font-size: 16px; color: #01579b;"><strong>🔗 Your Personal Meeting Portal</strong></p>
+        <a href="${meetingPortalLink}" 
+           style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px; 
+                  text-decoration: none; border-radius: 6px; font-weight: bold;">
+          Access Meeting Portal
+        </a>
+        <p style="margin: 15px 0 0 0; font-size: 14px; color: #666;">
+          This link will be active 20 minutes before your meeting time
+        </p>
+      </div>
 
       <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
         <h3 style="margin: 0 0 10px 0; color: #374151;">📋 What to Expect</h3>
@@ -247,15 +219,7 @@ const handleScheduledNotification = async (meeting: Meeting): Promise<void> => {
 const handleReminderNotification = async (meeting: Meeting): Promise<void> => {
   const platformDetails = getPlatformDetails(meeting.meeting_platform);
   const meetingDateTime = formatDateTime(meeting.meeting_date, meeting.meeting_time, meeting.meeting_timezone);
-  
-  // Get the meeting link from database
-  const { data } = await supabase
-    .from('crm_meetings')
-    .select('google_meet_link, zoom_link')
-    .eq('id', meeting.id)
-    .single();
-
-  const meetingLink = data?.google_meet_link || data?.zoom_link || '';
+  const meetingPortalLink = generateMeetingPortalLink(meeting.id);
 
   const reminderEmailHtml = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -279,15 +243,16 @@ const handleReminderNotification = async (meeting: Meeting): Promise<void> => {
         </table>
       </div>
 
-      ${meetingLink ? `
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${meetingLink}" 
-             style="display: inline-block; background: #dc2626; color: white; padding: 15px 30px; 
-                    text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
-            🚀 JOIN MEETING NOW
-          </a>
-        </div>
-      ` : ''}
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${meetingPortalLink}" 
+           style="display: inline-block; background: #dc2626; color: white; padding: 15px 30px; 
+                  text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+          🚀 ACCESS MEETING PORTAL
+        </a>
+        <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;">
+          The meeting link is now active in your portal
+        </p>
+      </div>
 
       <div style="background: #fef7cd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
         <h3 style="margin: 0 0 10px 0; color: #92400e;">🔧 Quick Tech Check</h3>
