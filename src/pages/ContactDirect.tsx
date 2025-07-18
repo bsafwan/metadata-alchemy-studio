@@ -121,11 +121,6 @@ const ContactDirect = () => {
         <div className="max-w-3xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12">
-            <Link to="/get-started" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors text-sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Get Started
-            </Link>
-            
             <h1 className="text-4xl font-bold text-gray-900 mb-3">
               Build Your Custom CRM
             </h1>
@@ -137,28 +132,28 @@ const ContactDirect = () => {
           {/* Schedule Meeting Option */}
           <div className="mb-12">
             <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 via-white to-indigo-50 shadow-xl">
-              <CardContent className="p-12 text-center">
-                <h2 className="text-3xl font-bold text-blue-900 mb-4">Fast-Track Your Project</h2>
-                <p className="text-blue-700 mb-8 text-lg">Schedule a professional consultation with our experts</p>
+              <CardContent className="p-6 md:p-12 text-center">
+                <h2 className="text-2xl md:text-3xl font-bold text-blue-900 mb-4">Fast-Track Your Project</h2>
+                <p className="text-blue-700 mb-6 md:mb-8 text-base md:text-lg">Schedule a professional consultation with our experts</p>
                 
                 <Button 
                   onClick={() => setShowScheduler(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-12 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all text-lg"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 md:px-12 py-3 md:py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all text-base md:text-lg w-full md:w-auto"
                 >
-                  <Calendar className="w-6 h-6 mr-3" />
+                  <Calendar className="w-5 h-5 md:w-6 md:h-6 mr-2 md:mr-3" />
                   Schedule Professional Meeting
                 </Button>
 
-                <div className="mt-6 flex items-center justify-center gap-8 text-blue-600">
-                  <span className="flex items-center gap-2 text-sm font-medium">
+                <div className="mt-6 flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 text-blue-600">
+                  <span className="flex items-center gap-2 text-xs md:text-sm font-medium">
                     <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                     Thursday & Friday Only
                   </span>
-                  <span className="flex items-center gap-2 text-sm font-medium">
+                  <span className="flex items-center gap-2 text-xs md:text-sm font-medium">
                     <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                     30-Minute Sessions
                   </span>
-                  <span className="flex items-center gap-2 text-sm font-medium">
+                  <span className="flex items-center gap-2 text-xs md:text-sm font-medium">
                     <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                     US Eastern Time
                   </span>
@@ -167,9 +162,17 @@ const ContactDirect = () => {
             </Card>
           </div>
 
-          {/* Main Form */}
+          {/* Contact Form Section */}
           <Card className="shadow-lg border-0 bg-white/90 backdrop-blur">
-            <CardContent className="p-8">
+            <CardHeader className="p-6 md:p-8 pb-4">
+              <CardTitle className="text-2xl md:text-3xl font-bold text-gray-900 text-center">
+                Contact Us Directly
+              </CardTitle>
+              <CardDescription className="text-center text-gray-600">
+                Fill out the form below and we'll get back to you within 24 hours
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 md:p-8 pt-0">
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Source Page - Only show if source page exists */}
                 {sourcePage && (

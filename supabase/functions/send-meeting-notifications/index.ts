@@ -60,8 +60,8 @@ const getPlatformDetails = (platform: string): { name: string; icon: string } =>
 };
 
 const generateMeetingPortalLink = (meetingId: string): string => {
-  // Use the current application domain instead of hardcoded elismet.com
-  return `https://3de35ba6-322d-4a8d-a04e-27d330362ebc.lovableproject.com/meeting/${meetingId}/connect`;
+  // Use elismet.com domain as requested
+  return `https://elismet.com/meeting/${meetingId}/connect`;
 };
 
 const sendEmailNotification = async (to: string[], subject: string, html: string): Promise<void> => {
