@@ -31,17 +31,20 @@ const MeetingScheduler = ({ onClose }: MeetingSchedulerProps) => {
     meeting_platform: ''
   });
 
-  // Available time slots (9 AM to 5 PM EST, 30-minute intervals)
+  // Available time slots (9 AM to 10 PM EST, 30-minute intervals)
   const timeSlots = [];
-  for (let hour = 9; hour < 17; hour++) {
+  for (let hour = 9; hour < 22; hour++) {
     timeSlots.push(`${hour.toString().padStart(2, '0')}:00`);
     timeSlots.push(`${hour.toString().padStart(2, '0')}:30`);
   }
 
-  // Check if date is available (Thursday or Friday, not in past)
+  // Check if date is available (Thursday or Friday, not in past, within one month)
   const isDateAvailable = (date: Date) => {
     const today = startOfDay(new Date());
-    return !isBefore(date, today) && (isThursday(date) || isFriday(date));
+    const oneMonthFromNow = addDays(today, 30);
+    return !isBefore(date, today) && 
+           !isBefore(oneMonthFromNow, date) && 
+           (isThursday(date) || isFriday(date));
   };
 
   // Fetch booked slots for selected date
@@ -74,7 +77,7 @@ const MeetingScheduler = ({ onClose }: MeetingSchedulerProps) => {
             nextMinutes = 0;
           }
           
-          if (nextHour < 17) { // Don't block beyond 5 PM
+          if (nextHour < 22) { // Don't block beyond 10 PM
             const nextSlot = `${nextHour.toString().padStart(2, '0')}:${nextMinutes.toString().padStart(2, '0')}`;
             blocked.push(nextSlot);
           }
@@ -165,33 +168,33 @@ const MeetingScheduler = ({ onClose }: MeetingSchedulerProps) => {
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto">
-        <DialogHeader className="border-b pb-6">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="border-b pb-4">
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-3xl font-bold text-blue-900">
+            <DialogTitle className="text-2xl font-bold text-blue-900">
               Schedule Professional Meeting
             </DialogTitle>
             <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5" />
             </Button>
           </div>
-          <p className="text-blue-600 mt-2">Only Thursday & Friday available • 30-minute sessions • US Eastern Time</p>
+          <p className="text-blue-600 text-sm">Only Thursday & Friday • 9 AM-10 PM EST</p>
         </DialogHeader>
 
         {/* Progress Steps */}
-        <div className="flex items-center justify-center my-8">
-          <div className="flex items-center space-x-6">
+        <div className="flex items-center justify-center my-6">
+          <div className="flex items-center space-x-4">
             {[1, 2, 3].map((step) => (
               <div key={step} className="flex items-center">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-medium text-sm ${
                   currentStep >= step 
-                    ? 'bg-blue-600 text-white shadow-lg' 
+                    ? 'bg-blue-600 text-white' 
                     : 'bg-gray-200 text-gray-600'
                 }`}>
-                  {currentStep > step ? <CheckCircle className="w-6 h-6" /> : step}
+                  {currentStep > step ? <CheckCircle className="w-4 h-4" /> : step}
                 </div>
                 {step < 3 && (
-                  <div className={`w-16 h-2 mx-3 rounded-full ${
+                  <div className={`w-12 h-1 mx-2 rounded-full ${
                     currentStep > step ? 'bg-blue-600' : 'bg-gray-200'
                   }`} />
                 )}
@@ -201,16 +204,16 @@ const MeetingScheduler = ({ onClose }: MeetingSchedulerProps) => {
         </div>
 
         {/* Step Content */}
-        <div className="min-h-[500px] px-2">
+        <div className="min-h-[400px] px-2">
           {/* Step 1: Contact Information */}
           {currentStep === 1 && (
-            <Card className="border-2 border-blue-100">
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-semibold mb-8 text-center text-blue-900">Contact Information</h3>
+            <Card className="border border-blue-100">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-semibold mb-6 text-center text-blue-900">Contact Information</h3>
                 
-                <div className="space-y-6">
+                <div className="space-y-4">
                   {/* Platform Selection */}
-                  <div className="grid grid-cols-3 gap-4 mb-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
                     {[
                       { value: 'google_meet', label: 'Google Meet', icon: Video },
                       { value: 'zoom', label: 'Zoom', icon: Video },
@@ -221,45 +224,45 @@ const MeetingScheduler = ({ onClose }: MeetingSchedulerProps) => {
                         type="button"
                         variant={formData.meeting_platform === value ? "default" : "outline"}
                         onClick={() => handleInputChange('meeting_platform', value)}
-                        className="h-16 text-lg font-medium"
+                        className="h-12 text-sm font-medium"
                       >
-                        <Icon className="w-6 h-6 mr-3" />
+                        <Icon className="w-4 h-4 mr-2" />
                         {label}
                       </Button>
                     ))}
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Input
                       placeholder="Company Name"
                       value={formData.company_name}
                       onChange={(e) => handleInputChange('company_name', e.target.value)}
-                      className="h-14 text-lg"
+                      className="h-10"
                       required
                     />
                     <Input
                       placeholder="Your Name"
                       value={formData.contact_name}
                       onChange={(e) => handleInputChange('contact_name', e.target.value)}
-                      className="h-14 text-lg"
+                      className="h-10"
                       required
                     />
                   </div>
                   
-                  <div className="grid md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Input
                       type="email"
                       placeholder="Email Address"
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="h-14 text-lg"
+                      className="h-10"
                       required
                     />
                     <Input
                       placeholder="WhatsApp (Optional)"
                       value={formData.whatsapp}
                       onChange={(e) => handleInputChange('whatsapp', e.target.value)}
-                      className="h-14 text-lg"
+                      className="h-10"
                     />
                   </div>
                 </div>
@@ -269,10 +272,10 @@ const MeetingScheduler = ({ onClose }: MeetingSchedulerProps) => {
 
           {/* Step 2: Date Selection */}
           {currentStep === 2 && (
-            <Card className="border-2 border-blue-100">
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-semibold mb-6 text-center text-blue-900">Select Date</h3>
-                <p className="text-center text-gray-600 mb-8 text-lg">Only Thursday and Friday are available</p>
+            <Card className="border border-blue-100">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-semibold mb-4 text-center text-blue-900">Select Date</h3>
+                <p className="text-center text-gray-600 mb-6 text-sm">Available: Thu & Fri within next 30 days</p>
                 
                 <div className="flex justify-center">
                   <Calendar
@@ -280,22 +283,37 @@ const MeetingScheduler = ({ onClose }: MeetingSchedulerProps) => {
                     selected={selectedDate}
                     onSelect={setSelectedDate}
                     disabled={(date) => !isDateAvailable(date)}
-                    className="rounded-xl border-2 shadow-lg scale-125 pointer-events-auto"
+                    className="rounded-lg border shadow-sm pointer-events-auto mx-auto"
                     classNames={{
-                      day_disabled: "text-gray-300 opacity-30",
-                      day_selected: "bg-blue-600 text-white font-bold",
-                      day: "h-12 w-12 text-base font-medium hover:bg-blue-50",
-                      caption: "text-xl font-bold",
-                      nav_button: "h-10 w-10",
-                      table: "w-full border-collapse space-y-1"
+                      months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                      month: "space-y-4",
+                      caption: "flex justify-center pt-1 relative items-center",
+                      caption_label: "text-sm font-medium",
+                      nav: "space-x-1 flex items-center",
+                      nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+                      nav_button_previous: "absolute left-1",
+                      nav_button_next: "absolute right-1",
+                      table: "w-full border-collapse space-y-1",
+                      head_row: "flex",
+                      head_cell: "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]",
+                      row: "flex w-full mt-2",
+                      cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected].day-range-end)]:rounded-r-md",
+                      day: "h-8 w-8 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground rounded-md",
+                      day_range_end: "day-range-end",
+                      day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                      day_today: "bg-accent text-accent-foreground",
+                      day_outside: "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
+                      day_disabled: "text-muted-foreground opacity-50",
+                      day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                      day_hidden: "invisible",
                     }}
                   />
                 </div>
 
                 {selectedDate && (
-                  <div className="mt-8 text-center">
-                    <Badge variant="outline" className="px-6 py-3 text-lg font-medium">
-                      <CalendarIcon className="w-5 h-5 mr-3" />
+                  <div className="mt-6 text-center">
+                    <Badge variant="outline" className="px-4 py-2 text-sm font-medium">
+                      <CalendarIcon className="w-4 h-4 mr-2" />
                       {format(selectedDate, 'EEEE, MMMM d, yyyy')}
                     </Badge>
                   </div>
@@ -306,14 +324,14 @@ const MeetingScheduler = ({ onClose }: MeetingSchedulerProps) => {
 
           {/* Step 3: Time Selection */}
           {currentStep === 3 && (
-            <Card className="border-2 border-blue-100">
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-semibold mb-4 text-center text-blue-900">Select Time</h3>
-                <p className="text-center text-gray-600 mb-8 text-lg">
+            <Card className="border border-blue-100">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-semibold mb-4 text-center text-blue-900">Select Time</h3>
+                <p className="text-center text-gray-600 mb-6 text-sm">
                   {selectedDate && format(selectedDate, 'EEEE, MMMM d, yyyy')} - US Eastern Time
                 </p>
                 
-                <div className="grid grid-cols-4 gap-4 max-h-80 overflow-y-auto p-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 max-h-72 overflow-y-auto p-2">
                   {timeSlots.map((time) => {
                     const isBooked = bookedSlots.includes(time);
                     return (
@@ -322,9 +340,9 @@ const MeetingScheduler = ({ onClose }: MeetingSchedulerProps) => {
                         variant={selectedTime === time ? "default" : "outline"}
                         disabled={isBooked}
                         onClick={() => setSelectedTime(time)}
-                        className={`h-16 text-base font-medium ${isBooked ? 'opacity-40 cursor-not-allowed bg-gray-100' : ''}`}
+                        className={`h-10 text-sm font-medium ${isBooked ? 'opacity-40 cursor-not-allowed bg-gray-100' : ''}`}
                       >
-                        <Clock className="w-4 h-4 mr-2" />
+                        <Clock className="w-3 h-3 mr-1" />
                         {format(new Date(`2024-01-01T${time}:00`), 'h:mm a')}
                       </Button>
                     );
@@ -332,10 +350,10 @@ const MeetingScheduler = ({ onClose }: MeetingSchedulerProps) => {
                 </div>
 
                 {selectedTime && (
-                  <div className="mt-8 text-center">
-                    <Badge variant="outline" className="px-6 py-3 text-lg font-medium">
-                      <Clock className="w-5 h-5 mr-3" />
-                      {format(new Date(`2024-01-01T${selectedTime}:00`), 'h:mm a')} EST (30 minutes)
+                  <div className="mt-6 text-center">
+                    <Badge variant="outline" className="px-4 py-2 text-sm font-medium">
+                      <Clock className="w-4 h-4 mr-2" />
+                      {format(new Date(`2024-01-01T${selectedTime}:00`), 'h:mm a')} EST (30 min)
                     </Badge>
                   </div>
                 )}
@@ -345,36 +363,36 @@ const MeetingScheduler = ({ onClose }: MeetingSchedulerProps) => {
         </div>
 
         {/* Navigation Buttons */}
-        <div className="flex justify-between pt-8 border-t">
+        <div className="flex justify-between pt-6 border-t">
           <Button 
             variant="outline" 
             onClick={prevStep}
             disabled={currentStep === 1}
-            className="px-8 h-12 text-lg"
+            className="px-6 h-10 text-sm"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
+            <ArrowLeft className="w-4 h-4 mr-2" />
             Previous
           </Button>
 
           {currentStep < 3 ? (
-            <Button onClick={nextStep} className="px-8 h-12 text-lg bg-blue-600 hover:bg-blue-700">
+            <Button onClick={nextStep} className="px-6 h-10 text-sm bg-blue-600 hover:bg-blue-700">
               Next
-              <ArrowRight className="w-5 h-5 ml-2" />
+              <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           ) : (
             <Button 
               onClick={handleSubmit}
               disabled={isSubmitting || !selectedTime}
-              className="px-12 h-12 text-lg bg-green-600 hover:bg-green-700"
+              className="px-8 h-10 text-sm bg-green-600 hover:green-700"
             >
               {isSubmitting ? (
                 <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Scheduling...
                 </>
               ) : (
                 <>
-                  <Users className="w-5 h-5 mr-3" />
+                  <Users className="w-4 h-4 mr-2" />
                   Schedule Meeting
                 </>
               )}
