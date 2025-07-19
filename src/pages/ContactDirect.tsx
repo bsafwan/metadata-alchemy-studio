@@ -155,7 +155,7 @@ const ContactDirect = () => {
                   </span>
                   <span className="flex items-center gap-2 text-xs md:text-sm font-medium">
                     <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    US Eastern Time
+                    Eastern Time (EDT)
                   </span>
                 </div>
               </CardContent>

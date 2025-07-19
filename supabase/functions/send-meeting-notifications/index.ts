@@ -34,16 +34,16 @@ const supabase = createClient(
 
 const formatDateTime = (date: string, time: string, timezone: string): string => {
   const meetingDate = new Date(`${date}T${time}:00`);
-  return meetingDate.toLocaleDateString('en-US', {
+  const formatted = meetingDate.toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
-    timeZone: timezone,
-    timeZoneName: 'short'
+    timeZone: timezone
   });
+  return `${formatted} EDT`;
 };
 
 const getPlatformDetails = (platform: string): { name: string; icon: string } => {
