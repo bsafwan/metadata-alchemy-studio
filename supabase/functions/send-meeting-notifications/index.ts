@@ -82,17 +82,27 @@ const generateICSContent = (meeting: Meeting): string => {
   return [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Elismet//Meeting Scheduler//EN',
+    'PRODID:-//Elismet Ltd//Meeting Scheduler//EN',
     'CALSCALE:GREGORIAN',
+    'METHOD:REQUEST',
     'BEGIN:VEVENT',
     `UID:meeting-${meeting.id}@elismet.com`,
     `DTSTART:${startDateICS}`,
     `DTEND:${endDateICS}`,
-    `SUMMARY:${meeting.company_name} - ${platformDetails.name} Meeting`,
-    `DESCRIPTION:Meeting with ${meeting.contact_name} from ${meeting.company_name}\\n\\nPlatform: ${platformDetails.name}\\n\\nJoin via Meeting Portal: ${meetingPortalLink}\\n\\nDuration: ${meeting.duration_minutes} minutes`,
+    `SUMMARY:${meeting.contact_name} and Elismet Ltd`,
+    `DESCRIPTION:Meeting with ${meeting.contact_name} from ${meeting.company_name}.\\n\\nThis is a ${platformDetails.name} web conference.\\n\\nMeeting Portal: ${meetingPortalLink}\\n\\nYou can join this meeting from your computer\\, tablet\\, or smartphone.`,
     `LOCATION:${meetingPortalLink}`,
+    `ORGANIZER;CN=Elismet Ltd:mailto:contact@elismet.com`,
+    `ATTENDEE;CN=${meeting.contact_name};ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE:mailto:${meeting.email}`,
     'STATUS:CONFIRMED',
     'SEQUENCE:0',
+    'CLASS:PUBLIC',
+    'TRANSP:OPAQUE',
+    'BEGIN:VALARM',
+    'TRIGGER:-PT15M',
+    'ACTION:DISPLAY',
+    `DESCRIPTION:Meeting reminder: ${meeting.contact_name} and Elismet Ltd`,
+    'END:VALARM',
     'END:VEVENT',
     'END:VCALENDAR'
   ].join('\r\n');
@@ -192,14 +202,38 @@ const generateCalendarLinks = (meeting: Meeting, icsUrl: string): string => {
   `;
 };
 
-const sendEmailNotification = async (to: string[], subject: string, html: string): Promise<void> => {
+const sendEmailNotification = async (
+  to: string[], 
+  subject: string, 
+  html: string, 
+  icsContent?: string,
+  icsFileName?: string
+): Promise<void> => {
   try {
+    const emailBody: any = {
+      to,
+      subject,
+      html
+    };
+
+    // If ICS content is provided, add it as attachment for calendar invitation
+    if (icsContent && icsFileName) {
+      emailBody.attachments = [{
+        filename: icsFileName,
+        content: Buffer.from(icsContent).toString('base64'),
+        contentType: 'text/calendar; method=REQUEST'
+      }];
+      
+      // Add calendar headers for better email client recognition
+      emailBody.headers = {
+        'Content-Class': 'urn:content-classes:calendarmessage',
+        'Content-Type': 'text/calendar; method=REQUEST; charset=UTF-8',
+        'X-MS-OLK-FORCEINSPECTOROPEN': 'TRUE'
+      };
+    }
+
     const { error } = await supabase.functions.invoke('zoho-mail', {
-      body: {
-        to,
-        subject,
-        html
-      }
+      body: emailBody
     });
 
     if (error) {
@@ -418,11 +452,13 @@ const handleScheduledNotification = async (meeting: Meeting): Promise<void> => {
       `Meeting Confirmed - ${platformDetails.name} on ${meetingDateTime.split(' at ')[0]}`,
       clientEmailHtml
     ),
-    // Second email with calendar invitation
+    // Third email with calendar invitation (.ics attachment for professional calendar integration)
     sendEmailNotification(
       [meeting.email], 
       `📅 Add to Calendar - ${meeting.company_name} Meeting (${meetingDateTime.split(' at ')[0]})`,
-      calendarInviteEmailHtml
+      calendarInviteEmailHtml,
+      icsContent,
+      `${meeting.contact_name} and Elismet Ltd.ics`
     )
   ]);
 };
