@@ -247,21 +247,24 @@ const sendEmailNotification = async (
       html
     };
 
-    // Temporarily disable ICS attachments to fix immediate scheduling issue
-    // if (icsContent && icsFileName) {
-    //   const base64String = btoa(unescape(encodeURIComponent(icsContent)));
-    //   emailBody.attachments = [{
-    //     filename: icsFileName,
-    //     content: base64String,
-    //     contentType: 'text/calendar; method=REQUEST; charset=UTF-8'
-    //   }];
-    //   
-    //   emailBody.headers = {
-    //     'Content-Class': 'urn:content-classes:calendarmessage',
-    //     'Content-Type': 'text/calendar; method=REQUEST; charset=UTF-8',
-    //     'X-MS-OLK-FORCEINSPECTOROPEN': 'TRUE'
-    //   };
-    // }
+    // Add ICS calendar attachment if provided
+    if (icsContent && icsFileName) {
+      const encoder = new TextEncoder();
+      const icsBytes = encoder.encode(icsContent);
+      const base64String = btoa(String.fromCharCode(...icsBytes));
+      
+      emailBody.attachments = [{
+        filename: icsFileName,
+        content: base64String,
+        contentType: 'text/calendar; method=REQUEST; charset=UTF-8'
+      }];
+      
+      emailBody.headers = {
+        'Content-Class': 'urn:content-classes:calendarmessage',
+        'Content-Type': 'text/calendar; method=REQUEST; charset=UTF-8',
+        'X-MS-OLK-FORCEINSPECTOROPEN': 'TRUE'
+      };
+    }
 
     const { error } = await supabase.functions.invoke('zoho-mail', {
       body: emailBody
@@ -282,13 +285,11 @@ const handleScheduledNotification = async (meeting: Meeting): Promise<void> => {
   const meetingDateTime = formatDateTime(meeting.meeting_date, meeting.meeting_time, meeting.meeting_timezone);
   const meetingPortalLink = generateMeetingPortalLink(meeting.id);
 
-  // Temporarily disable complex ICS operations to fix scheduling
-  // const icsContent = generateICSContent(meeting);
-  // const icsUrl = await uploadICSFile(meeting, icsContent);
-  // await scheduleICSFileDeletion(meeting);
-  // const calendarLinks = generateCalendarLinks(meeting, icsUrl);
-  
-  const calendarLinks = `<p>Calendar integration temporarily disabled during system optimization.</p>`;
+  // Generate ICS calendar file and upload
+  const icsContent = generateICSContent(meeting);
+  const icsUrl = await uploadICSFile(meeting, icsContent);
+  await scheduleICSFileDeletion(meeting);
+  const calendarLinks = generateCalendarLinks(meeting, icsUrl);
 
   // Email to admin
   const adminEmailHtml = `
@@ -488,39 +489,24 @@ ${meetingPortalLink}
 
 _Elismet Team - Your CRM Partners_`;
 
-  // Send notifications (emails + WhatsApp if provided)
-  const emailPromises = [
-    sendEmailNotification(
-      ['bsafwanjamil677@gmail.com'], 
-      `🗓️ New Meeting Scheduled - ${meeting.company_name} (${meetingDateTime})`,
-      adminEmailHtml
-    ),
-    sendEmailNotification(
-      [meeting.email], 
-      `Meeting Confirmed - ${platformDetails.name} on ${meetingDateTime.split(' at ')[0]}`,
-      clientEmailHtml
-    ),
-    // Third email with calendar invitation - TEMPORARILY DISABLED
-    // sendEmailNotification(
-    //   [meeting.email], 
-    //   `📅 Add to Calendar - ${meeting.company_name} Meeting (${meetingDateTime.split(' at ')[0]})`,
-    //   calendarInviteEmailHtml,
-    //   icsContent,
-    //   `${meeting.contact_name} and Elismet Ltd.ics`
-    // )
-  ];
+  // Send emails with calendar attachments
+  await sendEmailNotification([meeting.email], `Meeting Confirmed - ${platformDetails.name} with Elismet`, clientEmailHtml, icsContent, `meeting-${meeting.id}.ics`);
+  await sendEmailNotification([meeting.email], `📅 Calendar Invitation - ${meeting.company_name} Meeting`, calendarInviteEmailHtml, icsContent, `meeting-${meeting.id}.ics`);
+  await sendEmailNotification(['contact@elismet.com'], `🗓️ New Meeting Scheduled - ${meeting.company_name} (${meetingDateTime})`, adminEmailHtml);
 
-  // Add WhatsApp notification if phone number provided - SIMPLIFIED
+  // Send WhatsApp notification if phone number provided (non-blocking)
   if (meeting.whatsapp) {
     try {
-      await sendWhatsAppNotification(meeting.whatsapp, whatsappMessage);
+      const whatsappMessage = `📅 *Meeting Confirmed!*\n\nHi ${meeting.contact_name},\n\nYour meeting with Elismet Ltd is confirmed:\n\n📅 *Date & Time:* ${meetingDateTime}\n🎥 *Platform:* ${platformDetails.name}\n⏱️ *Duration:* ${meeting.duration_minutes} minutes\n\n🔗 *Meeting Portal:* ${meetingPortalLink}\n\nYou'll receive a reminder 20 minutes before the meeting.\n\nLooking forward to connecting with you!\n\n✨ The Elismet Team`;
+      
+      // Don't await - make it non-blocking
+      sendWhatsAppNotification(meeting.whatsapp, whatsappMessage).catch(error => {
+        console.error('WhatsApp notification failed (non-blocking):', error);
+      });
     } catch (error) {
-      console.error('WhatsApp notification failed, but continuing with email:', error);
-      // Don't throw error, just log it so email notifications still work
+      console.error('WhatsApp notification setup failed (non-blocking):', error);
     }
   }
-
-  await Promise.all(emailPromises);
 };
 
 const handleReminderNotification = async (meeting: Meeting): Promise<void> => {
