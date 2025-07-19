@@ -946,6 +946,47 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduled_deletions: {
+        Row: {
+          bucket_name: string
+          created_at: string
+          deletion_date: string
+          file_path: string
+          id: string
+          meeting_id: string | null
+          processed: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          bucket_name: string
+          created_at?: string
+          deletion_date: string
+          file_path: string
+          id?: string
+          meeting_id?: string | null
+          processed?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          bucket_name?: string
+          created_at?: string
+          deletion_date?: string
+          file_path?: string
+          id?: string
+          meeting_id?: string | null
+          processed?: boolean | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_deletions_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "crm_meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       total_price_negotiations: {
         Row: {
           created_at: string

@@ -1,1 +1,7 @@
 project_id = "gemhywggtdryovqmalqh"
+
+[functions.send-meeting-notifications]
+verify_jwt = false
+
+[functions.cleanup-ics-files]
+verify_jwt = false
