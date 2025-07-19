@@ -28,6 +28,7 @@ const MeetingScheduler = ({ onClose }: MeetingSchedulerProps) => {
     contact_name: '',
     email: '',
     whatsapp: '',
+    countryCode: '+1',
     meeting_platform: ''
   });
 
@@ -110,13 +111,17 @@ const MeetingScheduler = ({ onClose }: MeetingSchedulerProps) => {
     setIsSubmitting(true);
 
     try {
+      // Format WhatsApp number with country code
+      const fullWhatsAppNumber = formData.whatsapp ? 
+        `${formData.countryCode}${formData.whatsapp}`.replace(/[^\d+]/g, '') : null;
+
       const { error } = await supabase.functions.invoke('send-meeting-notifications', {
         body: {
           meeting: {
             company_name: formData.company_name,
             contact_name: formData.contact_name,
             email: formData.email,
-            whatsapp: formData.whatsapp || null,
+            whatsapp: fullWhatsAppNumber,
             meeting_platform: formData.meeting_platform,
             meeting_date: format(selectedDate, 'yyyy-MM-dd'),
             meeting_time: selectedTime,
@@ -261,12 +266,31 @@ const MeetingScheduler = ({ onClose }: MeetingSchedulerProps) => {
                       className="h-10"
                       required
                     />
-                    <Input
-                      placeholder="WhatsApp (Optional)"
-                      value={formData.whatsapp}
-                      onChange={(e) => handleInputChange('whatsapp', e.target.value)}
-                      className="h-10"
-                    />
+                    <div className="flex gap-2">
+                      <Select value={formData.countryCode || '+1'} onValueChange={(value) => handleInputChange('countryCode', value)}>
+                        <SelectTrigger className="w-24 h-10">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="+1">🇺🇸 +1</SelectItem>
+                          <SelectItem value="+880">🇧🇩 +880</SelectItem>
+                          <SelectItem value="+91">🇮🇳 +91</SelectItem>
+                          <SelectItem value="+92">🇵🇰 +92</SelectItem>
+                          <SelectItem value="+44">🇬🇧 +44</SelectItem>
+                          <SelectItem value="+971">🇦🇪 +971</SelectItem>
+                          <SelectItem value="+966">🇸🇦 +966</SelectItem>
+                          <SelectItem value="+60">🇲🇾 +60</SelectItem>
+                          <SelectItem value="+65">🇸🇬 +65</SelectItem>
+                          <SelectItem value="+852">🇭🇰 +852</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        placeholder="WhatsApp Number (Optional)"
+                        value={formData.whatsapp}
+                        onChange={(e) => handleInputChange('whatsapp', e.target.value)}
+                        className="h-10 flex-1"
+                      />
+                    </div>
                   </div>
                 </div>
               </CardContent>

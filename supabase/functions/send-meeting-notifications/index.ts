@@ -34,16 +34,20 @@ const supabase = createClient(
 
 const formatDateTime = (date: string, time: string, timezone: string): string => {
   const meetingDate = new Date(`${date}T${time}:00`);
-  const formatted = meetingDate.toLocaleDateString('en-US', {
+  
+  // Format the date and time with proper timezone handling
+  const options: Intl.DateTimeFormatOptions = {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
-    timeZone: timezone
-  });
-  return `${formatted} EDT`;
+    timeZone: timezone,
+    timeZoneName: 'short'
+  };
+  
+  return meetingDate.toLocaleDateString('en-US', options);
 };
 
 const getPlatformDetails = (platform: string): { name: string; icon: string } => {
@@ -65,15 +69,19 @@ const generateMeetingPortalLink = (meetingId: string): string => {
 };
 
 const generateICSContent = (meeting: Meeting): string => {
+  // Parse the meeting date and time in the specified timezone
   const startDate = new Date(`${meeting.meeting_date}T${meeting.meeting_time}:00`);
-  const endDate = new Date(startDate.getTime() + meeting.duration_minutes * 60 * 1000);
   
-  // Format dates for .ics format (YYYYMMDDTHHMMSSZ)
+  // Convert to EST/EDT (America/New_York timezone)
+  const timezonedStartDate = new Date(startDate.toLocaleString("en-US", {timeZone: meeting.meeting_timezone}));
+  const endDate = new Date(timezonedStartDate.getTime() + meeting.duration_minutes * 60 * 1000);
+  
+  // Format dates for .ics format (YYYYMMDDTHHMMSSZ) - always in UTC
   const formatICSDate = (date: Date): string => {
     return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
   };
 
-  const startDateICS = formatICSDate(startDate);
+  const startDateICS = formatICSDate(timezonedStartDate);
   const endDateICS = formatICSDate(endDate);
   
   const platformDetails = getPlatformDetails(meeting.meeting_platform);
@@ -157,14 +165,16 @@ const scheduleICSFileDeletion = async (meeting: Meeting): Promise<void> => {
 };
 
 const generateCalendarLinks = (meeting: Meeting, icsUrl: string): string => {
+  // Parse with proper timezone handling
   const startDate = new Date(`${meeting.meeting_date}T${meeting.meeting_time}:00`);
-  const endDate = new Date(startDate.getTime() + meeting.duration_minutes * 60 * 1000);
+  const timezonedStartDate = new Date(startDate.toLocaleString("en-US", {timeZone: meeting.meeting_timezone}));
+  const endDate = new Date(timezonedStartDate.getTime() + meeting.duration_minutes * 60 * 1000);
   
   const formatGoogleDate = (date: Date): string => {
     return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
   };
 
-  const startDateGoogle = formatGoogleDate(startDate);
+  const startDateGoogle = formatGoogleDate(timezonedStartDate);
   const endDateGoogle = formatGoogleDate(endDate);
   
   const platformDetails = getPlatformDetails(meeting.meeting_platform);
