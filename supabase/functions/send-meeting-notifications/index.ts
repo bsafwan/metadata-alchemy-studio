@@ -202,6 +202,27 @@ const generateCalendarLinks = (meeting: Meeting, icsUrl: string): string => {
   `;
 };
 
+const sendWhatsAppNotification = async (recipient: string, content: string): Promise<void> => {
+  try {
+    const { error } = await supabase.functions.invoke('send-whatsapp-message', {
+      body: {
+        recipient,
+        content
+      }
+    });
+
+    if (error) {
+      console.error('Failed to send WhatsApp message:', error);
+      throw error;
+    }
+
+    console.log(`WhatsApp sent successfully to: ${recipient}`);
+  } catch (error) {
+    console.error('Failed to send WhatsApp:', error);
+    throw error;
+  }
+};
+
 const sendEmailNotification = async (
   to: string[], 
   subject: string, 
@@ -440,8 +461,27 @@ const handleScheduledNotification = async (meeting: Meeting): Promise<void> => {
     </div>
   `;
 
-  // Send emails (first confirmation, then calendar invitation)
-  await Promise.all([
+  // Prepare WhatsApp message (short and essential)
+  const whatsappMessage = `🎯 *Meeting Confirmed!*
+
+📅 *${meetingDateTime}*
+📱 *${platformDetails.icon} ${platformDetails.name}*
+⏰ *${meeting.duration_minutes} min*
+
+🔗 *Meeting Portal:*
+${meetingPortalLink}
+
+✅ *You'll receive:*
+• Email confirmation
+• Calendar invite 
+• Reminder 20min before
+
+📧 *Check your email for full details*
+
+_Elismet Team - Your CRM Partners_`;
+
+  // Send notifications (emails + WhatsApp if provided)
+  const emailPromises = [
     sendEmailNotification(
       ['bsafwanjamil677@gmail.com'], 
       `🗓️ New Meeting Scheduled - ${meeting.company_name} (${meetingDateTime})`,
@@ -460,7 +500,16 @@ const handleScheduledNotification = async (meeting: Meeting): Promise<void> => {
       icsContent,
       `${meeting.contact_name} and Elismet Ltd.ics`
     )
-  ]);
+  ];
+
+  // Add WhatsApp notification if phone number provided
+  if (meeting.whatsapp) {
+    emailPromises.push(
+      sendWhatsAppNotification(meeting.whatsapp, whatsappMessage)
+    );
+  }
+
+  await Promise.all(emailPromises);
 };
 
 const handleReminderNotification = async (meeting: Meeting): Promise<void> => {
@@ -518,11 +567,38 @@ const handleReminderNotification = async (meeting: Meeting): Promise<void> => {
     </div>
   `;
 
-  await sendEmailNotification(
-    [meeting.email], 
-    `⏰ REMINDER: Your meeting starts in 20 minutes - ${platformDetails.name}`,
-    reminderEmailHtml
-  );
+  // WhatsApp reminder message (short and urgent)
+  const whatsappReminderMessage = `⏰ *MEETING REMINDER*
+
+🚨 *Starting in 20 minutes!*
+
+📅 *${meetingDateTime}*
+📱 *${platformDetails.icon} ${platformDetails.name}*
+
+🔗 *Join Now:*
+${meetingPortalLink}
+
+⏰ *Don't miss it!*
+
+_Elismet Team_`;
+
+  // Send notifications
+  const notificationPromises = [
+    sendEmailNotification(
+      [meeting.email], 
+      `⏰ REMINDER: Your meeting starts in 20 minutes - ${platformDetails.name}`,
+      reminderEmailHtml
+    )
+  ];
+
+  // Add WhatsApp reminder if phone number provided
+  if (meeting.whatsapp) {
+    notificationPromises.push(
+      sendWhatsAppNotification(meeting.whatsapp, whatsappReminderMessage)
+    );
+  }
+
+  await Promise.all(notificationPromises);
 
   // Mark reminder as sent
   await supabase

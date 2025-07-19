@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.cleanup-ics-files]
 verify_jwt = false
+
+[functions.send-whatsapp-message]
+verify_jwt = false
