@@ -249,9 +249,14 @@ const sendEmailNotification = async (
 
     // If ICS content is provided, add it as attachment for calendar invitation
     if (icsContent && icsFileName) {
+      // Convert string to base64 using Deno's built-in methods
+      const encoder = new TextEncoder();
+      const data = encoder.encode(icsContent);
+      const base64String = btoa(String.fromCharCode(...data));
+      
       emailBody.attachments = [{
         filename: icsFileName,
-        content: Buffer.from(icsContent).toString('base64'),
+        content: base64String,
         contentType: 'text/calendar; method=REQUEST'
       }];
       
