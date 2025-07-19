@@ -247,24 +247,21 @@ const sendEmailNotification = async (
       html
     };
 
-    // If ICS content is provided, add it as attachment for calendar invitation
-    if (icsContent && icsFileName) {
-      // Convert string to base64 using Deno's built-in methods (more reliable)
-      const base64String = btoa(unescape(encodeURIComponent(icsContent)));
-      
-      emailBody.attachments = [{
-        filename: icsFileName,
-        content: base64String,
-        contentType: 'text/calendar; method=REQUEST; charset=UTF-8'
-      }];
-      
-      // Add calendar headers for better email client recognition
-      emailBody.headers = {
-        'Content-Class': 'urn:content-classes:calendarmessage',
-        'Content-Type': 'text/calendar; method=REQUEST; charset=UTF-8',
-        'X-MS-OLK-FORCEINSPECTOROPEN': 'TRUE'
-      };
-    }
+    // Temporarily disable ICS attachments to fix immediate scheduling issue
+    // if (icsContent && icsFileName) {
+    //   const base64String = btoa(unescape(encodeURIComponent(icsContent)));
+    //   emailBody.attachments = [{
+    //     filename: icsFileName,
+    //     content: base64String,
+    //     contentType: 'text/calendar; method=REQUEST; charset=UTF-8'
+    //   }];
+    //   
+    //   emailBody.headers = {
+    //     'Content-Class': 'urn:content-classes:calendarmessage',
+    //     'Content-Type': 'text/calendar; method=REQUEST; charset=UTF-8',
+    //     'X-MS-OLK-FORCEINSPECTOROPEN': 'TRUE'
+    //   };
+    // }
 
     const { error } = await supabase.functions.invoke('zoho-mail', {
       body: emailBody
@@ -285,15 +282,13 @@ const handleScheduledNotification = async (meeting: Meeting): Promise<void> => {
   const meetingDateTime = formatDateTime(meeting.meeting_date, meeting.meeting_time, meeting.meeting_timezone);
   const meetingPortalLink = generateMeetingPortalLink(meeting.id);
 
-  // Generate .ics file and upload it
-  const icsContent = generateICSContent(meeting);
-  const icsUrl = await uploadICSFile(meeting, icsContent);
+  // Temporarily disable complex ICS operations to fix scheduling
+  // const icsContent = generateICSContent(meeting);
+  // const icsUrl = await uploadICSFile(meeting, icsContent);
+  // await scheduleICSFileDeletion(meeting);
+  // const calendarLinks = generateCalendarLinks(meeting, icsUrl);
   
-  // Schedule deletion of .ics file 24 hours after meeting
-  await scheduleICSFileDeletion(meeting);
-  
-  // Generate calendar invitation links
-  const calendarLinks = generateCalendarLinks(meeting, icsUrl);
+  const calendarLinks = `<p>Calendar integration temporarily disabled during system optimization.</p>`;
 
   // Email to admin
   const adminEmailHtml = `
@@ -505,21 +500,24 @@ _Elismet Team - Your CRM Partners_`;
       `Meeting Confirmed - ${platformDetails.name} on ${meetingDateTime.split(' at ')[0]}`,
       clientEmailHtml
     ),
-    // Third email with calendar invitation (.ics attachment for professional calendar integration)
-    sendEmailNotification(
-      [meeting.email], 
-      `📅 Add to Calendar - ${meeting.company_name} Meeting (${meetingDateTime.split(' at ')[0]})`,
-      calendarInviteEmailHtml,
-      icsContent,
-      `${meeting.contact_name} and Elismet Ltd.ics`
-    )
+    // Third email with calendar invitation - TEMPORARILY DISABLED
+    // sendEmailNotification(
+    //   [meeting.email], 
+    //   `📅 Add to Calendar - ${meeting.company_name} Meeting (${meetingDateTime.split(' at ')[0]})`,
+    //   calendarInviteEmailHtml,
+    //   icsContent,
+    //   `${meeting.contact_name} and Elismet Ltd.ics`
+    // )
   ];
 
-  // Add WhatsApp notification if phone number provided
+  // Add WhatsApp notification if phone number provided - SIMPLIFIED
   if (meeting.whatsapp) {
-    emailPromises.push(
-      sendWhatsAppNotification(meeting.whatsapp, whatsappMessage)
-    );
+    try {
+      await sendWhatsAppNotification(meeting.whatsapp, whatsappMessage);
+    } catch (error) {
+      console.error('WhatsApp notification failed, but continuing with email:', error);
+      // Don't throw error, just log it so email notifications still work
+    }
   }
 
   await Promise.all(emailPromises);

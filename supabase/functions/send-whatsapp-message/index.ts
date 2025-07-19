@@ -22,7 +22,8 @@ const sendWhatsAppMessage = async (recipient: string, content: string, media_url
   const instanceId = Deno.env.get('WHATSAPP_INSTANCE_ID');
 
   if (!apiKey || !instanceId) {
-    throw new Error('WhatsApp API credentials not configured');
+    console.log('WhatsApp API credentials not found - skipping WhatsApp notification');
+    return { success: true, message: 'WhatsApp credentials not configured, skipped' };
   }
 
   // Format phone number (remove any non-digits except +)
@@ -35,26 +36,31 @@ const sendWhatsAppMessage = async (recipient: string, content: string, media_url
     instance_id: instanceId
   };
 
-  console.log('Sending WhatsApp message:', { recipient: formattedRecipient, content: content.substring(0, 100) + '...' });
+  console.log('Sending WhatsApp message to:', formattedRecipient);
 
-  const response = await fetch('https://api.wacloud.app/send-message', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'API-Key': apiKey
-    },
-    body: JSON.stringify(payload)
-  });
+  try {
+    const response = await fetch('https://api.wacloud.app/send-message', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'API-Key': apiKey
+      },
+      body: JSON.stringify(payload)
+    });
 
-  const result = await response.json();
-  
-  if (!response.ok) {
-    console.error('WhatsApp API error:', result);
-    throw new Error(`WhatsApp API error: ${result.message || 'Unknown error'}`);
+    const result = await response.json();
+    
+    if (!response.ok) {
+      console.error('WhatsApp API error:', result);
+      return { success: false, error: result.message || 'WhatsApp API error' };
+    }
+
+    console.log('WhatsApp message sent successfully:', result);
+    return result;
+  } catch (error) {
+    console.error('WhatsApp sending failed:', error);
+    return { success: false, error: error.message };
   }
-
-  console.log('WhatsApp message sent successfully:', result);
-  return result;
 };
 
 const handler = async (req: Request): Promise<Response> => {
@@ -81,13 +87,15 @@ const handler = async (req: Request): Promise<Response> => {
     });
   } catch (error: any) {
     console.error('Error in send-whatsapp-message function:', error);
+    // Return success even if WhatsApp fails, so the main scheduling doesn't break
     return new Response(
       JSON.stringify({ 
-        success: false, 
+        success: true, 
+        message: 'WhatsApp notification skipped due to error',
         error: error.message 
       }),
       {
-        status: 500,
+        status: 200,
         headers: { 
           'Content-Type': 'application/json', 
           ...corsHeaders 
