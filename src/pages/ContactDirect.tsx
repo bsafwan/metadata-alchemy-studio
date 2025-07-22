@@ -4,13 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Send, Building, Mail, Phone, Calendar } from 'lucide-react';
+import { ArrowLeft, Send, Building, Mail, Phone } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { saveCRMInquiry } from '@/utils/crmInquiryService';
-import MeetingScheduler from '@/components/MeetingScheduler';
 
 const ContactDirect = () => {
   const { toast } = useToast();
@@ -18,7 +17,6 @@ const ContactDirect = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userIdentifier, setUserIdentifier] = useState<string>('');
   const [sourcePage, setSourcePage] = useState<string>('');
-  const [showScheduler, setShowScheduler] = useState(false);
   const [formData, setFormData] = useState({
     company_name: '',
     email: '',
@@ -129,38 +127,6 @@ const ContactDirect = () => {
             </p>
           </div>
 
-          {/* Schedule Meeting Option */}
-          <div className="mb-12">
-            <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 via-white to-indigo-50 shadow-xl">
-              <CardContent className="p-6 md:p-12 text-center">
-                <h2 className="text-2xl md:text-3xl font-bold text-blue-900 mb-4">Fast-Track Your Project</h2>
-                <p className="text-blue-700 mb-6 md:mb-8 text-base md:text-lg">Schedule a professional consultation with our experts</p>
-                
-                <Button 
-                  onClick={() => setShowScheduler(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 md:px-12 py-3 md:py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all text-base md:text-lg w-full md:w-auto"
-                >
-                  <Calendar className="w-5 h-5 md:w-6 md:h-6 mr-2 md:mr-3" />
-                  Schedule Professional Meeting
-                </Button>
-
-                <div className="mt-6 flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 text-blue-600">
-                  <span className="flex items-center gap-2 text-xs md:text-sm font-medium">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    Thursday & Friday Only
-                  </span>
-                  <span className="flex items-center gap-2 text-xs md:text-sm font-medium">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    30-Minute Sessions
-                  </span>
-                  <span className="flex items-center gap-2 text-xs md:text-sm font-medium">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    Eastern Time (EDT)
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
 
           {/* Contact Form Section */}
           <Card className="shadow-lg border-0 bg-white/90 backdrop-blur">
@@ -285,11 +251,6 @@ Please provide specific details about your situation so we can create the right 
       </div>
 
       <Footer />
-      
-      {/* Meeting Scheduler Modal */}
-      {showScheduler && (
-        <MeetingScheduler onClose={() => setShowScheduler(false)} />
-      )}
     </div>
   );
 };
