@@ -39,7 +39,7 @@ const Navbar = () => {
   return (
     <nav 
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-6 py-3",
+        "fixed top-0 left-0 right-0 z-50 md:transition-all md:duration-300 px-6 py-3",
         isScrolled ? "bg-white/90 shadow-md backdrop-blur-md" : "bg-transparent"
       )}
     >
@@ -59,7 +59,7 @@ const Navbar = () => {
             <Link 
               key={link.label}
               to={link.path}
-              className="text-foreground hover:text-elismet-blue transition-colors animated-link font-medium animate-slide-down"
+              className="text-foreground md:hover:text-elismet-blue md:transition-colors animated-link font-medium animate-slide-down"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               {link.label}
@@ -88,7 +88,7 @@ const Navbar = () => {
 
         {/* Mobile Menu Button */}
         <button 
-          className="md:hidden text-foreground hover:text-elismet-blue transition-colors"
+          className="md:hidden text-foreground md:hover:text-elismet-blue md:transition-colors"
           onClick={toggleMenu}
           aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
         >
@@ -99,7 +99,7 @@ const Navbar = () => {
       {/* Mobile Menu */}
       <div 
         className={cn(
-          "fixed inset-0 bg-white z-40 transition-transform duration-300 md:hidden",
+          "fixed inset-0 bg-white z-40 md:hidden",
           mobileMenuOpen ? "translate-x-0" : "translate-x-full"
         )}
       >
@@ -114,7 +114,7 @@ const Navbar = () => {
           </Link>
           <button 
             onClick={toggleMenu}
-            className="text-foreground hover:text-elismet-blue transition-colors p-2"
+            className="text-foreground p-2"
             aria-label="Close menu"
           >
             <X size={24} />
@@ -127,7 +127,7 @@ const Navbar = () => {
             <Link 
               key={link.label}
               to={link.path}
-              className="text-xl font-medium text-foreground hover:text-elismet-blue transition-colors"
+              className="text-xl font-medium text-foreground"
               onClick={toggleMenu}
             >
               {link.label}
