@@ -27,6 +27,7 @@ import VerifyOTP from "./pages/VerifyOTP";
 import ProjectSetup from "./pages/ProjectSetup";
 import Login from "./pages/Login";
 import ContactDirect from "./pages/ContactDirect";
+import Schedule from "./pages/Schedule";
 import LiveChat from "./pages/LiveChat";
 import DashboardLayout from "./components/DashboardLayout";
 import DashboardHome from "./pages/DashboardHome";
@@ -97,6 +98,7 @@ const App = () => (
               } />
               <Route path="/login" element={<Login />} />
               <Route path="/contact-direct" element={<ContactDirect />} />
+              <Route path="/schedule" element={<Schedule />} />
               <Route path="/live-chat" element={<LiveChat />} />
               
               {/* Super Admin Login - Complex Hidden URL */}
