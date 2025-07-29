@@ -1,6 +1,7 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const Schedule = () => {
   return (
@@ -21,15 +22,17 @@ const Schedule = () => {
 
           {/* Calendly Embed */}
           <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-            <iframe
-              src="https://calendly.com/elismet-support/discussion-of-your-business-problems?embed_domain=localhost%3A8080&embed_type=Inline"
-              width="100%"
-              height="700"
-              frameBorder="0"
-              scrolling="no"
-              title="Schedule a meeting"
-              className="w-full"
-            ></iframe>
+            <ScrollArea className="h-[80vh] min-h-[600px] max-h-[800px] w-full">
+              <iframe
+                src="https://calendly.com/elismet-support/discussion-of-your-business-problems?embed_domain=localhost%3A8080&embed_type=Inline"
+                width="100%"
+                height="800"
+                frameBorder="0"
+                scrolling="no"
+                title="Schedule a meeting"
+                className="w-full"
+              ></iframe>
+            </ScrollArea>
           </div>
 
           {/* Additional Info */}
