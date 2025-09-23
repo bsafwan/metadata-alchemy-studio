@@ -18,6 +18,7 @@ import SmartScheduling from "./pages/SmartScheduling";
 import AutomatedFollowUps from "./pages/AutomatedFollowUps";
 import PaymentSolutions from "./pages/PaymentSolutions";
 import CostTracking from "./pages/CostTracking";
+import BusinessHighTicketCoachingServices from "./pages/BusinessHighTicketCoachingServices";
 import Author from "./pages/Author";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -80,6 +81,7 @@ const App = () => (
               <Route path="/automated-follow-ups" element={<AutomatedFollowUps />} />
               <Route path="/payment-solutions" element={<PaymentSolutions />} />
               <Route path="/cost-tracking" element={<CostTracking />} />
+              <Route path="/business-high-ticket-coaching-services" element={<BusinessHighTicketCoachingServices />} />
               <Route path="/author" element={<Author />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />
