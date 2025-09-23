@@ -30,6 +30,7 @@ import Login from "./pages/Login";
 import ContactDirect from "./pages/ContactDirect";
 import Schedule from "./pages/Schedule";
 import LiveChat from "./pages/LiveChat";
+import CustomAuditPage from "./pages/CustomAuditPage";
 import DashboardLayout from "./components/DashboardLayout";
 import DashboardHome from "./pages/DashboardHome";
 import Conversations from "./pages/Conversations";
@@ -102,6 +103,7 @@ const App = () => (
               <Route path="/contact-direct" element={<ContactDirect />} />
               <Route path="/schedule" element={<Schedule />} />
               <Route path="/live-chat" element={<LiveChat />} />
+              <Route path="/custom-audits/:slug" element={<CustomAuditPage />} />
               
               {/* Super Admin Login - Complex Hidden URL */}
               <Route path="/system-control-panel-auth-gateway-x7k9m2p8q4w1" element={<SuperAdminLogin />} />

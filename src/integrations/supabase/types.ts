@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -284,6 +284,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      custom_audit_pages: {
+        Row: {
+          client_email: string
+          client_name: string
+          created_at: string
+          expires_at: string
+          html_content: string
+          id: string
+          updated_at: string
+          url_slug: string
+        }
+        Insert: {
+          client_email: string
+          client_name: string
+          created_at?: string
+          expires_at?: string
+          html_content: string
+          id?: string
+          updated_at?: string
+          url_slug: string
+        }
+        Update: {
+          client_email?: string
+          client_name?: string
+          created_at?: string
+          expires_at?: string
+          html_content?: string
+          id?: string
+          updated_at?: string
+          url_slug?: string
+        }
+        Relationships: []
       }
       delivery_items: {
         Row: {
@@ -1119,7 +1152,7 @@ export type Database = {
         Returns: undefined
       }
       update_phase_prices_from_total: {
-        Args: { p_project_id: string; p_new_total: number }
+        Args: { p_new_total: number; p_project_id: string }
         Returns: undefined
       }
     }
