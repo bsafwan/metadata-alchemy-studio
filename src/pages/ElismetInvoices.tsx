@@ -34,7 +34,7 @@ const ElismetInvoices = () => {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('super-admin-auth', {
+      const { data, error } = await supabase.functions.invoke('verify-password', {
         body: { password, secretName: 'STRIPE_INVOICE_GENERATION_PASSWORD' }
       });
 
@@ -95,7 +95,7 @@ const ElismetInvoices = () => {
 
       toast({
         title: "Invoice created successfully!",
-        description: `Invoice ${data.invoiceNumber} has been created and notification sent.`,
+        description: `Invoice ${data.invoiceNumber} sent to ${customerEmail}. Details sent to admin.`,
       });
 
       // Reset form

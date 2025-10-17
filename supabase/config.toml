@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.create-stripe-invoice]
 verify_jwt = false
+
+[functions.verify-password]
+verify_jwt = false
