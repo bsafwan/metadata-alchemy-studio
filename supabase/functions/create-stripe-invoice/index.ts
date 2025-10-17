@@ -45,6 +45,12 @@ serve(async (req) => {
     const invoiceData: InvoiceRequest = await req.json();
 
     console.log('Creating Stripe invoice for:', invoiceData.customer.email);
+    console.log('Service details:', {
+      name: invoiceData.service.name,
+      price: invoiceData.service.price,
+      quantity: invoiceData.service.quantity,
+      currency: invoiceData.service.currency
+    });
 
     // Create or get customer
     const customers = await stripe.customers.list({
@@ -70,13 +76,24 @@ serve(async (req) => {
     const unitAmount = Math.round(invoiceData.service.price * 100);
     const totalAmount = unitAmount * invoiceData.service.quantity;
 
-    // Create invoice item
-    await stripe.invoiceItems.create({
+    console.log('Calculated amounts:', {
+      unitAmount,
+      totalAmount,
+      originalPrice: invoiceData.service.price,
+      quantity: invoiceData.service.quantity
+    });
+
+    // Create invoice item with detailed description
+    const invoiceItem = await stripe.invoiceItems.create({
       customer: customer.id,
       amount: totalAmount,
       currency: invoiceData.service.currency.toLowerCase(),
-      description: `${invoiceData.service.name}${invoiceData.service.details ? ` - ${invoiceData.service.details}` : ''}`,
+      description: `${invoiceData.service.name}${invoiceData.service.details ? `\n${invoiceData.service.details}` : ''}\nQuantity: ${invoiceData.service.quantity} × ${invoiceData.service.currency.toUpperCase()} ${invoiceData.service.price.toFixed(2)}`,
+      quantity: invoiceData.service.quantity,
+      unit_amount: unitAmount,
     });
+
+    console.log('Invoice item created:', invoiceItem.id);
 
     // Create invoice
     const dueTimestamp = Math.floor(new Date(invoiceData.dueDate).getTime() / 1000);
@@ -86,9 +103,12 @@ serve(async (req) => {
       collection_method: 'send_invoice',
       days_until_due: Math.max(1, Math.ceil((dueTimestamp - Date.now() / 1000) / 86400)),
       auto_advance: false,
-      footer: `Elismet Ltd\nUK Registration Number: 16433590\nOffice 12611 182-184 High Street North, East Ham, London, United Kingdom, E6 2JA`,
+      description: `${invoiceData.service.name} - ${invoiceData.paymentTerms}`,
+      footer: `Payment Terms: ${invoiceData.paymentTerms}\nPayment Methods: ${invoiceData.paymentMethods}\n\nElismet Ltd\nUK Registration Number: 16433590\nOffice 12611 182-184 High Street North, East Ham, London, United Kingdom, E6 2JA`,
       metadata: {
         payment_terms: invoiceData.paymentTerms,
+        payment_methods: invoiceData.paymentMethods,
+        service_name: invoiceData.service.name,
       },
     });
 
