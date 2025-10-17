@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.create-custom-audit-page]
 verify_jwt = false
+
+[functions.create-stripe-invoice]
+verify_jwt = false
