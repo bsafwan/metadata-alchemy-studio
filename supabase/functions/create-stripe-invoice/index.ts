@@ -83,14 +83,24 @@ serve(async (req) => {
       quantity: invoiceData.service.quantity
     });
 
-    // Create invoice item with detailed description
+    // Create invoice item using price_data so the invoice shows product + unit price clearly
     const invoiceItem = await stripe.invoiceItems.create({
       customer: customer.id,
-      amount: totalAmount,
-      currency: invoiceData.service.currency.toLowerCase(),
-      description: `${invoiceData.service.name}${invoiceData.service.details ? `\n${invoiceData.service.details}` : ''}\nQuantity: ${invoiceData.service.quantity} × ${invoiceData.service.currency.toUpperCase()} ${invoiceData.service.price.toFixed(2)}`,
+      price_data: {
+        currency: invoiceData.service.currency.toLowerCase(),
+        unit_amount: unitAmount,
+        product_data: {
+          name: invoiceData.service.name,
+          description: invoiceData.service.details || undefined,
+        },
+      },
       quantity: invoiceData.service.quantity,
-      unit_amount: unitAmount,
+      metadata: {
+        service_name: invoiceData.service.name,
+        service_details: invoiceData.service.details || '',
+        unit_price: invoiceData.service.price.toString(),
+        quantity: invoiceData.service.quantity.toString(),
+      },
     });
 
     console.log('Invoice item created:', invoiceItem.id);
