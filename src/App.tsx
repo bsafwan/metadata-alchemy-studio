@@ -33,6 +33,7 @@ import LiveChat from "./pages/LiveChat";
 import CustomAuditPage from "./pages/CustomAuditPage";
 import SocialEngagementsForBusinessCoach from "./pages/SocialEngagementsForBusinessCoach";
 import ElismetInvoices from "./pages/ElismetInvoices";
+import Apply from "./pages/Apply";
 import DashboardLayout from "./components/DashboardLayout";
 import DashboardHome from "./pages/DashboardHome";
 import Conversations from "./pages/Conversations";
@@ -108,6 +109,7 @@ const App = () => (
               <Route path="/custom-audits/:slug" element={<CustomAuditPage />} />
               <Route path="/social-engagements-for-business-coach" element={<SocialEngagementsForBusinessCoach />} />
               <Route path="/elismet-invoices" element={<ElismetInvoices />} />
+              <Route path="/apply" element={<Apply />} />
               
               {/* Super Admin Login - Complex Hidden URL */}
               <Route path="/system-control-panel-auth-gateway-x7k9m2p8q4w1" element={<SuperAdminLogin />} />
