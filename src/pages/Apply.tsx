@@ -6,18 +6,22 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { Slider } from '@/components/ui/slider';
 import FileUploader from '@/components/FileUploader';
 import { useZohoMail } from '@/hooks/useZohoMail';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, ArrowRight, CheckCircle2, Briefcase, Upload, User } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Briefcase, Upload, User, Sparkles } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 interface FormData {
+  jobPosition: string;
   fullName: string;
   email: string;
   phone: string;
   linkedIn: string;
+  age: number;
+  experienceYears: number;
   experience: string;
   whyJoin: string;
   resumeUrl: string;
@@ -27,19 +31,22 @@ const Apply = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { sendEmail, isSending } = useZohoMail();
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<FormData>({
+    jobPosition: '',
     fullName: '',
     email: '',
     phone: '',
     linkedIn: '',
+    age: 25,
+    experienceYears: 2,
     experience: '',
     whyJoin: '',
     resumeUrl: '',
   });
 
-  const totalSteps = 4;
-  const progress = (currentStep / totalSteps) * 100;
+  const totalSteps = 5;
+  const progress = ((currentStep - 1) / (totalSteps - 1)) * 100;
 
   const updateFormData = (field: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -47,6 +54,16 @@ const Apply = () => {
 
   const handleNext = () => {
     // Validation for each step
+    if (currentStep === 0) {
+      if (!formData.jobPosition) {
+        toast({
+          title: "Please Select a Position",
+          description: "Choose a job position to continue",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
     if (currentStep === 1) {
       if (!formData.fullName || !formData.email || !formData.phone) {
         toast({
@@ -91,7 +108,7 @@ const Apply = () => {
   };
 
   const handleBack = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 1));
+    setCurrentStep(prev => Math.max(prev - 1, 0));
   };
 
   const handleSubmit = async () => {
@@ -99,13 +116,13 @@ const Apply = () => {
       // Send detailed email to admin
       const adminSuccess = await sendEmail({
         to: ['bsafwanjamil677@gmail.com'],
-        subject: `New Job Application - Marketing Co-founder`,
+        subject: `New Job Application - ${formData.jobPosition}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #1a1a1a; border-bottom: 2px solid #0066cc; padding-bottom: 10px;">New Job Application Received</h2>
             
             <h3 style="color: #0066cc; margin-top: 30px;">Position</h3>
-            <p style="font-size: 16px; margin: 5px 0;"><strong>Marketing Co-founder (Outreach Expert)</strong></p>
+            <p style="font-size: 16px; margin: 5px 0;"><strong>${formData.jobPosition}</strong></p>
             <p style="color: #666;">Payment: Commission Based</p>
             
             <h3 style="color: #0066cc; margin-top: 30px;">Personal Information</h3>
@@ -125,6 +142,14 @@ const Apply = () => {
               <tr>
                 <td style="padding: 8px 0; color: #666;">LinkedIn:</td>
                 <td style="padding: 8px 0;"><strong>${formData.linkedIn || 'Not provided'}</strong></td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #666;">Age:</td>
+                <td style="padding: 8px 0;"><strong>${formData.age} years</strong></td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #666;">Experience:</td>
+                <td style="padding: 8px 0;"><strong>${formData.experienceYears} years</strong></td>
               </tr>
             </table>
             
@@ -149,7 +174,7 @@ const Apply = () => {
       // Send confirmation email to applicant
       const applicantSuccess = await sendEmail({
         to: [formData.email],
-        subject: 'Application Received - Marketing Co-founder Position',
+        subject: `Application Received - ${formData.jobPosition}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #1a1a1a; border-bottom: 2px solid #0066cc; padding-bottom: 10px;">Thank You for Your Application!</h2>
@@ -157,7 +182,7 @@ const Apply = () => {
             <p style="font-size: 16px; line-height: 1.6; color: #333;">Dear ${formData.fullName},</p>
             
             <p style="font-size: 14px; line-height: 1.6; color: #666;">
-              We have successfully received your application for the <strong>Marketing Co-founder (Outreach Expert)</strong> position.
+              We have successfully received your application for the <strong>${formData.jobPosition}</strong> position.
             </p>
             
             <div style="background: #f0f8ff; border-left: 4px solid #0066cc; padding: 15px; margin: 20px 0;">
@@ -205,6 +230,56 @@ const Apply = () => {
 
   const renderStep = () => {
     switch (currentStep) {
+      case 0:
+        return (
+          <div className="space-y-8 animate-in fade-in-50 duration-500">
+            <div className="text-center space-y-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+                <Sparkles className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-2xl font-bold">Select Your Position</h3>
+              <p className="text-muted-foreground">Choose the role you'd like to apply for</p>
+            </div>
+
+            <div className="space-y-4">
+              <button
+                onClick={() => updateFormData('jobPosition', 'Marketing Co-founder (Outreach Expert)')}
+                className={`w-full p-6 rounded-xl border-2 transition-all duration-300 text-left ${
+                  formData.jobPosition === 'Marketing Co-founder (Outreach Expert)'
+                    ? 'border-primary bg-primary/5 shadow-lg scale-105'
+                    : 'border-border hover:border-primary/50 hover:bg-accent/50'
+                }`}
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Briefcase className="w-6 h-6 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-lg font-semibold mb-2">Marketing Co-founder (Outreach Expert)</h4>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Lead our marketing initiatives and drive business growth through strategic outreach campaigns
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                        Commission Based
+                      </span>
+                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-secondary/10 text-secondary-foreground">
+                        Co-founder Role
+                      </span>
+                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-accent text-accent-foreground">
+                        Remote
+                      </span>
+                    </div>
+                  </div>
+                  {formData.jobPosition === 'Marketing Co-founder (Outreach Expert)' && (
+                    <CheckCircle2 className="w-6 h-6 text-primary flex-shrink-0" />
+                  )}
+                </div>
+              </button>
+            </div>
+          </div>
+        );
+
       case 1:
         return (
           <div className="space-y-6 animate-in fade-in-50 duration-500">
@@ -254,6 +329,44 @@ const Apply = () => {
                 onChange={(e) => updateFormData('linkedIn', e.target.value)}
               />
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <Label>Age: {formData.age} years</Label>
+                </div>
+                <Slider
+                  min={16}
+                  max={35}
+                  step={1}
+                  value={[formData.age]}
+                  onValueChange={(value) => updateFormData('age', value[0].toString())}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>16</span>
+                  <span>35</span>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <Label>Experience: {formData.experienceYears} {formData.experienceYears === 1 ? 'year' : 'years'}</Label>
+                </div>
+                <Slider
+                  min={0}
+                  max={5}
+                  step={1}
+                  value={[formData.experienceYears]}
+                  onValueChange={(value) => updateFormData('experienceYears', value[0].toString())}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>0 years</span>
+                  <span>5 years</span>
+                </div>
+              </div>
+            </div>
           </div>
         );
 
@@ -265,8 +378,8 @@ const Apply = () => {
               <h3 className="text-xl font-semibold">Professional Details</h3>
             </div>
 
-            <div className="bg-muted/50 p-4 rounded-lg border">
-              <p className="font-medium">Position: Marketing Co-founder (Outreach Expert)</p>
+            <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-5 rounded-xl border border-primary/20">
+              <p className="font-semibold text-lg">{formData.jobPosition}</p>
               <p className="text-sm text-muted-foreground mt-1">Payment: Commission Based</p>
             </div>
 
@@ -346,57 +459,65 @@ const Apply = () => {
             </div>
 
             <div className="space-y-4">
-              <Card>
-                <CardHeader>
+              <Card className="border-primary/20">
+                <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
                   <CardTitle className="text-base">Personal Information</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2 text-sm">
-                  <div className="flex justify-between">
+                <CardContent className="space-y-3 text-sm pt-4">
+                  <div className="flex justify-between items-center py-2 border-b">
                     <span className="text-muted-foreground">Full Name:</span>
-                    <span className="font-medium">{formData.fullName}</span>
+                    <span className="font-semibold">{formData.fullName}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center py-2 border-b">
                     <span className="text-muted-foreground">Email:</span>
-                    <span className="font-medium">{formData.email}</span>
+                    <span className="font-semibold">{formData.email}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center py-2 border-b">
                     <span className="text-muted-foreground">Phone:</span>
-                    <span className="font-medium">{formData.phone}</span>
+                    <span className="font-semibold">{formData.phone}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-muted-foreground">Age:</span>
+                    <span className="font-semibold">{formData.age} years</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-muted-foreground">Experience:</span>
+                    <span className="font-semibold">{formData.experienceYears} years</span>
                   </div>
                   {formData.linkedIn && (
-                    <div className="flex justify-between">
+                    <div className="flex justify-between items-center py-2">
                       <span className="text-muted-foreground">LinkedIn:</span>
-                      <span className="font-medium truncate max-w-[200px]">{formData.linkedIn}</span>
+                      <span className="font-semibold truncate max-w-[200px]">{formData.linkedIn}</span>
                     </div>
                   )}
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
+              <Card className="border-primary/20">
+                <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
                   <CardTitle className="text-base">Position</CardTitle>
                 </CardHeader>
-                <CardContent className="text-sm">
-                  <p className="font-medium">Marketing Co-founder (Outreach Expert)</p>
-                  <p className="text-muted-foreground">Commission Based</p>
+                <CardContent className="text-sm pt-4">
+                  <p className="font-semibold text-lg">{formData.jobPosition}</p>
+                  <p className="text-muted-foreground mt-1">Commission Based</p>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
+              <Card className="border-primary/20">
+                <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
                   <CardTitle className="text-base">Resume</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2 text-sm text-green-600">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Resume uploaded</span>
+                <CardContent className="pt-4">
+                  <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 dark:bg-green-950/20 p-3 rounded-lg">
+                    <CheckCircle2 className="w-5 h-5" />
+                    <span className="font-medium">Resume uploaded successfully</span>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            <div className="bg-muted/50 p-4 rounded-lg border">
-              <p className="text-sm text-muted-foreground">
+            <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-5 rounded-xl border border-primary/20">
+              <p className="text-sm font-medium">
                 By submitting this application, you confirm that all information provided is accurate and complete.
               </p>
             </div>
@@ -444,46 +565,70 @@ const Apply = () => {
       
       <div className="flex-1 py-12 px-4">
         <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-2">Join Our Team</h1>
-            <p className="text-muted-foreground">Marketing Co-founder (Outreach Expert)</p>
-            <p className="text-sm text-muted-foreground mt-1">Commission Based</p>
+          <div className="text-center mb-10 space-y-4">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary/60 mb-4 shadow-lg">
+              <Briefcase className="w-10 h-10 text-primary-foreground" />
+            </div>
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              Join Our Team
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Take the next step in your career journey with us
+            </p>
           </div>
 
-          <Card className="shadow-lg">
-            <CardHeader>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <CardTitle>Application Form</CardTitle>
-                  <span className="text-sm text-muted-foreground">
-                    Step {currentStep} of {totalSteps}
-                  </span>
+          <Card className="shadow-2xl border-primary/10 backdrop-blur-sm">
+            {currentStep > 0 && (
+              <CardHeader className="border-b bg-gradient-to-r from-primary/5 to-transparent">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-xl">Application Form</CardTitle>
+                    <span className="text-sm font-medium bg-primary/10 text-primary px-3 py-1 rounded-full">
+                      Step {currentStep} of {totalSteps - 1}
+                    </span>
+                  </div>
+                  <Progress value={progress} className="h-2.5" />
                 </div>
-                <Progress value={progress} className="h-2" />
-              </div>
-            </CardHeader>
+              </CardHeader>
+            )}
+            {currentStep === 0 && (
+              <CardHeader className="text-center pb-2">
+                <CardTitle className="text-2xl">Start Your Application</CardTitle>
+                <CardDescription>Select the position you're interested in</CardDescription>
+              </CardHeader>
+            )}
 
-            <CardContent className="pt-6">
+            <CardContent className="pt-8">
               {renderStep()}
 
-              <div className="flex justify-between mt-8 pt-6 border-t">
+              <div className="flex justify-between mt-10 pt-6 border-t">
                 <Button
                   variant="outline"
                   onClick={handleBack}
-                  disabled={currentStep === 1 || isSending}
+                  disabled={currentStep === 0 || isSending}
+                  className="gap-2"
                 >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  <ArrowLeft className="w-4 h-4" />
                   Back
                 </Button>
 
-                {currentStep < totalSteps ? (
-                  <Button onClick={handleNext} disabled={isSending}>
-                    Next
-                    <ArrowRight className="w-4 h-4 ml-2" />
+                {currentStep < totalSteps - 1 ? (
+                  <Button 
+                    onClick={handleNext} 
+                    disabled={isSending || (currentStep === 0 && !formData.jobPosition)}
+                    className="gap-2 shadow-lg"
+                  >
+                    {currentStep === 0 ? 'Start Application' : 'Continue'}
+                    <ArrowRight className="w-4 h-4" />
                   </Button>
                 ) : (
-                  <Button onClick={handleSubmit} disabled={isSending}>
+                  <Button 
+                    onClick={handleSubmit} 
+                    disabled={isSending}
+                    className="gap-2 shadow-lg bg-gradient-to-r from-primary to-primary/80"
+                  >
                     {isSending ? 'Submitting...' : 'Submit Application'}
+                    <CheckCircle2 className="w-4 h-4" />
                   </Button>
                 )}
               </div>
