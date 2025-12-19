@@ -1143,10 +1143,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      generate_payment_reference: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_payment_reference: { Args: never; Returns: string }
       initialize_default_delivery_items: {
         Args: { p_project_id: string }
         Returns: undefined
