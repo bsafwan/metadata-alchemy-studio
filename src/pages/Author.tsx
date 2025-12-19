@@ -4,31 +4,31 @@ import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
 import AnimatedText from '@/components/AnimatedText';
 import ScrollToTopButton from '@/components/ScrollToTop';
-import { UsersRound, Book, Star, Mail } from 'lucide-react';
+import { UsersRound, Book, Star, Mail, Phone, MapPin, Briefcase } from 'lucide-react';
 
 const Author = () => {
-  const teamMembers = [
-    {
-      name: "MD Rabiullah",
-      role: "CEO & Founder",
-      bio: "Visionary leader who founded Elismet LTD with the goal of creating innovative subscription-based software solutions that solve real problems for businesses and individuals.",
-      imageUrl: "/lovable-uploads/1a14858e-4552-4232-a4f6-a9a31042b5ec.png",
-      isFounder: true,
-      socials: {
-        email: "rabiullah@elismet.com",
-        linkedin: "#",
-      }
-    },
+  const founder = {
+    name: "MD Rabiullah",
+    role: "CEO & Founder",
+    bio: "Visionary leader who founded Elismet LTD with the goal of creating innovative subscription-based software solutions that solve real problems for businesses and individuals.",
+    imageUrl: "/lovable-uploads/1a14858e-4552-4232-a4f6-a9a31042b5ec.png",
+    phone: "+88 01326764715",
+    email: "bsafwanjamil678@gmail.com",
+    address: "East Paikpara, Brahmanbaria, Chittagong, Bangladesh"
+  };
+
+  const employees = [
     {
       name: "Robiul Islam",
-      role: "Assistant & Co-founder",
-      bio: "Integral part of Elismet LTD, holding internal shares and helping to drive the company's vision forward with expertise in technology and business development.",
-      imageUrl: "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7",
-      isFounder: false,
-      socials: {
-        email: "robiul@elismet.com",
-        linkedin: "#",
-      }
+      role: "Digital Marketer"
+    },
+    {
+      name: "Md. Safwan",
+      role: "Software Engineer"
+    },
+    {
+      name: "Mohiuddin",
+      role: "Software Engineer"
     }
   ];
 
@@ -58,62 +58,124 @@ const Author = () => {
         <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-background to-transparent"></div>
       </section>
 
-      {/* Team Section */}
+      {/* Founder Section */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            {teamMembers.map((member, index) => (
-              <div 
-                key={member.name}
-                className={`bg-white rounded-xl shadow-lg overflow-hidden transform transition-all duration-500 hover:-translate-y-2 hover:shadow-xl ${
-                  index % 2 === 0 ? 'animate-slide-in-right' : 'animate-slide-in-left'
-                }`}
-                style={{ animationDelay: `${index * 0.3}s` }}
-              >
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/70"></div>
-                  <img 
-                    src={member.imageUrl} 
-                    alt={member.name} 
-                    className="w-full h-80 object-cover"
-                  />
-                  {member.isFounder && (
-                    <div className="absolute top-4 right-4 bg-elismet-orange text-white px-4 py-2 rounded-full text-sm font-semibold animate-pulse-glow">
-                      Founder
-                    </div>
-                  )}
-                  <div className="absolute bottom-0 left-0 w-full p-6 text-white">
-                    <h3 className="text-3xl font-bold mb-1">{member.name}</h3>
-                    <p className="text-white/80 text-lg">{member.role}</p>
-                  </div>
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-500 hover:-translate-y-2 hover:shadow-3xl animate-slide-in-right">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80"></div>
+                <img 
+                  src={founder.imageUrl} 
+                  alt={founder.name} 
+                  className="w-full h-96 object-cover"
+                />
+                <div className="absolute top-4 right-4 bg-elismet-orange text-white px-4 py-2 rounded-full text-sm font-semibold animate-pulse-glow">
+                  Founder
                 </div>
+                <div className="absolute bottom-0 left-0 w-full p-8 text-white">
+                  <h3 className="text-4xl font-bold mb-2">{founder.name}</h3>
+                  <p className="text-white/90 text-xl">{founder.role}</p>
+                </div>
+              </div>
 
-                <div className="p-6">
-                  <p className="text-muted-foreground mb-6">{member.bio}</p>
-                  
-                  <div className="flex flex-wrap gap-4 mb-6">
-                    <div className="flex items-center gap-2">
-                      <UsersRound size={18} className="text-elismet-blue" />
-                      <span className="text-sm text-muted-foreground">Leadership</span>
+              <div className="p-8">
+                <p className="text-muted-foreground text-lg mb-8">{founder.bio}</p>
+                
+                {/* Contact Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  <div className="flex items-start gap-4 p-4 bg-slate-50 rounded-xl">
+                    <div className="p-3 bg-elismet-blue/10 rounded-lg">
+                      <Phone size={20} className="text-elismet-blue" />
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Book size={18} className="text-elismet-blue" />
-                      <span className="text-sm text-muted-foreground">Strategy</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Star size={18} className="text-elismet-blue" />
-                      <span className="text-sm text-muted-foreground">Innovation</span>
+                    <div>
+                      <p className="text-sm text-muted-foreground font-medium">Phone</p>
+                      <a href={`tel:${founder.phone}`} className="text-foreground font-semibold hover:text-elismet-blue transition-colors">
+                        {founder.phone}
+                      </a>
                     </div>
                   </div>
                   
-                  <Button 
-                    className="bg-elismet-blue hover:bg-elismet-lightBlue text-white w-full group flex items-center justify-center gap-2"
-                    onClick={() => window.location.href = `mailto:${member.socials.email}`}
-                  >
-                    <Mail size={18} className="transition-transform group-hover:scale-110" />
-                    Connect with {member.name.split(' ')[0]}
-                  </Button>
+                  <div className="flex items-start gap-4 p-4 bg-slate-50 rounded-xl">
+                    <div className="p-3 bg-elismet-blue/10 rounded-lg">
+                      <Mail size={20} className="text-elismet-blue" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground font-medium">Email</p>
+                      <a href={`mailto:${founder.email}`} className="text-foreground font-semibold hover:text-elismet-blue transition-colors break-all">
+                        {founder.email}
+                      </a>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-4 p-4 bg-slate-50 rounded-xl md:col-span-2">
+                    <div className="p-3 bg-elismet-blue/10 rounded-lg">
+                      <MapPin size={20} className="text-elismet-blue" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground font-medium">Address</p>
+                      <p className="text-foreground font-semibold">{founder.address}</p>
+                    </div>
+                  </div>
                 </div>
+                
+                <div className="flex flex-wrap gap-4 mb-8">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-elismet-blue/5 rounded-full">
+                    <UsersRound size={18} className="text-elismet-blue" />
+                    <span className="text-sm text-muted-foreground font-medium">Leadership</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-4 py-2 bg-elismet-blue/5 rounded-full">
+                    <Book size={18} className="text-elismet-blue" />
+                    <span className="text-sm text-muted-foreground font-medium">Strategy</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-4 py-2 bg-elismet-blue/5 rounded-full">
+                    <Star size={18} className="text-elismet-blue" />
+                    <span className="text-sm text-muted-foreground font-medium">Innovation</span>
+                  </div>
+                </div>
+                
+                <Button 
+                  className="bg-elismet-blue hover:bg-elismet-lightBlue text-white w-full group flex items-center justify-center gap-2 h-12 text-lg"
+                  onClick={() => window.location.href = `mailto:${founder.email}`}
+                >
+                  <Mail size={20} className="transition-transform group-hover:scale-110" />
+                  Connect with {founder.name.split(' ')[1]}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Employees Section */}
+      <section className="py-20 bg-slate-50">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-12">
+            <AnimatedText
+              text="Our Employees"
+              className="text-3xl md:text-4xl font-bold gradient-text mb-4"
+              animation="slide-up"
+            />
+            <AnimatedText
+              text="The talented team members driving our success"
+              className="text-lg text-muted-foreground"
+              delay={0.1}
+              animation="fade-in"
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            {employees.map((employee, index) => (
+              <div 
+                key={employee.name}
+                className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 text-center animate-slide-in-left"
+                style={{ animationDelay: `${index * 0.15}s` }}
+              >
+                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-elismet-blue to-elismet-lightBlue flex items-center justify-center">
+                  <Briefcase size={32} className="text-white" />
+                </div>
+                <h4 className="text-xl font-bold text-foreground mb-2">{employee.name}</h4>
+                <p className="text-elismet-blue font-medium">{employee.role}</p>
               </div>
             ))}
           </div>
@@ -121,7 +183,7 @@ const Author = () => {
       </section>
 
       {/* Vision Section */}
-      <section className="py-20 bg-slate-50">
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="order-2 lg:order-1">
