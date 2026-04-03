@@ -29,11 +29,10 @@ const Navbar = () => {
   };
 
   const navLinks = [
-    { label: "Demo", path: "/demo" },
-    { label: "Solutions", path: "/custom-solution" },
     { label: "Schedule", path: "/schedule" },
     { label: "About", path: "/about" },
     { label: "Contact", path: "/contact-direct" },
+    { label: "Careers", path: "/apply" },
   ];
 
   return (
