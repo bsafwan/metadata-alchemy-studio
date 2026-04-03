@@ -123,16 +123,10 @@ const Navbar = () => {
               {link.label}
             </Link>
           ))}
-          {user ? (
+          {user && (
             <Link to="/dashboard" onClick={toggleMenu}>
               <Button className="bg-elismet-blue hover:bg-elismet-lightBlue text-white w-full mt-4">
                 Dashboard
-              </Button>
-            </Link>
-          ) : (
-            <Link to="/get-started" onClick={toggleMenu}>
-              <Button className="bg-elismet-blue hover:bg-elismet-lightBlue text-white w-full mt-4">
-                Get Started
               </Button>
             </Link>
           )}
