@@ -64,22 +64,13 @@ const Navbar = () => {
               {link.label}
             </Link>
           ))}
-          {user ? (
+          {user && (
             <Link to="/dashboard">
               <Button 
                 className="bg-elismet-blue hover:bg-elismet-lightBlue text-white animate-slide-down"
                 style={{ animationDelay: `${navLinks.length * 0.1}s` }}
               >
                 Dashboard
-              </Button>
-            </Link>
-          ) : (
-            <Link to="/get-started">
-              <Button 
-                className="bg-elismet-blue hover:bg-elismet-lightBlue text-white animate-slide-down"
-                style={{ animationDelay: `${navLinks.length * 0.1}s` }}
-              >
-                Get Started
               </Button>
             </Link>
           )}
