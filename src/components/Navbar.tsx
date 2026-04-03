@@ -29,11 +29,10 @@ const Navbar = () => {
   };
 
   const navLinks = [
-    { label: "Demo", path: "/demo" },
-    { label: "Solutions", path: "/custom-solution" },
     { label: "Schedule", path: "/schedule" },
     { label: "About", path: "/about" },
     { label: "Contact", path: "/contact-direct" },
+    { label: "Careers", path: "/apply" },
   ];
 
   return (
@@ -65,22 +64,13 @@ const Navbar = () => {
               {link.label}
             </Link>
           ))}
-          {user ? (
+          {user && (
             <Link to="/dashboard">
               <Button 
                 className="bg-elismet-blue hover:bg-elismet-lightBlue text-white animate-slide-down"
                 style={{ animationDelay: `${navLinks.length * 0.1}s` }}
               >
                 Dashboard
-              </Button>
-            </Link>
-          ) : (
-            <Link to="/get-started">
-              <Button 
-                className="bg-elismet-blue hover:bg-elismet-lightBlue text-white animate-slide-down"
-                style={{ animationDelay: `${navLinks.length * 0.1}s` }}
-              >
-                Get Started
               </Button>
             </Link>
           )}
@@ -133,16 +123,10 @@ const Navbar = () => {
               {link.label}
             </Link>
           ))}
-          {user ? (
+          {user && (
             <Link to="/dashboard" onClick={toggleMenu}>
               <Button className="bg-elismet-blue hover:bg-elismet-lightBlue text-white w-full mt-4">
                 Dashboard
-              </Button>
-            </Link>
-          ) : (
-            <Link to="/get-started" onClick={toggleMenu}>
-              <Button className="bg-elismet-blue hover:bg-elismet-lightBlue text-white w-full mt-4">
-                Get Started
               </Button>
             </Link>
           )}
