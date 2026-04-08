@@ -1,6 +1,5 @@
-
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { SmtpClient } from "https://deno.land/x/smtp@v0.7.0/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,62 +20,34 @@ interface EmailRequest {
   }>;
 }
 
-interface SMTPConfig {
-  host: string;
-  port: number;
-  secure: boolean;
-  auth: {
-    user: string;
-    pass: string;
-  };
-}
+const sendEmail = async (emailData: EmailRequest): Promise<void> => {
+  const user = Deno.env.get('ZOHO_EMAIL') || '';
+  const pass = Deno.env.get('ZOHO_PASSWORD') || '';
 
-const getZohoConfig = (): SMTPConfig => ({
-  host: 'smtp.zoho.com',
-  port: 587,
-  secure: false, // Use TLS
-  auth: {
-    user: Deno.env.get('ZOHO_EMAIL') || '',
-    pass: Deno.env.get('ZOHO_PASSWORD') || '',
-  },
-});
-
-const sendEmail = async (emailData: EmailRequest): Promise<any> => {
-  const config = getZohoConfig();
-  
-  if (!config.auth.user || !config.auth.pass) {
+  if (!user || !pass) {
     throw new Error('Zoho credentials not configured');
   }
 
-  // Create SMTP connection using nodemailer-like API
-  const nodemailer = await import('npm:nodemailer@6.9.7');
-  
-  const transporter = nodemailer.createTransport({
-    host: config.host,
-    port: config.port,
-    secure: config.secure,
-    auth: config.auth,
-    tls: {
-      rejectUnauthorized: false
-    }
+  const client = new SmtpClient();
+
+  await client.connectTLS({
+    hostname: 'smtp.zoho.com',
+    port: 465,
+    username: user,
+    password: pass,
   });
 
-  const mailOptions = {
-    from: config.auth.user,
+  await client.send({
+    from: user,
     to: emailData.to.join(', '),
     cc: emailData.cc?.join(', '),
     bcc: emailData.bcc?.join(', '),
     subject: emailData.subject,
-    html: emailData.html,
-    text: emailData.text,
-    attachments: emailData.attachments?.map(att => ({
-      filename: att.filename,
-      content: att.content,
-      contentType: att.contentType
-    }))
-  };
+    content: emailData.text || '',
+    html: emailData.html || '',
+  });
 
-  return await transporter.sendMail(mailOptions);
+  await client.close();
 };
 
 serve(async (req) => {
@@ -86,37 +57,25 @@ serve(async (req) => {
 
   try {
     const emailRequest: EmailRequest = await req.json();
-    
+
     console.log('Sending email via Zoho:', {
       to: emailRequest.to,
       subject: emailRequest.subject
     });
 
-    const result = await sendEmail(emailRequest);
-    
-    console.log('Email sent successfully:', result.messageId);
+    await sendEmail(emailRequest);
+
+    console.log('Email sent successfully');
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        messageId: result.messageId,
-        message: 'Email sent successfully' 
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      JSON.stringify({ success: true, message: 'Email sent successfully' }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
     console.error('Error sending email:', error);
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message 
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      JSON.stringify({ success: false, error: error.message }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
